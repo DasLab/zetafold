@@ -11,11 +11,7 @@ Kd_lig = 1.0e-5 # drops out in final answer if connections/cutpoints are predefi
 min_loop_length = 1
 
 def initialize_zero_matrix( N ):
-    X = []
-    for i in range( N ):
-        X.append( [] )
-        for j in range( N ): X[i].append( 0.0 )
-    return X
+    return [[0.0 for _ in range(N)] for _ in range(N)]
 
 def output_DP( tag, X, X_final = []):
     N = len( X )
