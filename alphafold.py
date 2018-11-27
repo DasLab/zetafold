@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import argparse
 from alphafold.partition import *
-from tests_alphafold import test_alphafold
+from tests_alphafold import call_all_tests 
 
 if __name__ =='__main__':
 
@@ -24,4 +24,4 @@ if __name__ =='__main__':
     if args.sequences != None: # run tests
         p = partition( args.sequences, circle = args.circle, params = args.parameters, verbose = args.verbose, mfe = args.mfe, calc_deriv = args.calc_deriv, calc_bpp = args.bpp, n_stochastic = int(args.stochastic), do_enumeration = args.enumerate, structure = args.structure, force_base_pairs = args.force_base_pairs, no_coax = args.no_coax, use_simple_recursions = args.simple )
     else:
-        test_alphafold( verbose = args.verbose, use_simple_recursions = args.simple )
+        call_all_tests( verbose = args.verbose, use_simple_recursions = args.simple )

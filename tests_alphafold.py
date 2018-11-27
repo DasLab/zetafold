@@ -9,7 +9,7 @@ from alphafold.parameters import get_minimal_params
 from alphafold.util.output_util import *
 from alphafold.score_structure import score_structure
 
-def test_alphafold( verbose = False, use_simple_recursions = False ):
+def test_seq_partition( verbose = False, use_simple_recursions = False ):
     test_params = get_minimal_params()
     (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
     Kd = test_params.base_pair_types[0].Kd
@@ -20,10 +20,22 @@ def test_alphafold( verbose = False, use_simple_recursions = False ):
     output_test( p.Z, C_init  * (l**7) * (1 + (C_init * l_BP**2) / Kd ) / C_std, \
                  p.bpp, [0,4], (C_init * l_BP**2/ Kd) / ( 1 + C_init * l_BP**2/ Kd) )
 
+def test_seq_partition_given_structure( verbose = False, use_simple_recursions = False ):
+    test_params = get_minimal_params()
+    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    Kd = test_params.base_pair_types[0].Kd
+
+    # test of sequences where we know the final partition function.
+    sequence = 'CNNNGNN'
     structure= '(...)..'
     p = partition( sequence, circle = True, params = test_params, calc_deriv = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions, structure = structure )
     output_test( p.Z, C_init  * (l**7) * (C_init * l_BP**2) / Kd / C_std, \
                  p.bpp, [0,4], 1.0 )
+
+def test_seq_partition_mfe( verbose = False, use_simple_recursions = False ):
+    test_params = get_minimal_params()
+    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    Kd = test_params.base_pair_types[0].Kd
 
     sequence = 'CNG'
     p = partition( sequence, params = test_params, calc_deriv = True, mfe = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
@@ -31,15 +43,30 @@ def test_alphafold( verbose = False, use_simple_recursions = False ):
     output_test( p.Z, 1 + C_init * l**2 * l_BP/ Kd, \
                  p.bpp, [0,2], (C_init * l**2 * l_BP/Kd)/( 1 + C_init * l**2 * l_BP/Kd ) )
 
+def test_bifold( verbose = False, use_simple_recursions = False ):
+    test_params = get_minimal_params()
+    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    Kd = test_params.base_pair_types[0].Kd
+
     sequences = ['C','G']
     p = partition( sequences, params = test_params, calc_deriv = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions ) # note that Z sums over only base pair (not dissociated strands!)
     output_test( p.Z, C_std/ Kd, \
                  p.bpp, [0,1], 1.0 )
 
+def test_bifold_stack( verbose = False, use_simple_recursions = False ):
+    test_params = get_minimal_params()
+    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    Kd = test_params.base_pair_types[0].Kd
+
     sequences = ['GC','GC']
     p = partition( sequences, params = test_params, calc_deriv = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     output_test( p.Z, (C_std/Kd)*(2 + l**2 * l_BP**2 *C_init/Kd + C_eff_stacked_pair/Kd ), \
                  p.bpp, [0,3], (1 + l**2 * l_BP**2 * C_init/Kd + C_eff_stacked_pair/Kd )/(2 + l**2 * l_BP**2 *C_init/Kd + C_eff_stacked_pair/Kd ) )
+
+def test_nonuniform_stack( verbose = False, use_simple_recursions = False ):
+    test_params = get_minimal_params()
+    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    Kd = test_params.base_pair_types[0].Kd
 
     # silly test -- what if C_eff_stacked_pair is not uniform
     sequences = ['Ga','aC']
@@ -52,15 +79,31 @@ def test_alphafold( verbose = False, use_simple_recursions = False ):
     output_test( p.Z, (C_std/Kd)*(2 + l**2 * l_BP**2 *C_init/Kd + cross_C_eff_stacked_pair/Kd ), \
                  p.bpp, [0,3], (1 + l**2 * l_BP**2 * C_init/Kd + cross_C_eff_stacked_pair/Kd )/(2 + l**2 * l_BP**2 *C_init/Kd + cross_C_eff_stacked_pair/Kd ) )
 
+def test_CNGGC( verbose = False, use_simple_recursions = False ):
+    test_params = get_minimal_params()
+    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    Kd = test_params.base_pair_types[0].Kd
+
     sequence = 'CNGGC'
     p = partition( sequence, params = test_params, calc_deriv = True, calc_bpp = True, verbose = verbose,  use_simple_recursions = use_simple_recursions )
     output_test( p.Z, 1 + C_init * l**2 *l_BP/Kd * ( 2 + l ), \
                  p.bpp, [0,2], C_init*l**2*l_BP/Kd /(  1+C_init*l**2*l_BP/Kd * ( 2 + l )) )
 
+def test_CNGGC_given_structure( verbose = False, use_simple_recursions = False ):
+    test_params = get_minimal_params()
+    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    Kd = test_params.base_pair_types[0].Kd
+
+    sequence = 'CNGGC'
     structure= '(..).'
     p = partition( sequence, params = test_params, structure = structure, calc_deriv = True, calc_bpp = True, verbose = verbose,  use_simple_recursions = use_simple_recursions )
     output_test( p.Z,  C_init * l**2 *l_BP/Kd * l, \
                  p.bpp, [0,2], 0.0 )
+
+def test_CGNCG( verbose = False, use_simple_recursions = False ):
+    test_params = get_minimal_params()
+    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    Kd = test_params.base_pair_types[0].Kd
 
     sequence = 'CGNCG'
     p = partition( sequence, params = test_params, calc_deriv = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
@@ -70,9 +113,16 @@ def test_alphafold( verbose = False, use_simple_recursions = False ):
                  C_init * l_BP * l**2 * C_eff_stacked_pair/Kd /Kd , \
                  p.bpp, [0,4], ( C_init*l**4*l_BP/Kd  + C_init**2 * (l_BP**3) * l**4 /Kd /Kd  + C_init * l_BP * l**2 * C_eff_stacked_pair/Kd /Kd) / ( 1 + C_init*l**2*l_BP/Kd + C_init*l**4*l_BP/Kd  + C_init**2 * (l_BP**3) * l**4 /Kd /Kd + C_init * l_BP * l**2 * C_eff_stacked_pair/Kd /Kd )  )
 
+def test_numeric_analytic_deriv( verbose = False, use_simple_recursions = False ):
+    test_params = get_minimal_params()
+    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    Kd = test_params.base_pair_types[0].Kd
+
     #################################################
     # let's do a numerical vs. analytic deriv test
     #################################################
+    sequence = 'CGNCG'
+    p = partition( sequence, params = test_params, calc_deriv = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     params_perturb = get_minimal_params()
     delta = 1.0e-10
     for base_pair_type in params_perturb.base_pair_types: base_pair_type.Kd += delta
@@ -82,13 +132,25 @@ def test_alphafold( verbose = False, use_simple_recursions = False ):
     assert( abs( dZ_numerical - p.dZ )/ abs( p.dZ ) < 1.0e-5 )
     print()
 
+def test_enumeration( verbose = False, use_simple_recursions = False ):
+    test_params = get_minimal_params()
+    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    Kd = test_params.base_pair_types[0].Kd
+
     sequence = 'CNGCNG'
     p = partition( sequence, params = test_params, calc_deriv = True, calc_bpp = True, do_enumeration = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     output_test( p.Z, (1 + C_init * l**2 *l_BP/Kd)**2  + C_init * l**5 * l_BP/Kd + (C_init * l**2 *l_BP/Kd)**2 * K_coax, \
                  p.bpp, [0,2], (C_init * l**2 *l_BP/Kd*(1 + C_init * l**2 *l_BP/Kd) + (C_init * l**2 *l_BP/Kd)**2 * K_coax)/((1 + C_init * l**2 *l_BP/Kd)**2  + C_init * l**5 * l_BP/Kd + (C_init * l**2 *l_BP/Kd)**2 * K_coax) )
     assert( set(p.struct_enumerate) == set(['......', '(.)...', '(....)', '...(.)', '(.)(.)']) )
 
+def test_structure_constrained_scores( verbose = False, use_simple_recursions = False ):
+    test_params = get_minimal_params()
+    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    Kd = test_params.base_pair_types[0].Kd
+
     # stringent test of structure-constrained scores.
+    sequence = 'CNGCNG'
+    p = partition( sequence, params = test_params, calc_deriv = True, calc_bpp = True, do_enumeration = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_tot_ref = p.Z
     Z_enumerate = []
     structures = ['......', '(.)...', '(....)', '...(.)', '(.)(.)']
@@ -103,6 +165,11 @@ def test_alphafold( verbose = False, use_simple_recursions = False ):
         Z_enumerate.append( p.Z )
     assert( abs( sum(Z_enumerate) - Z_tot_ref )/Z_tot_ref < 1.0e-6 )
 
+def test_test_extended_alphabet_stacking_strained_3WJ( verbose = False, use_simple_recursions = False ):
+    test_params = get_minimal_params()
+    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    Kd = test_params.base_pair_types[0].Kd
+
     # testing extended alphabet & coaxial stacks
     sequence = ['xy','yz','zx']
     params_allow_strained_3WJ = get_minimal_params()
@@ -116,6 +183,11 @@ def test_alphafold( verbose = False, use_simple_recursions = False ):
                 3*(C_std/Kd)**2 * (C_init/Kd) * K_coax * l_coax*l**2 * l_BP ) / Z_ref
     output_test( p.Z, Z_ref, p.bpp, [1,2], bpp_ref  )
 
+def test_extended_alphabet_stacking_no_strained_3WJ( verbose = False, use_simple_recursions = False ):
+    test_params = get_minimal_params()
+    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    Kd = test_params.base_pair_types[0].Kd
+
     # testing extended alphabet & coaxial stacks
     sequence = ['xy','yz','zx']
     p = partition( sequence, params = test_params, calc_deriv = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
@@ -125,12 +197,19 @@ def test_alphafold( verbose = False, use_simple_recursions = False ):
                 (C_std/Kd)**2 * (C_init/Kd) * l**3 * l_BP**3 ) / Z_ref
     output_test( p.Z, Z_ref, p.bpp, [1,2], bpp_ref  )
 
+def test_no_Z_final_bug( verbose = False, use_simple_recursions = False ):
+    test_params = get_minimal_params()
+    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    Kd = test_params.base_pair_types[0].Kd
+
     # test that caught a bug in Z_final
     sequence = 'NyNyxNx'
     p = partition( sequence, params = test_params, calc_deriv = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = (1 + C_init * l**2 *l_BP/Kd)**2  +(C_init * l**2 *l_BP/Kd)**2 * K_coax
     bpp_ref = ( C_init * l**2 *l_BP/Kd * (1 + C_init * l**2 *l_BP/Kd)  + (C_init * l**2 *l_BP/Kd)**2 * K_coax ) / Z_ref
     output_test( p.Z, Z_ref, p.bpp, [1,3], bpp_ref  )
+
+def test_secstruct( verbose = False, use_simple_recursions = False ):
 
     # test secstruct
     assert( secstruct( [(0,5),(1,4)],7 ) == '((..)).' )
@@ -139,6 +218,11 @@ def test_alphafold( verbose = False, use_simple_recursions = False ):
     assert( parse_motifs( '(((.)(.))).'  ) == [[[0, 1], [8, 9]], [[1, 2], [4, 5], [7, 8]], [[2, 3, 4]], [[5, 6, 7]], [[9, 10, 0]]] )
     assert( parse_motifs( '.(((.)(.)))'  ) == [[[1, 2], [9, 10]], [[2, 3], [5, 6], [8, 9]], [[3, 4, 5]], [[6, 7, 8]], [[10, 0, 1]]] )
     assert( parse_motifs( '(((.)(.)))'   ) == [[[0, 1], [8, 9]], [[1, 2], [4, 5], [7, 8]], [[2, 3, 4]], [[5, 6, 7]], [[9, 0]]] )
+
+def test_score_structure( verbose = False, use_simple_recursions = False ):
+    test_params = get_minimal_params()
+    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    Kd = test_params.base_pair_types[0].Kd
 
     # score_structure
     sequence = 'GCUCAGUUGGGAGAGC'
@@ -155,10 +239,17 @@ def test_alphafold( verbose = False, use_simple_recursions = False ):
     print("Check also double-sequence and double structure get 2*Z", dG_new, 2*dG)
     assert( abs(dG_new - 2*dG)/dG_new < 1.0e-5 )
 
+def call_all_tests( verbose = False, use_simple_recursions = False ):
+    import inspect
+    import sys
+    testfunctions = [obj for name,obj in inspect.getmembers(sys.modules[__name__]) if inspect.isfunction(obj) and name.startswith('test_')]
+    
+    return any(f(verbose, use_simple_recursions) for f in testfunctions)
+
 if __name__=='__main__':
     parser = argparse.ArgumentParser( description = "Test nearest neighbor model partitition function for RNA sequence" )
     parser.add_argument("-v","--verbose", action='store_true', default=False, help='output dynamic programming matrices')
     parser.add_argument("--simple", action='store_true', default=False, help='Use simple recursions (fast!)')
     args     = parser.parse_args()
-    test_alphafold( verbose = args.verbose, use_simple_recursions = args.simple )
+    call_all_tests( verbose = args.verbose, use_simple_recursions = args.simple )
 
