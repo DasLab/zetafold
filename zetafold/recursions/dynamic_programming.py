@@ -1,4 +1,4 @@
-from alphafold.util.wrapped_array import WrappedArray
+from zetafold.util.wrapped_array import WrappedArray
 
 class DynamicProgrammingMatrix:
     '''

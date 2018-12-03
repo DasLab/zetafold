@@ -4,7 +4,7 @@ import sys
 import os
 from copy import deepcopy
 sys.path.append(os.path.join(os.getcwd(), '..'))
-from alphafold.partition import DynamicProgrammingData as DP
+from zetafold.partition import DynamicProgrammingData as DP
 
 def getval( DP, idx ):
     return DP.X[ idx ][ idx ]

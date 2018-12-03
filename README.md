@@ -1,4 +1,4 @@
-# AlphaFold
+# ZetaFold
 (C) R. Das, Stanford University 2018
 
 ## What this is
@@ -9,7 +9,7 @@ Goals:
  * Code with numerous tests built in so that extensions are _correct_
  * A package that can learn from the huge data sets our lab is collecting.
 
-A separate C++ package `alphafoldplus` with the same functionality and matching python bindings and likely up to 100x the speed is being developed separately in a [private repository](https://github.com/rhiju/alphafoldplus).
+A separate C++ package `zetafoldplus` with the same functionality and matching python bindings and likely up to 100x the speed is being developed separately in a [private repository](https://github.com/rhiju/zetafoldplus).
 
 ## Features 
 This code brings together features pioneered in (but scattered across) prior packages:
@@ -44,29 +44,29 @@ This code is being released with the MIT license. So you can distribute it with 
 ## Getting started
 Clone this repository, and just type:
 ```
-./alphafold.py
+./zetafold.py
 ```
 to run tests on a bunch of example sequences.
 
 To run on tRNA(phe) from yeast:
 ```
-./alphafold.py -s GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA
+./zetafold.py -s GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA
 ```
 
 To circularize:
 
 ``` 
-./alphafold.py -s GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA --circle
+./zetafold.py -s GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA --circle
 ```
 
 To run on a multi-strand system, type:
 ```
-./alphafold.py -s GCAACG CGAAGC
+./zetafold.py -s GCAACG CGAAGC
 ```
 
 To re-run tRNA in a totally weird way:
 ```
-./alphafold.py -s UGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGAC --circle
+./zetafold.py -s UGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGAC --circle
 ```
 Should get the same answer as above linear case!
 

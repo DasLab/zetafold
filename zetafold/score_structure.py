@@ -3,8 +3,8 @@ from __future__ import print_function
 import argparse
 from .partition import partition
 from .parameters import get_params
-from alphafold.util import sequence_util
-from alphafold.util import secstruct_util
+from zetafold.util import sequence_util
+from zetafold.util import secstruct_util
 #from .util.sequence_util import sequence_util
 #from .util.secstruct_util import secstruct_util
 from .util.constants import KT_IN_KCAL

@@ -3,13 +3,13 @@ from __future__ import print_function
 
 import argparse
 
-#from alphafold.output_helpers import *
-from alphafold.partition import *
-from alphafold.parameters import get_minimal_params
-from alphafold.util.output_util import *
-from alphafold.score_structure import score_structure
+#from zetafold.output_helpers import *
+from zetafold.partition import *
+from zetafold.parameters import get_minimal_params
+from zetafold.util.output_util import *
+from zetafold.score_structure import score_structure
 
-def test_alphafold( verbose = False, use_simple_recursions = False ):
+def test_zetafold( verbose = False, use_simple_recursions = False ):
     test_params = get_minimal_params()
     (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
     Kd = test_params.base_pair_types[0].Kd
@@ -189,5 +189,5 @@ if __name__=='__main__':
     parser.add_argument("-v","--verbose", action='store_true', default=False, help='output dynamic programming matrices')
     parser.add_argument("--simple", action='store_true', default=False, help='Use simple recursions (fast!)')
     args     = parser.parse_args()
-    test_alphafold( verbose = args.verbose, use_simple_recursions = args.simple )
+    test_zetafold( verbose = args.verbose, use_simple_recursions = args.simple )
 

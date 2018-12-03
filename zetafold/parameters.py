@@ -94,8 +94,8 @@ def get_minimal_params():
     return params
 
 def get_params_v0_171( params ):
-    # Starting to make use of train_alphafold.py on tRNA and P4-P6.
-    params.name     = 'alphafold'
+    # Starting to make use of train_zetafold.py on tRNA and P4-P6.
+    params.name     = 'zetafold'
     params.version  = '0.171'
 
     params.min_loop_length = 3
@@ -155,8 +155,8 @@ def get_params_v0_171( params ):
 
 #######################################
 def get_params_v0_17( params ):
-    # Starting to make use of train_alphafold.py on tRNA and P4-P6.
-    params.name     = 'alphafold'
+    # Starting to make use of train_zetafold.py on tRNA and P4-P6.
+    params.name     = 'zetafold'
     params.version  = '0.17'
 
     params.min_loop_length = 3
@@ -215,8 +215,8 @@ def get_params_v0_17( params ):
     return params
 
 def get_params_v0_16( params ):
-    # Starting to make use of train_alphafold.py on tRNA and P4-P6.
-    params.name     = 'alphafold'
+    # Starting to make use of train_zetafold.py on tRNA and P4-P6.
+    params.name     = 'zetafold'
     params.version  = '0.16'
 
     params.min_loop_length = 3
@@ -265,8 +265,8 @@ def get_params_v0_16( params ):
 
 # Parameters developed before extensive optimization
 def get_params_v0_15( params ):
-    # Starting to make use of train_alphafold.py on P4-P6.
-    params.name     = 'alphafold'
+    # Starting to make use of train_zetafold.py on P4-P6.
+    params.name     = 'zetafold'
     params.version  = '0.15'
 
     params.min_loop_length = 3
@@ -318,7 +318,7 @@ def get_params_v0_15( params ):
     return params
 
 def get_params_v0_1( params ):
-    params.name     = 'alphafold'
+    params.name     = 'zetafold'
     params.version  = '0.1'
 
     params.min_loop_length = 3
