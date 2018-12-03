@@ -104,7 +104,7 @@ class DynamicProgrammingData:
 
     def __iadd__(self, other):
         self.Q  += other.Q
-        if self.options and self.options.calc_deriv:
+        if self.options and self.options.calc_deriv_DP:
             self.dQ += other.dQ
         if self.options and self.options.calc_contrib:
             if len( other.info ) > 0: self.contribs.append( [other.Q, other.info] )
@@ -116,7 +116,7 @@ class DynamicProgrammingData:
         if not prod.options: prod.options = other.options
         if isinstance( other, DynamicProgrammingData ):
             prod.Q  = self.Q * other.Q
-            if self.options and self.options.calc_deriv:
+            if self.options and self.options.calc_deriv_DP:
                 prod.dQ = self.Q * other.dQ + self.dQ * other.Q
             if self.options and self.options.calc_contrib:
                 info = self.info + other.info
@@ -125,7 +125,7 @@ class DynamicProgrammingData:
                     prod.info = info
         else:
             prod.Q  = self.Q * other
-            if self.options and self.options.calc_deriv:
+            if self.options and self.options.calc_deriv_DP:
                 prod.dQ = self.dQ * other
             if self.options and self.options.calc_contrib:
                 for contrib in self.contribs:

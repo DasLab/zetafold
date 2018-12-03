@@ -14,7 +14,7 @@ from math import log
 def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = False,
                n_stochastic = 0, do_enumeration = False, structure = None, force_base_pairs = None, no_coax = False,
                verbose = False,  suppress_all_output = False,
-               calc_deriv = False, use_simple_recursions = False  ):
+               calc_Kd_deriv_DP = False, use_simple_recursions = False  ):
     '''
     Wrapper function into Partition() class
     Returns Partition object p which holds results like:
@@ -23,15 +23,16 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
       p.bpp = matrix of base pair probabilities (if requested by user with calc_bpp = True)
       p.struct_MFE = minimum free energy secondary structure in dot-parens notation
       p.bps_MFE  = minimum free energy secondary structure as sorted list of base pairs
-      p.dZ  = derivative of Z w.r.t. Kd (will later generalize) (if requested by user with calc_deriv = True)
+      p.dZ_dKd_DP = derivative of Z w.r.t. Kd computed in-line with dynamic programming (if requested by user with calc_Kd_deriv_DP = True)
 
     '''
     if isinstance(params,str): params = get_params( params, suppress_all_output )
     if no_coax:                params.K_coax = 0.0
 
-    p = Partition( sequences, params, calc_deriv, calc_all_elements = calc_bpp )
+    p = Partition( sequences, params, calc_all_elements = calc_bpp )
     p.use_simple_recursions = use_simple_recursions
     p.circle    = circle
+    p.options.calc_deriv_DP = calc_Kd_deriv_DP
     p.structure = get_structure_string( structure )
     p.force_base_pairs = get_structure_string( force_base_pairs )
     p.suppress_all_output = suppress_all_output
@@ -50,11 +51,9 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
 class Partition:
     '''
     Statistical mechanical model for RNA folding, testing a bunch of extensions and with lots of cross-checks.
-    TODO: complete expressions for derivatives (only doing derivatives w.r.t. Kd right now)
-    TODO: replace dynamic programming matrices with a class that auto-updates derivatives, caches each contribution for backtracking, and automatically does the modulo N wrapping
     (C) R. Das, Stanford University, 2018
     '''
-    def __init__( self, sequences, params, calc_deriv = False, calc_all_elements = False ):
+    def __init__( self, sequences, params, calc_all_elements = False ):
         '''
         Required user input.
         sequences = string with sequence, or array of strings (sequences of interacting strands)
@@ -63,7 +62,6 @@ class Partition:
         self.sequences = sequences
         self.params = params
         self.circle = False  # user can update later --> circularize sequence
-        self.options = PartitionOptions( calc_deriv = calc_deriv )
         self.use_simple_recursions = False
         self.calc_all_elements     = calc_all_elements
         self.calc_bpp = False
@@ -71,6 +69,7 @@ class Partition:
         self.suppress_all_output = False
         self.structure = None
         self.force_base_pairs = None
+        self.options = PartitionOptions()
 
         # for output:
         self.Z       = 0
@@ -102,7 +101,7 @@ class Partition:
 
         self.Z  = self.Z_final.val(0)
         if self.Z > 0.0: self.dG = -KT_IN_KCAL * log( self.Z )
-        self.dZ = self.Z_final.deriv(0)
+        self.dZ_dKd_DP = self.Z_final.deriv(0)
 
     # boring member functions -- defined later.
     def get_bpp_matrix( self ): _get_bpp_matrix( self ) # fill base pair probability matrix
@@ -136,9 +135,9 @@ def initialize_sequence_information( self ):
 
 ##################################################################################################
 class PartitionOptions:
-    def __init__( self, calc_deriv = False ):
-        self.calc_deriv   = calc_deriv
-        self.calc_contrib = False
+    def __init__( self ):
+        self.calc_deriv_DP = False
+        self.calc_contrib  = False
 
 ##################################################################################################
 def initialize_dynamic_programming_matrices( self ):
@@ -325,12 +324,12 @@ def _run_cross_checks( self ):
         for i in range( self.N ):
             assert( abs( ( self.Z_final.val(i) - self.Z_final.val(0) ) / self.Z_final.val(0) ) < 1.0e-5 )
 
-    if self.calc_all_elements and self.options.calc_deriv and self.Z_final.deriv(0) > 0:
+    if self.calc_all_elements and self.options.calc_deriv_DP and self.Z_final.deriv(0) > 0:
         for i in range( self.N ):
             assert( self.Z_final.deriv(0) == 0 or  abs( ( self.Z_final.deriv(i) - self.Z_final.deriv(0) ) / self.Z_final.deriv(0) ) < 1.0e-5 )
 
     # calculate bpp_tot = -dlog Z_final /dlog Kd in two ways! wow cool test
-    if self.options.calc_deriv and len(self.bpp)>0:
+    if self.options.calc_deriv_DP and len(self.bpp)>0:
         bpp_tot = 0.0
         for i in range( self.N ):
             for j in range( self.N ):

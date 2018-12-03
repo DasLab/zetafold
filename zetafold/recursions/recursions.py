@@ -118,7 +118,7 @@ def update_Z_BPq( self, i, j, base_pair_type ):
             for k in range( i, i+offset-1 ): Z_BPq[i][j] += Z_cut[i][k] * Z_BP[k][j-1] * C_std * K_coax / Kdq
 
     # key 'special sauce' for derivative w.r.t. Kd
-    if self.options.calc_deriv: Z_BPq[i][j].dQ += -(1.0/Kdq) * Z_BPq[i][j].Q
+    if self.options.calc_deriv_DP: Z_BPq[i][j].dQ += -(1.0/Kdq) * Z_BPq[i][j].Q
 
 ##################################################################################################
 def update_Z_BP( self, i, j ):
