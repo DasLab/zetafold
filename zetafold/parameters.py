@@ -2,7 +2,9 @@ from __future__ import print_function
 import math
 from .base_pair_types import BasePairType, setup_base_pair_type, get_base_pair_types_for_tag, get_base_pair_type_for_tag
 from .util.constants import KT_IN_KCAL
+import glob
 import os.path
+
 
 class AlphaFoldParams:
     '''
@@ -21,20 +23,12 @@ class AlphaFoldParams:
 def get_params( params = None, suppress_all_output = False ):
     params_object = None
     if isinstance(params,AlphaFoldParams): return params
-    elif params == None or params =='': params_object = get_latest_params()
-    elif params == 'minimal': params_object = get_params_from_file( 'minimal' )
-    elif params == 'v0.1':    params_object = get_params_from_file( 'zetafold_v0.1' )
-    elif params == 'v0.15':   params_object = get_params_from_file( 'zetafold_v0.15' )
-    elif params == 'v0.16':   params_object = get_params_from_file( 'zetafold_v0.16' )
-    elif params == 'v0.17':   params_object = get_params_from_file( 'zetafold_v0.17' )
-    elif params == 'v0.171':  params_object = get_params_from_file( 'zetafold_v0.171' )
-    else: print('unrecognized params requested: ', params)
+    elif params == None or params =='':    params_object = get_latest_params()
+    else:
+        assert( isinstance( params, str ) )
+        params_object = get_params_from_file( params )
     if not suppress_all_output: print('Parameters: ', params_object.name, ' version', params_object.version)
     return params_object
-
-def get_latest_params():
-    # TODO check all params files and pick latest version
-    return get_params_from_file( 'zetafold_v0.171' )
 
 def update_C_eff_stack( params, val = None ):
     if not hasattr( params, 'C_eff_stack' ): params.C_eff_stack = {}
@@ -103,7 +97,28 @@ def read_params_fields( params_file ):
 
 def get_params_from_file( params_file_tag ):
     params = AlphaFoldParams()
-    params_file = os.path.dirname( os.path.abspath(__file__) ) + '/parameters/'+params_file_tag +'.params'
+    params_file = params_file_tag
+    if not os.path.exists( params_file ): params_file = os.path.dirname( os.path.abspath(__file__) ) + '/parameters/'+params_file_tag +'.params'
+    if not os.path.exists( params_file ): params_file = os.path.dirname( os.path.abspath(__file__) ) + '/parameters/zetafold_'+params_file_tag +'.params'
+    if not os.path.exists( params_file ):
+        print()
+        print( 'Could not find requested parameters:', params_file_tag )
+        print( 'Options are: ' )
+        for params_file in get_all_params_files(): print('  ',params_file)
+        print()
+        return None
     params_fields = read_params_fields( params_file );
     for param_tag,param_val in params_fields:  set_parameter( params, param_tag, param_val )
     return params
+
+def get_latest_params():
+    params_dir =  os.path.dirname( os.path.abspath(__file__) ) + '/parameters/'
+    params_files = glob.glob( params_dir+'zetafold*.params' )
+    params_files.sort()
+    return get_params_from_file( params_files[-1] )
+
+def get_all_params_files():
+    params_dir =  os.path.dirname( os.path.abspath(__file__) ) + '/parameters/'
+    params_files = glob.glob( params_dir+'*.params' )
+    params_files.sort()
+    return [ os.path.basename(x).replace('.params','') for x in params_files ]

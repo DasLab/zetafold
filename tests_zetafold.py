@@ -10,7 +10,12 @@ from zetafold.parameters import get_params_from_file
 from zetafold.score_structure import score_structure
 
 def test_zetafold( verbose = False, use_simple_recursions = False ):
+
+    print( 'Check graceful response when requesting non-existent parameter file...' )
+    assert( get_params_from_file( 'blah' ) == None ) # should not exist
+
     test_params = get_params_from_file( 'minimal' )
+    assert( test_params )
     (C_init, l, l_BP, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
     Kd = test_params.base_pair_types[0].Kd
     C_eff_stacked_pair = test_params.C_eff_stack[ test_params.base_pair_types[0] ][ test_params.base_pair_types[0] ]
