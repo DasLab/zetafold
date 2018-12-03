@@ -1,5 +1,5 @@
 name     zetafold
-version  0.15
+version  0.16
 
 # global settings
 # Disallow apical loops smaller than this size (integer)
@@ -9,8 +9,8 @@ allow_strained_3WJ False
 
 # following sets up base pairs. Kd are in M.
 Kd_CG              762.071797551315  # 1.0 * math.exp( dG_init/ KT_IN_KCAL), with dG_init = +4.09 (Turner 1999, kcal/mol)
-Kd_AU              255455.56614259817
-Kd_GU              3857.643586142963
+Kd_AU              100000
+Kd_GU              100000
 
 # Effective molarity for starting each loop (units of M)
 C_init             35.509535390803364 # Radically higher than v0.1 -- that was previously miscomputed actually from optical measurements.
@@ -19,7 +19,7 @@ l                  1.0     # math.exp( dG_multiloop_unpaired / KT_IN_KCAL ), wit
 # Effective molarity penalty for each base pair in loop (dimensionless)
 l_BP               1.913629197723873  # math.exp( dG_multiloop_stems/KT_IN_KCAL ) / params.l, with dG_multiloop_stems = 0.40 # in kcal/mol
 # Effective molarity for forming stacked pair (units of M)
-C_eff_stacked_pair 161184.266309 # math.exp( -dG_CG_CG / KT_IN_KCAL ) * Kd_CG, with dG_CG_CG = -3.30, as in Turner 1999 5'-CC-3'/5'-GG-3', kcal/mol
+C_eff_stacked_pair 266072.50597988087 # refit
 
 # coax bonus for contiguous helices (dimensionless). Set to 0 to turn off coax (dimensionless)
 K_coax             0.0 # turn off coax!?
