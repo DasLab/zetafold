@@ -39,7 +39,7 @@ def _get_log_derivs( self, parameters ):
                 derivs[ n ] = - get_bpp_tot( self )
             else:
                 Kd_tag = parameter[3:]
-                derivs[ n ] = - get_bpp_tot_for_base_pair_type( self, get_base_pair_type_for_tag( self, Kd_tag ) )
+                derivs[ n ] = - get_bpp_tot_for_base_pair_type( self, get_base_pair_type_for_tag( self.params, Kd_tag ) )
         elif len(parameter)>=11 and parameter[:11] == 'C_eff_stack':
             # Derivatives with respect to motifs (stacked pairs first)
             if parameter == 'C_eff_stacked_pair':
@@ -54,7 +54,7 @@ def _get_log_derivs( self, parameters ):
                 assert( len(parameter) > 11 )
                 tags = parameter[12:].split('_')
                 assert( len( tags ) == 2 )
-                derivs[ n ] = get_motif_prob( self, get_base_pair_type_for_tag( self, tags[0] ), get_base_pair_type_for_tag( self, tags[1] ) )
+                derivs[ n ] = get_motif_prob( self, get_base_pair_type_for_tag( self.params, tags[0] ), get_base_pair_type_for_tag( self.params, tags[1] ) )
         elif parameter == 'K_coax':
             coax_prob = 0.0
             C_eff_for_coax = self.C_eff if self.params.allow_strained_3WJ else self.C_eff_no_BP_singlet
