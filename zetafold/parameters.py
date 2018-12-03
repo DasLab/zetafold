@@ -2,7 +2,6 @@ from __future__ import print_function
 import math
 from .base_pair_types import BasePairType, setup_base_pair_type, get_base_pair_types_for_tag, get_base_pair_type_for_tag
 from .util.constants import KT_IN_KCAL
-from .old_parameters import *
 import os.path
 
 class AlphaFoldParams:
