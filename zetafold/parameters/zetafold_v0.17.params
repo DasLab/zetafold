@@ -1,5 +1,5 @@
 name     zetafold
-version  0.171
+version  0.17
 
 # global settings
 # Disallow apical loops smaller than this size (integer)
@@ -8,26 +8,26 @@ min_loop_length    3
 allow_strained_3WJ False
 
 # following sets up base pairs. Kd are in M.
-Kd_CG              762.071797551315 # 1.0 * math.exp( dG_init/ KT_IN_KCAL), with dG_init = +4.09 (Turner 1999, kcal/mol)
-Kd_AU              100000 # 10.0**5.0 M
-Kd_GU              100000 # 10.0**5.0 M
+Kd_CG              762.071797551315  # 1.0 * math.exp( dG_init/ KT_IN_KCAL), with dG_init = +4.09 (Turner 1999, kcal/mol)
+Kd_AU              100000
+Kd_GU              100000
 
 # Effective molarity for starting each loop (units of M)
-C_init             3.1622776601683795 # 10**0.5, in M
+C_init             10.0 # Radically higher than v0.1 -- that was previously miscomputed actually from optical measurements.
 # Effective molarity penalty for each linkages in loop (dimensionless)
 l                  1.0     # math.exp( dG_multiloop_unpaired / KT_IN_KCAL ), with dG_multiloop_unpaired = 0.0 #0.40 # in kcal/mol -- ZERO in NUPACK -- fudging here.
 # Effective molarity penalty for each base pair in loop (dimensionless)
 l_BP               1.913629197723873  # math.exp( dG_multiloop_stems/KT_IN_KCAL ) / params.l, with dG_multiloop_stems = 0.40 # in kcal/mol
 
 # Effective molarity for forming stacked pair (units of M)
-C_eff_stack_WC_WC  158489.3192461114 # about 10^5.2, in M, similar to math.exp( -dG_CG_CG / KT_IN_KCAL ) * Kd_CG, with dG_CG_CG = -3.30, as in Turner 1999 5'-CC-3'/5'-GG-3', kcal/mol
-C_eff_stack_WC_GU  12589.254117941662
-C_eff_stack_WC_UG  398107.1705534969
-C_eff_stack_GU_GU  79432.82347242821
+C_eff_stack_WC_WC  266072.50597988087 # 10^5.425, in M, similar to math.exp( -dG_CG_CG / KT_IN_KCAL ) * Kd_CG, with dG_CG_CG = -3.30, as in Turner 1999 5'-CC-3'/5'-GG-3', kcal/mol
+C_eff_stack_WC_GU  63095.7344480193
+C_eff_stack_WC_UG  1000.0
+C_eff_stack_GU_GU  10000.0
 C_eff_stack_UG_GU  10000.0
 C_eff_stack_GU_UG  10000.0
 
 # coax bonus for contiguous helices (dimensionless). Set to 0 to turn off coax (dimensionless)
-K_coax             2.6302679918953817 # 10.0**0.42
+K_coax             5.0 # Restore coax
 # Effective molarity bonus for each coaxial stack in loop. Initial guess: C_eff_stacked_pair / (C_init*l*K_coax)
 l_coax             1.0
