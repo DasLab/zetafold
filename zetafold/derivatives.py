@@ -1,3 +1,5 @@
+from .base_pair_types import get_base_pair_type_for_tag
+
 def _get_log_derivs( self, parameters ):
     '''
     Output
@@ -87,14 +89,6 @@ def get_bpp_tot( self ):
     bpp_tot = []
     for base_pair_type in self.params.base_pair_types: bpp_tot.append( get_bpp_tot_for_base_pair_type( self, base_pair_type ) )
     return sum( bpp_tot ) / 2.0
-
-def get_base_pair_type_for_tag( self, tag ):
-    for base_pair_type in self.params.base_pair_types:
-        if (tag == 'matchlowercase' and base_pair_type.match_lowercase) or \
-           (tag == base_pair_type.nt1 + base_pair_type.nt2 ):
-            return base_pair_type
-    print( 'Could not figure out base_pair_type for ', tag )
-    return None
 
 def get_motif_prob( self, base_pair_type, base_pair_type2 ):
     # base pair forms a stacked pair with previous pair

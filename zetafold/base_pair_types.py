@@ -26,6 +26,26 @@ def setup_base_pair_type( params, nt1, nt2, Kd, match_lowercase = False ):
         bpt2.flipped = bpt1
         params.base_pair_types.append( bpt2 )
 
+def get_base_pair_type_for_tag( params, tag ):
+    for base_pair_type in params.base_pair_types:
+        if (tag == 'matchlowercase' and base_pair_type.match_lowercase) or \
+           (tag == base_pair_type.nt1 + base_pair_type.nt2 ):
+            return base_pair_type
+    #print( 'Could not figure out base_pair_type for ', tag )
+    return None
+
+def get_base_pair_types_for_tag( params, tag ):
+    if tag == 'WC':
+        WC_nts =  [('C','G'),('G','C'),('A','U'),('U','A'),('G','U'),('U','G')]
+        base_pair_types = []
+        for base_pair_type in params.base_pair_types:
+            if (base_pair_type.nt1,base_pair_type.nt2) in WC_nts:
+                base_pair_types.append( base_pair_type )
+        return base_pair_types
+    else:
+        return [ get_base_pair_type_for_tag( params, tag ) ]
+    return None
+
 def initialize_base_pair_types( self ):
     self.base_pair_types = []
 
