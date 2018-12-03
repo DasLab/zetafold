@@ -1,0 +1,14 @@
+name    minimal
+version 0.1
+min_loop_length    1 # Disallow apical loops smaller than this size (integer)
+allow_strained_3WJ False # Prevent strained three-way-junctions with two helices coaxially stacked and no spacer nucleotides to other helix.
+# Seven parameter model
+Kd_matchlowercase  0.0002  # Kd for forming base pair (units of M )
+Kd_CG              0.0002  # Kd for forming base pair (units of M )
+C_init             1.0     # Effective molarity for starting each loop (units of M)
+l                  0.5     # Effective molarity penalty for each linkages in loop (dimensionless)
+l_BP               0.2     # Effective molarity penalty for each base pair in loop (dimensionless)
+C_eff_stacked_pair 10000 # Effective molarity for forming stacked pair (units of M)
+K_coax             100     # coax bonus for contiguous helices (dimensionless). Set to 0 to turn off coax (dimensionless)
+l_coax             200     # Effective molarity bonus for each coaxial stack in loop. Initial guess: C_eff_stacked_pair / (C_init*l*K_coax)
+

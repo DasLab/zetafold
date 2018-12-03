@@ -10,27 +10,12 @@ class AlphaFoldParams:
     Parameters that define the statistical mechanical model for RNA folding
     '''
     def __init__( self ):
-        self.name = 'empty'
-        self.version = 0.0
-
-        # Seven parameter model (five without coaxial stacking)
-        self.C_init = 0.0  # Effective molarity for starting each loop (units of M)
-        self.l      = 0.0  # Effective molarity penalty for each linkages in loop (dimensionless)
-        self.l_BP   = 0.0  # Effective molarity penalty for each base pair in loop (dimensionless)
-        self.C_eff_stacked_pair = 0.0 # Effective molarity for forming stacked pair (units of M)
-        self.K_coax = 0.0     # coax bonus for contiguous helices (dimensionless). Set to 0 to turn off coax (dimensionless)
-        self.l_coax = 0.0     # Effective molarity bonus for each coaxial stack in loop. Initial guess: C_eff_stacked_pair / (C_init*l*K_coax)
-
-        # default base pair types -- see below for fill in, including Kd
-        self.base_pair_types = []
-
         self.C_std  = 1.0      # 1 M. drops out in end (up to overall scale factor).
-        self.min_loop_length = 1 # Disallow apical loops smaller than this size (integer)
-        self.allow_strained_3WJ = False # Prevent strained three-way-junctions with two helices coaxially stacked and no spacer nucleotides to other helix.
+        self.allow_strained_3WJ = False
 
     def get_variables( self ):
         if self.C_init == 0.0 and self.name == 'empty': print('WARNING! C_init not defined, and params appear empty. Look at get_minimal_params() or get_latest_params() for examples')
-        return ( self.C_init, self.l, self.l_BP, self.C_eff_stacked_pair, self.K_coax, self.l_coax, self.C_std, self.min_loop_length, self.allow_strained_3WJ )
+        return ( self.C_init, self.l, self.l_BP, self.K_coax, self.l_coax, self.C_std, self.min_loop_length, self.allow_strained_3WJ )
 
     def initialize_C_eff_stack( self ): _initialize_C_eff_stack( self )
 
@@ -69,30 +54,6 @@ def _check_C_eff_stack( params ):
                     bpt2.flipped.nt1, bpt2.flipped.nt2, " to ", bpt1.flipped.nt1, bpt1.flipped.nt2, params.C_eff_stack[ bpt2.flipped ][ bpt1.flipped ] )
             assert( params.C_eff_stack[ bpt1 ][ bpt2 ] == params.C_eff_stack[ bpt2.flipped ][ bpt1.flipped ] )
 
-def get_minimal_params():
-    params = AlphaFoldParams()
-    params.name    = 'minimal'
-    params.version = '0.1'
-
-    # Seven parameter model
-    params.C_init = 1.0     # Effective molarity for starting each loop (units of M)
-    params.l      = 0.5     # Effective molarity penalty for each linkages in loop (dimensionless)
-    params.l_BP   = 0.2     # Effective molarity penalty for each base pair in loop (dimensionless)
-    params.C_eff_stacked_pair = 1e4 # Effective molarity for forming stacked pair (units of M)
-    params.K_coax = 100     # coax bonus for contiguous helices (dimensionless). Set to 0 to turn off coax (dimensionless)
-    params.l_coax = 200     # Effective molarity bonus for each coaxial stack in loop. Initial guess: C_eff_stacked_pair / (C_init*l*K_coax)
-    params.C_std = 1.0      # 1 M. drops out in end (up to overall scale factor).
-    params.min_loop_length = 1 # Disallow apical loops smaller than this size (integer)
-    params.allow_strained_3WJ = False # Prevent strained three-way-junctions with two helices coaxially stacked and no spacer nucleotides to other helix.
-
-    params.base_pair_types = []
-    Kd  = 0.0002  # Kd for forming base pair (units of M )
-    setup_base_pair_type( params, '*', '*', Kd, match_lowercase = True  )
-    setup_base_pair_type( params, 'C', 'G', Kd )
-    _initialize_C_eff_stack( params, params.C_eff_stacked_pair )
-
-    return params
-
 def setup_base_pair_type_by_tag( params, Kd_tag, val ):
     tag = Kd_tag[3:]
     if get_base_pair_type_for_tag( params, tag ) != None: return
@@ -105,14 +66,14 @@ def set_parameter( params, tag, val ):
     if tag == 'name': params.name = val
     elif tag == 'version': params.version = val
     elif tag == 'min_loop_length':    params.min_loop_length = int( val )
-    elif tag == 'allow_strained_3WJ': params.allow_strained_3WJ = bool( val )
+    elif tag == 'allow_strained_3WJ': params.allow_strained_3WJ = (val == 'True')
     elif len( tag )>=2 and tag[:2] == 'Kd':
         setup_base_pair_type_by_tag( params, tag, float(val) )
         _initialize_C_eff_stack( params )
     elif len( tag )>=11 and tag[:11] == 'C_eff_stack':
         if tag == 'C_eff_stacked_pair':
-            for bpt1 in base_pair_types:
-                for bpt2 in base_pair_types:
+            for bpt1 in params.base_pair_types:
+                for bpt2 in params.base_pair_types:
                     params.C_eff_stack[bpt1][bpt2] = float(val)
         else:
             assert( len(tag) > 11 )
@@ -143,11 +104,17 @@ def read_params_fields( params_file ):
             if len( cols ) > 2: assert( cols[2][0] == '#' ) # better be a comment
     return zip( tags, vals )
 
+def get_minimal_params():
+    params = AlphaFoldParams()
+    params_file = os.path.dirname( os.path.abspath(__file__) ) + '/parameters/minimal.params'
+    params_fields = read_params_fields( params_file );
+    for param_tag,param_val in params_fields:  set_parameter( params, param_tag, param_val )
+    return params
+
 def get_params_v0_171( params ):
     params_file = os.path.dirname( os.path.abspath(__file__) ) + '/parameters/zetafold_v0.171.params'
     params_fields = read_params_fields( params_file );
-    for param_tag,param_val in params_fields:
-        set_parameter( params, param_tag, param_val )
+    for param_tag,param_val in params_fields:  set_parameter( params, param_tag, param_val )
     return params
 
 #######################################

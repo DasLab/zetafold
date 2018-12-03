@@ -11,8 +11,9 @@ from zetafold.score_structure import score_structure
 
 def test_zetafold( verbose = False, use_simple_recursions = False ):
     test_params = get_minimal_params()
-    (C_init, l, l_BP, C_eff_stacked_pair, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
+    (C_init, l, l_BP, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
     Kd = test_params.base_pair_types[0].Kd
+    C_eff_stacked_pair = test_params.C_eff_stack[ test_params.base_pair_types[0] ][ test_params.base_pair_types[0] ]
 
     # test of sequences where we know the final partition function.
     sequence = 'CNNNGNN' # CIRCLE!

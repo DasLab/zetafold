@@ -17,9 +17,9 @@ class BasePairType:
         return ( s1 == self.nt1 and s2 == self.nt2 )
 
 def setup_base_pair_type( params, nt1, nt2, Kd, match_lowercase = False ):
+    if not hasattr( params, 'base_pair_types' ): params.base_pair_types = []
     bpt1 = BasePairType( nt1, nt2, Kd, match_lowercase = match_lowercase )
     params.base_pair_types.append( bpt1 )
-
     if not match_lowercase:
         bpt2 = BasePairType( nt2, nt1, Kd, match_lowercase = match_lowercase )
         bpt1.flipped = bpt2
@@ -27,6 +27,7 @@ def setup_base_pair_type( params, nt1, nt2, Kd, match_lowercase = False ):
         params.base_pair_types.append( bpt2 )
 
 def get_base_pair_type_for_tag( params, tag ):
+    if not hasattr( params, 'base_pair_types' ): return None
     for base_pair_type in params.base_pair_types:
         if (tag == 'matchlowercase' and base_pair_type.match_lowercase) or \
            (tag == base_pair_type.nt1 + base_pair_type.nt2 ):
@@ -35,6 +36,7 @@ def get_base_pair_type_for_tag( params, tag ):
     return None
 
 def get_base_pair_types_for_tag( params, tag ):
+    if not hasattr( params, 'base_pair_types' ): return None
     if tag == 'WC':
         WC_nts =  [('C','G'),('G','C'),('A','U'),('U','A'),('G','U'),('U','G')]
         base_pair_types = []
