@@ -25,18 +25,19 @@ def get_params( params = None, suppress_all_output = False ):
     params_object = None
     if isinstance(params,AlphaFoldParams): return params
     elif params == None or params =='': params_object = get_latest_params()
-    elif params == 'minimal':         params_object = get_minimal_params()
+    elif params == 'minimal':         params_object = get_params_from_file( 'minimal' )
     elif params == 'v0.1':  params_object = get_params_v0_1( AlphaFoldParams()  )
     elif params == 'v0.15': params_object = get_params_v0_15( AlphaFoldParams() )
     elif params == 'v0.16': params_object = get_params_v0_16( AlphaFoldParams() )
     elif params == 'v0.17': params_object = get_params_v0_17( AlphaFoldParams() )
-    elif params == 'v0.171': params_object = get_params_v0_171( AlphaFoldParams() )
+    elif params == 'v0.171': params_object = get_params_from_file( 'zetafold_v0.171' )
     else: print('unrecognized params requested: ', params)
     if not suppress_all_output: print('Parameters: ', params_object.name, ' version', params_object.version)
     return params_object
 
 def get_latest_params():
-    return get_params_v0_171( AlphaFoldParams() )
+    # TODO check all params files and pick latest version
+    return get_params_from_file( 'zetafold_v0.171' )
 
 def _initialize_C_eff_stack( params, val = None ):
     if not hasattr( params, 'C_eff_stack' ): params.C_eff_stack = {}
@@ -85,7 +86,6 @@ def set_parameter( params, tag, val ):
                 for bpt2 in bpts2:
                     params.C_eff_stack[ bpt1 ][ bpt2 ] = float(val)
                     params.C_eff_stack[ bpt2.flipped ][ bpt1.flipped ] = float(val)
-
     else:
         setattr( params, tag, float( val ) )
 
@@ -104,15 +104,9 @@ def read_params_fields( params_file ):
             if len( cols ) > 2: assert( cols[2][0] == '#' ) # better be a comment
     return zip( tags, vals )
 
-def get_minimal_params():
+def get_params_from_file( params_file_tag ):
     params = AlphaFoldParams()
-    params_file = os.path.dirname( os.path.abspath(__file__) ) + '/parameters/minimal.params'
-    params_fields = read_params_fields( params_file );
-    for param_tag,param_val in params_fields:  set_parameter( params, param_tag, param_val )
-    return params
-
-def get_params_v0_171( params ):
-    params_file = os.path.dirname( os.path.abspath(__file__) ) + '/parameters/zetafold_v0.171.params'
+    params_file = os.path.dirname( os.path.abspath(__file__) ) + '/parameters/'+params_file_tag +'.params'
     params_fields = read_params_fields( params_file );
     for param_tag,param_val in params_fields:  set_parameter( params, param_tag, param_val )
     return params

@@ -5,12 +5,12 @@ import argparse
 
 #from zetafold.output_helpers import *
 from zetafold.partition import *
-from zetafold.parameters import get_minimal_params
 from zetafold.util.output_util import *
+from zetafold.parameters import get_params_from_file
 from zetafold.score_structure import score_structure
 
 def test_zetafold( verbose = False, use_simple_recursions = False ):
-    test_params = get_minimal_params()
+    test_params = get_params_from_file( 'minimal' )
     (C_init, l, l_BP, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
     Kd = test_params.base_pair_types[0].Kd
     C_eff_stacked_pair = test_params.C_eff_stack[ test_params.base_pair_types[0] ][ test_params.base_pair_types[0] ]
@@ -56,7 +56,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
 
     # what if C_eff_stacked_pair is not uniform
     sequences = ['Ga','aC']
-    test_params_C_eff_stack = get_minimal_params()
+    test_params_C_eff_stack = get_params_from_file( 'minimal' )
     cross_C_eff_stacked_pair = 1.0  # default is 1.0e4. Now having the aa base pair next to the G-C base pair is worth 10,000-fold less.
     for base_pair_type_GC in test_params_C_eff_stack.base_pair_types[1:3]:
         test_params_C_eff_stack.C_eff_stack[ base_pair_type_GC ][  test_params_C_eff_stack.base_pair_types[0] ]= cross_C_eff_stacked_pair
@@ -93,7 +93,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     #################################################
     # let's do a numerical vs. analytic deriv test
     #################################################
-    params_perturb = get_minimal_params()
+    params_perturb = get_params_from_file( 'minimal' )
     delta = 1.0e-10
     for base_pair_type in params_perturb.base_pair_types: base_pair_type.Kd += delta
     p_perturb = partition( sequence, params = params_perturb ) # note that Z sums over only base pair (not dissociated strands!)
@@ -129,7 +129,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
 
     # testing extended alphabet & coaxial stacks
     sequence = ['xy','yz','zx']
-    params_allow_strained_3WJ = get_minimal_params()
+    params_allow_strained_3WJ = get_params_from_file( 'minimal' )
     params_allow_strained_3WJ.allow_strained_3WJ = True
     p = partition( sequence, params = params_allow_strained_3WJ, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = 3*(C_std/Kd)**2 * (1 + K_coax)  + \
