@@ -1,0 +1,27 @@
+name     zetafold
+version  0.1
+
+# global settings
+# Disallow apical loops smaller than this size (integer)
+min_loop_length    3
+# Allow strained three-way-junctions with two helices coaxially stacked and no spacer nucleotides to other helix?
+allow_strained_3WJ False
+
+# following sets up base pairs. Kd are in M.
+Kd_CG              762.071797551315  # 1.0 * math.exp( dG_init/ KT_IN_KCAL), with dG_init = +4.09 (Turner 1999, kcal/mol)
+Kd_AU              1715.213260625828 #  Kd_CG *math.exp( dG_terminal_AU/ KT_IN_KCAL ), with dG_terminal_AU = 0.5 # Turner 1999, kcal/mol -- NUPACK
+Kd_GU              17152.13260625828 # Kd_AU * 10 # fudge factor to make GU weaker.
+
+# Effective molarity for starting each loop (units of M)
+C_init             0.004019840263220286 # 1.0 * math.exp( -dG_bulge / KT_IN_KCAL ), with dG_bulge = 3.4 # bulge cost is roughly 3-4 kcal/mol
+# Effective molarity penalty for each linkages in loop (dimensionless)
+l                  1.0     # math.exp( dG_multiloop_unpaired / KT_IN_KCAL ), with dG_multiloop_unpaired = 0.0 #0.40 # in kcal/mol -- ZERO in NUPACK -- fudging here.
+# Effective molarity penalty for each base pair in loop (dimensionless)
+l_BP               1.913629197723873  # math.exp( dG_multiloop_stems/KT_IN_KCAL ) / params.l, with dG_multiloop_stems = 0.40 # in kcal/mol
+# coax bonus for contiguous helices (dimensionless). Set to 0 to turn off coax (dimensionless)
+K_coax             10.0
+# Effective molarity bonus for each coaxial stack in loop. Initial guess: C_eff_stacked_pair / (C_init*l*K_coax)
+l_coax             1.0
+
+# Effective molarity for forming stacked pair (units of M)
+C_eff_stacked_pair 161184.266309 # math.exp( -dG_CG_CG / KT_IN_KCAL ) * Kd_CG, with dG_CG_CG = -3.30, as in Turner 1999 5'-CC-3'/5'-GG-3', kcal/mol

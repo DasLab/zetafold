@@ -17,8 +17,6 @@ class AlphaFoldParams:
         if self.C_init == 0.0 and self.name == 'empty': print('WARNING! C_init not defined, and params appear empty. Look at get_minimal_params() or get_latest_params() for examples')
         return ( self.C_init, self.l, self.l_BP, self.K_coax, self.l_coax, self.C_std, self.min_loop_length, self.allow_strained_3WJ )
 
-    def initialize_C_eff_stack( self ): _initialize_C_eff_stack( self )
-
     def check_C_eff_stack( self ): _check_C_eff_stack( self )
 
 def get_params( params = None, suppress_all_output = False ):
@@ -26,7 +24,7 @@ def get_params( params = None, suppress_all_output = False ):
     if isinstance(params,AlphaFoldParams): return params
     elif params == None or params =='': params_object = get_latest_params()
     elif params == 'minimal':         params_object = get_params_from_file( 'minimal' )
-    elif params == 'v0.1':  params_object = get_params_v0_1( AlphaFoldParams()  )
+    elif params == 'v0.1':  params_object = get_params_from_file( 'zetafold_v0.1' )
     elif params == 'v0.15': params_object = get_params_v0_15( AlphaFoldParams() )
     elif params == 'v0.16': params_object = get_params_v0_16( AlphaFoldParams() )
     elif params == 'v0.17': params_object = get_params_v0_17( AlphaFoldParams() )
@@ -39,7 +37,7 @@ def get_latest_params():
     # TODO check all params files and pick latest version
     return get_params_from_file( 'zetafold_v0.171' )
 
-def _initialize_C_eff_stack( params, val = None ):
+def update_C_eff_stack( params, val = None ):
     if not hasattr( params, 'C_eff_stack' ): params.C_eff_stack = {}
     for bpt1 in params.base_pair_types:
         if not params.C_eff_stack.has_key( bpt1 ):  params.C_eff_stack[ bpt1 ] = {}
@@ -70,7 +68,7 @@ def set_parameter( params, tag, val ):
     elif tag == 'allow_strained_3WJ': params.allow_strained_3WJ = (val == 'True')
     elif len( tag )>=2 and tag[:2] == 'Kd':
         setup_base_pair_type_by_tag( params, tag, float(val) )
-        _initialize_C_eff_stack( params )
+        update_C_eff_stack( params )
     elif len( tag )>=11 and tag[:11] == 'C_eff_stack':
         if tag == 'C_eff_stacked_pair':
             for bpt1 in params.base_pair_types:
@@ -156,7 +154,7 @@ def get_params_v0_17( params ):
     params.K_coax = 5.0
     params.l_coax = 1.0
 
-    _initialize_C_eff_stack( params, params.C_eff_stacked_pair )
+    update_C_eff_stack( params, params.C_eff_stacked_pair )
     bpts_WC = params.base_pair_types[0:4]
     bpt_GU  = params.base_pair_types[4]
     bpt_UG  = params.base_pair_types[5]
@@ -216,7 +214,7 @@ def get_params_v0_16( params ):
     params.K_coax = 0.0
     params.l_coax = 1.0
 
-    _initialize_C_eff_stack( params, params.C_eff_stacked_pair )
+    update_C_eff_stack( params, params.C_eff_stacked_pair )
 
     return params
 
@@ -271,53 +269,6 @@ def get_params_v0_15( params ):
     params.K_coax = 0.0
     params.l_coax = 1.0
 
-    _initialize_C_eff_stack( params, params.C_eff_stacked_pair )
-
-    return params
-
-def get_params_v0_1( params ):
-    params.name     = 'zetafold'
-    params.version  = '0.1'
-
-    params.min_loop_length = 3
-
-    # Seven parameter model
-    dG_init = +4.09 # Turner 1999, kcal/mol
-    Kd_CG = 1.0 * math.exp( dG_init/ KT_IN_KCAL)
-    dG_terminal_AU = 0.5 # Turner 1999, kcal/mol -- NUPACK
-    Kd_AU = Kd_CG *math.exp( dG_terminal_AU/ KT_IN_KCAL )
-    Kd_GU = Kd_AU * 10 # fudge factor to make GU weaker.
-
-    dG_CG_CG = -3.30 # Turner 1999 5'-CC-3'/5'-GG-3', kcal/mol
-    params.C_eff_stacked_pair = math.exp( -dG_CG_CG / KT_IN_KCAL ) * Kd_CG
-
-    # From nupack rna1999.params
-    #>Multiloop terms: ALPHA_1, ALPHA_2, ALPHA_3
-    #>ML penalty = ALPHA_1 + s * ALPHA_2 + u *ALPHA_3
-    #>s = # stems adjacent to ML, u = unpaired bases in ML
-    # 340   40    0
-    #>AT_PENALTY:
-    #>Penalty for non GC pairs that terminate a helix
-    #  50
-    dG_bulge = 3.4 # bulge cost is roughly 3-4 kcal/mol
-    dG_multiloop_stems = 0.40 # in kcal/mol
-    dG_multiloop_unpaired = 0.0 #0.40 # in kcal/mol -- ZERO in NUPACK -- fudging here.
-    params.C_init = 1.0 * math.exp( -dG_bulge / KT_IN_KCAL )
-    params.l = math.exp( dG_multiloop_unpaired / KT_IN_KCAL )
-    params.l_BP = math.exp( dG_multiloop_stems/KT_IN_KCAL ) / params.l
-
-    setup_base_pair_type(params, 'C', 'G', Kd_CG )
-    setup_base_pair_type(params, 'A', 'U', Kd_AU )
-    setup_base_pair_type(params, 'G', 'U', Kd_GU )
-
-    #Kd_GA = Kd_AU*100000  # fudge factor to make GA weaker.
-    #base_pair_types.append( BasePairType( 'G', 'A', Kd_GA ) ) # totally made up
-    #Kd_AA = Kd_AU * 40 # fudge factor to make GU weaker.
-    #base_pair_types.append( BasePairType( 'A', 'A', Kd_AA ) ) # totally made up
-
-    params.K_coax = 10
-    params.l_coax = 1
-
-    _initialize_C_eff_stack( params, params.C_eff_stacked_pair )
+    update_C_eff_stack( params, params.C_eff_stacked_pair )
 
     return params
