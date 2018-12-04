@@ -1,4 +1,4 @@
-from .base_pair_types import get_base_pair_type_for_tag
+from .base_pair_types import get_base_pair_type_for_tag, get_base_pair_types_for_tag
 
 def _get_log_derivs( self, deriv_parameters = [] ):
     '''
@@ -58,7 +58,12 @@ def _get_log_derivs( self, deriv_parameters = [] ):
                 assert( len(parameter) > 11 )
                 tags = parameter[12:].split('_')
                 assert( len( tags ) == 2 )
-                derivs[ n ] = get_motif_prob( self, get_base_pair_type_for_tag( self.params, tags[0] ), get_base_pair_type_for_tag( self.params, tags[1] ) )
+                bpts1 = get_base_pair_types_for_tag( self.params, tags[0] )
+                bpts2 = get_base_pair_types_for_tag( self.params, tags[1] )
+                derivs[ n ] = 0.0
+                for bpt1 in bpts1:
+                    for bpt2 in bpts2:
+                        derivs[ n ] += get_motif_prob( self, bpt1, bpt2 )
         elif parameter == 'K_coax':
             coax_prob = 0.0
             C_eff_for_coax = self.C_eff if self.params.allow_strained_3WJ else self.C_eff_no_BP_singlet
