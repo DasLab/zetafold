@@ -19,7 +19,7 @@ def _show_results( self ):
         print()
         print( '%20s %25s %25s' % ('parameter','d(logZ)/d(log parameter)','dZ/dparameter' ) )
         for i,parameter in enumerate(self.deriv_params):
-               print( '%20s %25.6f %25.6f' % (parameter, self.log_derivs[i], self.derivs[i] ) )
+               print( '%20s %25.12f %25.8f' % (parameter, self.log_derivs[i], self.derivs[i] ) )
 
 def _show_matrices( self ):
     output_DP( "Z_BP", self.Z_BP )
@@ -47,7 +47,7 @@ def output_square( tag, X ):
     print("-----", tag, "-----")
     for i in range( N ):
         for j in range( N ):
-            print(' %9.3f' % X[i][j],)
+            print(' %9.3f' % X[i][j],end='')
         print()
 
 def output_test( p, Z_ref = 0, bpp_idx= [], bpp_expected = 0,  deriv_parameters = None, log_derivs_ref = None, ):
