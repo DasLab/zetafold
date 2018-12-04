@@ -9,7 +9,6 @@ def _get_log_derivs( self, deriv_parameters = [] ):
     using simple expressions that require O( N^2 ) time or less after
     the original O( N^3 ) dynamic programming calculations
     '''
-    print( id( deriv_parameters), id( self.deriv_params ) )
     if deriv_parameters == None: return None
     if deriv_parameters == []:
         for tag in self.params.parameter_tags: deriv_parameters.append( tag )
