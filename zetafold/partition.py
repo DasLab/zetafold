@@ -180,7 +180,7 @@ def initialize_dynamic_programming_matrices( self ):
     self.Z_all = Z_all = []
 
     # some preliminary helpers
-    self.Z_cut    = DynamicProgrammingMatrix( N, DPlist = Z_all, update_func = update_Z_cut, options = self.options );
+    self.Z_cut    = DynamicProgrammingMatrix( N, DPlist = Z_all, update_func = update_Z_cut, options = self.options, name = 'Z_cut' );
 
     # base pairs and co-axial stacks
     self.Z_BPq = {}
@@ -188,21 +188,21 @@ def initialize_dynamic_programming_matrices( self ):
         # the bpt = base_pair_type holds the base_pair_type info in the lambda (Python FAQ)
         update_func = lambda partition,i,j,bpt=base_pair_type: update_Z_BPq(partition,i,j,bpt)
         self.Z_BPq[ base_pair_type ] = DynamicProgrammingMatrix( N, DPlist = Z_all,
-                                                                 update_func = update_func, options = self.options )
-    self.Z_BP     = DynamicProgrammingMatrix( N, DPlist = Z_all, update_func = update_Z_BP, options = self.options );
-    self.Z_coax   = DynamicProgrammingMatrix( N, DPlist = Z_all, update_func = update_Z_coax, options = self.options );
+                                                                 update_func = update_func, options = self.options, name = 'Z_BPq_%s' % base_pair_type.get_tag() )
+    self.Z_BP     = DynamicProgrammingMatrix( N, DPlist = Z_all, update_func = update_Z_BP, options = self.options, name = 'Z_BP' );
+    self.Z_coax   = DynamicProgrammingMatrix( N, DPlist = Z_all, update_func = update_Z_coax, options = self.options, name = 'Z_coax' );
 
     # C_eff makes use of information on Z_BP, so compute last
     C_init = self.params.C_init
-    self.C_eff_basic           = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff_basic, options = self.options );
-    self.C_eff_no_BP_singlet   = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff_no_BP_singlet, options = self.options );
-    self.C_eff_no_coax_singlet = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff_no_coax_singlet, options = self.options );
-    self.C_eff                 = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff, options = self.options );
+    self.C_eff_basic           = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff_basic, options = self.options, name = 'C_eff_basic' );
+    self.C_eff_no_BP_singlet   = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff_no_BP_singlet, options = self.options, name = 'C_eff_basic_no_BP_singlet' );
+    self.C_eff_no_coax_singlet = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff_no_coax_singlet, options = self.options, name = 'C_eff_basic_no_coax_singlet' );
+    self.C_eff                 = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff, options = self.options, name = 'C_eff' );
 
-    self.Z_linear = DynamicProgrammingMatrix( N, diag_val = 1.0, DPlist = Z_all, update_func = update_Z_linear, options = self.options );
+    self.Z_linear = DynamicProgrammingMatrix( N, diag_val = 1.0, DPlist = Z_all, update_func = update_Z_linear, options = self.options, name = 'Z_linear' );
 
     # Last DP 1-D list (not a 2-D N x N matrix)
-    self.Z_final = DynamicProgrammingList( N, update_func = update_Z_final, options = self.options  )
+    self.Z_final = DynamicProgrammingList( N, update_func = update_Z_final, options = self.options, name = 'Z_final'  )
 
     self.params.check_C_eff_stack()
 
@@ -291,6 +291,7 @@ def _calc_mfe( self ):
 
     for i in range( n_test ):
         (bps_MFE[i], p_MFE[i] ) = mfe( self, self.Z_final.get_contribs(self,i) )
+        print (bps_MFE[i], p_MFE[i] )
         assert_equal( p_MFE[i], p_MFE[0] )
         # actually this doesn't always hold -- in some parameter sets and sequences there are literally ties.
         # assert( bps_MFE[i] == bps_MFE[0] )

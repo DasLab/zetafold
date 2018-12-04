@@ -16,6 +16,10 @@ class BasePairType:
         if self.match_lowercase: return ( s1.islower() and s2.islower() and s1 == s2 )
         return ( s1 == self.nt1 and s2 == self.nt2 )
 
+    def get_tag( self ):
+        if self.match_lowercase: return 'matchlowercase'
+        return self.nt1+self.nt2
+
 def setup_base_pair_type( params, nt1, nt2, Kd, match_lowercase = False ):
     if not hasattr( params, 'base_pair_types' ): params.base_pair_types = []
     bpt1 = BasePairType( nt1, nt2, Kd, match_lowercase = match_lowercase )

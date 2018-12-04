@@ -1,5 +1,6 @@
 from .recursions.explicit_recursions import *
 import random
+import sys
 
 def get_random_contrib( contribs ):
     # Random sample weighted by probability. Must be a simple function for this.
@@ -19,8 +20,26 @@ def max_contrib(contribs):
             max_contrib_val = c[0]
     return best_contrib
 
+def print_contrib( contrib ):
+    sys.stdout.write('[')
+    print '%s:' % contrib[0],
+    for n,backtrack_info in enumerate(contrib[1]):
+        sys.stdout.write( '%s(%d,%d)' % (backtrack_info[0].name,backtrack_info[1],backtrack_info[2]) )
+        if n < len( contrib[1] )-1: sys.stdout.write(',')
+    sys.stdout.write(']')
+
+def print_contribs( contribs ):
+    print '[ ',
+    for contrib in contribs[:-1]:
+        print_contrib( contrib )
+        print '; ',
+    print_contrib( contribs[-1] )
+    print ' ]'
+    return
+
 ##################################################################################################
 def backtrack( self, contribs_input, mode = 'mfe' ):
+    #print_contribs( contribs_input )
     if len( contribs_input ) == 0: return []
     contrib_sum = sum( contrib[0] for contrib in contribs_input )
     if   mode == 'enumerative':

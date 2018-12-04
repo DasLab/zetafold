@@ -161,9 +161,13 @@ for line in lines:
 
             # contrib line
             print lines_new[-1],
-            line_contrib = ' '*4 + line_new[:Qpos[0]] +  '.contribs'
+            line_contrib = ' '*num_indent
+            line_contrib += ' '*4
+            line_contrib += 'if %s > 0:\n' % line_new[assign_pos+3:-1]
+            line_contrib += ' '*8
+            line_contrib += line_new[:Qpos[0]] +  '.contribs'  # extra indent
             line_contrib += line_new[Qpos[0]+2 : assign_pos+3]
-            line_contrib +=' [ (' # extra indent
+            line_contrib +=' [ ('
             line_contrib += line_new[assign_pos+3:-1] + ', ['
             for (n,info) in enumerate(all_args):
                 if info[ 0 ] <= assign_pos: continue
