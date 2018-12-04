@@ -69,7 +69,8 @@ def _get_log_derivs( self, deriv_parameters = [] ):
             C_eff_for_coax = self.C_eff if self.params.allow_strained_3WJ else self.C_eff_no_BP_singlet
             for i in range( N ):
                 for j in range( N ):
-                    coax_prob += self.Z_coax.val(i,j) * self.params.l_coax * self.params.l**2 * C_eff_for_coax.val(j+1,i-1) / Z
+                    if ( i - j ) % N >= 3:
+                        coax_prob += self.Z_coax.val(i,j) * self.params.l_coax * self.params.l**2 * C_eff_for_coax.val(j+1,i-1) / Z
                     coax_prob += self.Z_coax.val(i,j) * self.Z_cut.val(j,i) / Z
             derivs[ n ] = coax_prob
         elif parameter == 'l_coax':
@@ -77,7 +78,8 @@ def _get_log_derivs( self, deriv_parameters = [] ):
             C_eff_for_coax = self.C_eff if self.params.allow_strained_3WJ else self.C_eff_no_BP_singlet
             for i in range( N ):
                 for j in range( N ):
-                    coax_prob += self.Z_coax.val(i,j) * self.params.l_coax * self.params.l**2 * C_eff_for_coax.val(j+1,i-1) / Z
+                    if ( i - j ) % N >= 3:
+                        coax_prob += self.Z_coax.val(i,j) * self.params.l_coax * self.params.l**2 * C_eff_for_coax.val(j+1,i-1) / Z
             derivs[ n ] = coax_prob
         else:
             print "Did not recognize parameter ", parameter
