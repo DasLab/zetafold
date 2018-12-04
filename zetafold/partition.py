@@ -291,8 +291,9 @@ def _calc_mfe( self ):
 
     for i in range( n_test ):
         (bps_MFE[i], p_MFE[i] ) = mfe( self, self.Z_final.get_contribs(self,i) )
-        assert( abs( ( p_MFE[i] - p_MFE[0] ) / p_MFE[0] ) < 1.0e-5 )
-        assert( bps_MFE[i] == bps_MFE[0] )
+        assert_equal( p_MFE[i], p_MFE[0] )
+        # actually this doesn't always hold -- in some parameter sets and sequences there are literally ties.
+        # assert( bps_MFE[i] == bps_MFE[0] )
 
     if not self.suppress_all_output:
         print( secstruct(bps_MFE[0],N), "   ", p_MFE[0], "[MFE]")

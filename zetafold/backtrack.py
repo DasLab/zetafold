@@ -11,12 +11,13 @@ def get_random_contrib( contribs ):
 
 def max_contrib(contribs):
     max_contrib_val = None
-    tracker = None
+    best_contrib = None
     for c in contribs:
-        if max_contrib_val is None or c[0] > max_contrib_val:
-            tracker = c
+        if max_contrib_val is None or \
+           c[0] > max_contrib_val:
+            best_contrib = c
             max_contrib_val = c[0]
-    return tracker
+    return best_contrib
 
 ##################################################################################################
 def backtrack( self, contribs_input, mode = 'mfe' ):
