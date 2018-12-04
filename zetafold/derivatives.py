@@ -65,21 +65,18 @@ def _get_log_derivs( self, deriv_parameters = [] ):
                     for bpt2 in bpts2:
                         derivs[ n ] += get_motif_prob( self, bpt1, bpt2 )
         elif parameter == 'K_coax':
-            coax_prob = 0.0
-            C_eff_for_coax = self.C_eff if self.params.allow_strained_3WJ else self.C_eff_no_BP_singlet
-            for i in range( N ):
-                for j in range( N ):
-                    if ( i - j ) % N >= 3:
-                        coax_prob += self.Z_coax.val(i,j) * self.params.l_coax * self.params.l**2 * C_eff_for_coax.val(j+1,i-1) / Z
-                    coax_prob += self.Z_coax.val(i,j) * self.Z_cut.val(j,i) / Z
+            coax_prob = get_coax_prob( self )
             derivs[ n ] = coax_prob
         elif parameter == 'l_coax':
+            coax_prob = get_loop_closed_coax_prob( self )
             coax_prob = 0.0
             C_eff_for_coax = self.C_eff if self.params.allow_strained_3WJ else self.C_eff_no_BP_singlet
             for i in range( N ):
                 for j in range( N ):
-                    if ( i - j ) % N >= 3:
-                        coax_prob += self.Z_coax.val(i,j) * self.params.l_coax * self.params.l**2 * C_eff_for_coax.val(j+1,i-1) / Z
+                    if ( i - j ) % N < 2: continue
+                    if not self.ligated[ i-1 ]: continue
+                    if not self.ligated[ j ]: continue
+                    coax_prob += self.Z_coax.val(i,j) * self.params.l_coax * self.params.l**2 * C_eff_for_coax.val(j+1,i-1) / Z
             derivs[ n ] = coax_prob
         else:
             print "Did not recognize parameter ", parameter
@@ -123,3 +120,43 @@ def get_motif_prob( self, base_pair_type, base_pair_type2 ):
             if Z_BPq2.val(i+1,j-1) == 0: continue
             motif_prob += self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq1.val(j,i) * Z_BPq2.val(i+1,j-1) / self.Z_final.val(0) / 2.0
     return motif_prob
+
+def get_loop_closed_coax_prob( self ):
+    # If the two coaxially stacked base pairs are connected by a loop.
+    #
+    #       ~~~~
+    #   -- j    i --
+    #  /   :    :   \
+    #  \   :    :   /
+    #   ------------
+    #
+    coax_prob = 0.0
+    C_eff_for_coax = self.C_eff if self.params.allow_strained_3WJ else self.C_eff_no_BP_singlet
+    N = self.N
+    for i in range( N ):
+        for j in range( N ):
+            if ( i - j ) % N < 2: continue
+            if not self.ligated[ i-1 ]: continue
+            if not self.ligated[ j ]: continue
+            coax_prob += self.Z_coax.val(i,j) * self.params.l_coax * self.params.l**2 * C_eff_for_coax.val(j+1,i-1) / self.Z_final.val(0)
+    return coax_prob
+
+def get_loop_open_coax_prob( self ):
+    # If the two stacked base pairs are in split segments
+    #
+    #      \    /
+    #   -- j    i --
+    #  /   :    :   \
+    #  \   :    :   /
+    #   ------------
+    #
+    coax_prob = 0.0
+    N = self.N
+    for i in range( N ):
+        for j in range( N ):
+            coax_prob += self.Z_coax.val(i,j) * self.Z_cut.val(j,i) / self.Z_final.val(0)
+    return coax_prob
+
+def get_coax_prob( self ):
+    return get_loop_closed_coax_prob( self ) + get_loop_open_coax_prob( self )
+
