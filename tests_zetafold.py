@@ -93,6 +93,13 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     bpp_ref = ( C_init*l**4*l_BP/Kd  + C_init**2 * (l_BP**3) * l**4 /Kd /Kd  + C_init * l_BP * l**2 * C_eff_stacked_pair/Kd /Kd) / ( 1 + C_init*l**2*l_BP/Kd + C_init*l**4*l_BP/Kd  + C_init**2 * (l_BP**3) * l**4 /Kd /Kd + C_init * l_BP * l**2 * C_eff_stacked_pair/Kd /Kd )
     output_test( p, Z_ref, [0,4], bpp_ref )
 
+    # an example with ties for MFE structure
+    sequence = 'CNGNC'
+    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions, mfe = True )
+    Z_ref = 1 + 2 * C_init*l**2*l_BP/Kd
+    bpp_ref = C_init*l**2*l_BP/Kd/ Z_ref
+    output_test( p, Z_ref, [0,2], bpp_ref )
+
     #################################################
     # let's do a numerical vs. analytic deriv test
     #################################################
