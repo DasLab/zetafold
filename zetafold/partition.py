@@ -291,7 +291,6 @@ def _calc_mfe( self ):
 
     for i in range( n_test ):
         (bps_MFE[i], p_MFE[i] ) = mfe( self, self.Z_final.get_contribs(self,i) )
-        print( bps_MFE[i] )
         assert( abs( ( p_MFE[i] - p_MFE[0] ) / p_MFE[0] ) < 1.0e-5 )
         assert( bps_MFE[i] == bps_MFE[0] )
 

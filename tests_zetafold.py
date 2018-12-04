@@ -88,7 +88,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
                  [0,2], 0.0 )
 
     sequence = 'CGNCG'
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions, mfe = True )
     Z_ref = 1 + C_init*l**2*l_BP/Kd + C_init*l**4*l_BP/Kd  + C_init**2 * (l_BP**3) * l**4 /Kd /Kd + C_init * l_BP * l**2 * C_eff_stacked_pair/Kd /Kd
     bpp_ref = ( C_init*l**4*l_BP/Kd  + C_init**2 * (l_BP**3) * l**4 /Kd /Kd  + C_init * l_BP * l**2 * C_eff_stacked_pair/Kd /Kd) / ( 1 + C_init*l**2*l_BP/Kd + C_init*l**4*l_BP/Kd  + C_init**2 * (l_BP**3) * l**4 /Kd /Kd + C_init * l_BP * l**2 * C_eff_stacked_pair/Kd /Kd )
     output_test( p, Z_ref, [0,4], bpp_ref )

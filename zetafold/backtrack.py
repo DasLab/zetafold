@@ -38,10 +38,12 @@ def backtrack( self, contribs_input, mode = 'mfe' ):
         for backtrack_info in contrib[1]:
             ( Z_backtrack, i, j )  = backtrack_info
             if ( i == j ): continue
-            if Z_backtrack == self.Z_BP:
-                base_pair = [i%N,j%N]
-                base_pair.sort()
-                p_bps_contrib = [ [p_bp[0], p_bp[1]+[tuple( base_pair )] ] for p_bp in p_bps_contrib ]
+            for base_pair_type in self.params.base_pair_types:
+                if Z_backtrack == self.Z_BPq[ base_pair_type ]:
+                    base_pair = [i%N,j%N]
+                    base_pair.sort()
+                    # TODO: could also add type of base pair here -- we have the info!
+                    p_bps_contrib = [ [p_bp[0], p_bp[1]+[tuple( base_pair )] ] for p_bp in p_bps_contrib ]
             backtrack_contribs = Z_backtrack.get_contribs(self,i%N,j%N)
             p_bps_component = backtrack( self, backtrack_contribs, mode )
             if len( p_bps_component ) == 0: continue
