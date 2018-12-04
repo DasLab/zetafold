@@ -54,7 +54,6 @@ def score_structure( sequences, structure, circle = False, params = '', test_mod
         motif_structure = secstruct_util.secstruct( motif_bps_list, len( motif_res ) )
 
         p = partition( motif_sequences, circle = motif_circle, structure = motif_structure, params = params, suppress_all_output = True, deriv_params = deriv_params )
-        print( 'YEE!',p.log_derivs, p.deriv_params )
         Z_motif = p.Z
         log_derivs_motif = p.log_derivs
 
@@ -67,6 +66,10 @@ def score_structure( sequences, structure, circle = False, params = '', test_mod
             for base_pair_type in p.params.base_pair_types:
                 if base_pair_type.is_match( motif_sequence[ i_motif ], motif_sequence[ j_motif ] ):
                     Z_motif *= ( base_pair_type.Kd / Kd_ref )**(0.5)
+                    if deriv_params:
+                        Kd_tags = ["Kd_"+base_pair_type.get_tag(), "Kd_"+base_pair_type.flipped.get_tag()]
+                        for Kd_tag in Kd_tags:
+                            if deriv_params.count( Kd_tag ): log_derivs_motif[ deriv_params.index( Kd_tag ) ] += 0.5
                     break
 
         if test_mode: print("Motif: ", Z_motif, motif, motif_sequences, motif_structure)
@@ -91,7 +94,7 @@ def score_structure( sequences, structure, circle = False, params = '', test_mod
         p = partition( sequences, circle = circle, structure = structure, params = params, suppress_all_output = True, deriv_params = deriv_params )
         print('From dynamic programming:', p.Z)
         assert_equal( Z, p.Z )
-
+        print()
         if deriv_params:
             print( 'LOG-DERIVS FROM MOTIF-BY_MOTIF' )
             show_derivs( deriv_params, log_derivs )

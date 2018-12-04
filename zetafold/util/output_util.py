@@ -15,14 +15,15 @@ def _show_results( self ):
     print('circle   = ', self.circle)
     print('Z =',self.Z)
     print('dG =',-KT_IN_KCAL * math.log( self.Z ))
+    print()
     if self.deriv_params:
         show_derivs( self.deriv_params, self.log_derivs )
 
 def show_derivs( deriv_params, log_derivs ):
-    print()
     print( '%20s %25s' % ('parameter','d(logZ)/d(log parameter)' ) )
     for i,parameter in enumerate(deriv_params):
            print( '%20s %25.12f' % (parameter, log_derivs[i] ) )
+    print()
     # too much verbiage if we also include dZ/dparameter:
     #print( '%20s %25s %25s' % ('parameter','d(logZ)/d(log parameter)','dZ/dparameter' ) )
     #for i,parameter in enumerate(deriv_params):
