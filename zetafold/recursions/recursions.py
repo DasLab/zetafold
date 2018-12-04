@@ -143,6 +143,8 @@ def update_Z_coax( self, i, j ):
      sequence, ligated, all_ligated, Z_BP, C_eff_basic, C_eff_no_BP_singlet, C_eff_no_coax_singlet, C_eff, Z_linear, Z_cut, Z_coax ) = unpack_variables( self )
     offset = ( j - i ) % N
 
+    if (offset == N-1) and ligated[j]: return
+
     #  all structures that form coaxial stacks between (i,k) and (k+1,j) for some k
     #
     #       -- k - k+1 -
@@ -152,7 +154,10 @@ def update_Z_coax( self, i, j ):
     #
     if K_coax > 0:
         for k in range( i+1, i+offset-1 ):
-            if ligated[k]: Z_coax[i][j]  += Z_BP[i][k] * Z_BP[k+1][j] * K_coax
+            if ligated[k]:
+                if Z_BP.val(i,k) == 0.0: continue
+                if Z_BP.val(k+1,j) == 0.0: continue
+                Z_coax[i][j]  += Z_BP[i][k] * Z_BP[k+1][j] * K_coax
 
 ##################################################################################################
 def update_C_eff_basic( self, i, j ):
@@ -368,6 +373,8 @@ def update_Z_final( self, i ):
                 for k in range( j + 2, i + N - 1):
                     if not ligated[j]: continue
                     if not ligated[k-1]: continue
+                    if Z_BP.val(i,j) == 0: continue
+                    if Z_BP.val(k,i-1) == 0: continue
                     Z_final[i] += Z_BP[i][j] * C_eff_for_coax[j+1][k-1] * Z_BP[k][i-1] * l * l * l_coax * K_coax
 
                 # If the two stacked base pairs are in split segments
@@ -379,6 +386,9 @@ def update_Z_final( self, i ):
                 #   - i-1 - i --
                 #         *
                 for k in range( j + 1, i + N - 1):
+                    if Z_BP.val(i,j) == 0: continue
+                    if Z_BP.val(k,i-1) == 0: continue
+                    if (k-j)%N == 1 and ligated[j]: continue
                     Z_final[i] += Z_BP[i][j] * Z_cut[j][k] * Z_BP[k][i-1] * K_coax
 
 
