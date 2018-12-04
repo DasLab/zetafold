@@ -11,7 +11,7 @@ if __name__ =='__main__':
     parser.add_argument("-params","--parameters",type=str, default='', help='Parameter file to use [default: '', which triggers latest version]')
     parser.add_argument("-struct","--structure",type=str, default=None, help='force specific structure in dot-parens notation')
     parser.add_argument("--force_base_pairs",type=str, default=None, help='force base pairs (but allow any others) in dot-parens notation')
-    parser.add_argument("--mfe", action='store_true', default=False, help='Get minimal free energy structure')
+    parser.add_argument("--mfe", action='store_true', default=False, help='Get minimal free energy structure (approximately, backtracking through partition)')
     parser.add_argument("--bpp", action='store_true', default=False, help='Get base pairing probability')
     parser.add_argument("--stochastic", type=int, default=0, help='Number of Boltzman-weighted stochastic structures to retrieve')
     parser.add_argument("--enumerate",action='store_true', default=False, help='Backtrack to get all structures and their Boltzmann weights')

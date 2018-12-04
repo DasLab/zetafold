@@ -275,9 +275,16 @@ def _get_bpp_matrix( self ):
 
 ##################################################################################################
 def _calc_mfe( self ):
-    #
-    # Wrapper into mfe(), written out in backtrack.py
-    #
+    '''
+     Wrapper into mfe(), written out in backtrack.py
+     Note that this is not *quite* MFE -- would have to rerun dynamic programming with max() instead of sum over Z
+     And that means that backtracking from different points can lead to different apparent MFE's -- for example
+      a fully unfolded structure can be accumulated with a bunch of dinky hairpins to win over the actual MFE.
+    Example case:
+         CAAUGCUCAUUGGG G --circle
+    vs.
+         GCAAUGCUCAUUGGG
+    '''
     N = self.N
     p_MFE   = [0.0]*N
     bps_MFE = [[]]*N
@@ -289,10 +296,14 @@ def _calc_mfe( self ):
         print('Doing backtrack to get minimum free energy structure:')
         print(self.sequence)
 
+    all_bps_MFE = set()
     for i in range( n_test ):
         (bps_MFE[i], p_MFE[i] ) = mfe( self, self.Z_final.get_contribs(self,i) )
-        print (bps_MFE[i], p_MFE[i] )
-        assert_equal( p_MFE[i], p_MFE[0] )
+        if len(all_bps_MFE) > 0 and not ( tuple(bps_MFE[i]) in all_bps_MFE ):
+            print( 'Warning, MFE structure computed only approximately from partition, and another structure had been found backtracking from position %d:' % i )
+            print( secstruct(bps_MFE[i],N), "   ", p_MFE[i], "[MFE?]")
+        all_bps_MFE.add( tuple(bps_MFE[i]) )
+        #assert_equal( p_MFE[i], p_MFE[0] )
         # actually this doesn't always hold -- in some parameter sets and sequences there are literally ties.
         # assert( bps_MFE[i] == bps_MFE[0] )
 
