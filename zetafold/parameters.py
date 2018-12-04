@@ -5,17 +5,22 @@ from .util.constants import KT_IN_KCAL
 import glob
 import os.path
 
-
 class AlphaFoldParams:
     '''
     Parameters that define the statistical mechanical model for RNA folding
     '''
     def __init__( self ):
         self.C_std  = 1.0      # 1 M. drops out in end (up to overall scale factor).
+        self.parameter_tags   = []
+        self.parameter_values = []
 
     def get_variables( self ):
-        if self.C_init == 0.0 and self.name == 'empty': print('WARNING! C_init not defined, and params appear empty. Look at get_minimal_params() or get_latest_params() for examples')
+        if self.C_init == 0.0 and self.name == 'empty': print('WARNING! C_init not defined, and params appear empty. Look at get_params() for examples')
         return ( self.C_init, self.l, self.l_BP, self.K_coax, self.l_coax, self.C_std, self.min_loop_length, self.allow_strained_3WJ )
+
+    def get_parameter_value( self, param_tag ):
+        if self.parameter_tags.count( param_tag ) == 0: return None
+        return self.parameter_values[ self.parameter_tags.index( param_tag ) ]
 
     def check_C_eff_stack( self ): _check_C_eff_stack( self )
 
@@ -68,7 +73,12 @@ def get_params_from_file( params_file_tag ):
         print()
         return None
     params_fields = read_params_fields( params_file );
-    for param_tag,param_val in params_fields:  set_parameter( params, param_tag, param_val )
+    for param_tag,param_val in params_fields:
+        val = set_parameter( params, param_tag, param_val )
+        if isinstance( val, float ):
+            params.parameter_tags.append(   param_tag )
+            params.parameter_values.append( val )
+
     return params
 
 def get_latest_params():
@@ -95,6 +105,8 @@ def get_all_params_files():
 #############################################################################################################
 def set_parameter( params, tag, val ):
     '''
+    Based on tag, one or multiple parameters might be set.
+    Returns float( val ) if an actual continuous parameter is set; None otherwise.
     '''
     if tag == 'name': params.name = val
     elif tag == 'version': params.version = val
@@ -103,11 +115,13 @@ def set_parameter( params, tag, val ):
     elif len( tag )>=2 and tag[:2] == 'Kd':
         setup_base_pair_type_by_tag( params, tag, float(val) )
         update_C_eff_stack( params )
+        return float(val)
     elif len( tag )>=11 and tag[:11] == 'C_eff_stack':
         if tag == 'C_eff_stacked_pair':
             for bpt1 in params.base_pair_types:
                 for bpt2 in params.base_pair_types:
                     params.C_eff_stack[bpt1][bpt2] = float(val)
+            return float(val)
         else:
             assert( len(tag) > 11 )
             tags = tag[12:].split('_')
@@ -118,11 +132,14 @@ def set_parameter( params, tag, val ):
                 for bpt2 in bpts2:
                     params.C_eff_stack[ bpt1 ][ bpt2 ] = float(val)
                     params.C_eff_stack[ bpt2.flipped ][ bpt1.flipped ] = float(val)
+            return float( val )
     else:
         if not tag in ('name','version','C_init','l','l_BP','l_coax','K_coax'):
             print( 'Unrecognized tag!!', tag )
             exit()
         setattr( params, tag, float( val ) )
+        return float( val )
+    return None
 
 def update_C_eff_stack( params, val = None ):
     if not hasattr( params, 'C_eff_stack' ): params.C_eff_stack = {}

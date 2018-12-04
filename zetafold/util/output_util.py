@@ -15,6 +15,11 @@ def _show_results( self ):
     print('circle   = ', self.circle)
     print('Z =',self.Z)
     print('dG =',-KT_IN_KCAL * math.log( self.Z ))
+    if self.deriv_params:
+        print()
+        print( '%20s %25s %25s' % ('parameter','d(logZ)/d(log parameter)','dZ/dparameter' ) )
+        for i,parameter in enumerate(self.deriv_params):
+               print( '%20s %25.6f %25.6f' % (parameter, self.log_derivs[i], self.derivs[i] ) )
 
 def _show_matrices( self ):
     output_DP( "Z_BP", self.Z_BP )

@@ -1,6 +1,6 @@
 from .base_pair_types import get_base_pair_type_for_tag
 
-def _get_log_derivs( self, parameters ):
+def _get_log_derivs( self, deriv_parameters = [] ):
     '''
     Output
 
@@ -9,25 +9,30 @@ def _get_log_derivs( self, parameters ):
     using simple expressions that require O( N^2 ) time or less after
     the original O( N^3 ) dynamic programming calculations
     '''
+    print( id( deriv_parameters), id( self.deriv_params ) )
+    if deriv_parameters == None: return None
+    if deriv_parameters == []:
+        for tag in self.params.parameter_tags: deriv_parameters.append( tag )
 
-    derivs = [None]*len(parameters)
+    derivs = [None]*len(deriv_parameters)
 
     # Derivatives with respect to each Kd
     N = self.N
-    for n,parameter in enumerate(parameters):
+    Z = self.Z_final.val( 0 )
+    for n,parameter in enumerate(deriv_parameters):
         if parameter == 'l':
             # Derivatives with respect to loop closure parameters
             num_internal_linkages = 0.0
             for i in range( N ):
                 if not self.ligated[i]: continue
-                num_internal_linkages += self.params.l * self.C_eff_no_coax_singlet.val( i+1, i ) / self.params.C_std / self.Z
+                num_internal_linkages += self.params.l * self.C_eff_no_coax_singlet.val( i+1, i ) / self.params.C_std / Z
             derivs[ n ] = num_internal_linkages
         elif parameter == 'l_BP':
             num_base_pairs_closed_by_loops = 0.0
             for i in range( N ):
                 for j in range( N ):
                     if ( j - i ) % N < 2: continue
-                    num_base_pairs_closed_by_loops += self.params.l**2 * self.params.l_BP * self.C_eff.val(i+1,j-1) * self.Z_BP.val(j,i) / self.Z
+                    num_base_pairs_closed_by_loops += self.params.l**2 * self.params.l_BP * self.C_eff.val(i+1,j-1) * self.Z_BP.val(j,i) / Z
             derivs[ n ] = num_base_pairs_closed_by_loops
         elif parameter == 'C_init':
             num_closed_loops = get_bpp_tot( self ) - self.num_strand_connections()
@@ -60,15 +65,15 @@ def _get_log_derivs( self, parameters ):
             C_eff_for_coax = self.C_eff if self.params.allow_strained_3WJ else self.C_eff_no_BP_singlet
             for i in range( N ):
                 for j in range( N ):
-                    coax_prob += self.Z_coax.val(i,j) * self.params.l_coax * self.params.l**2 * C_eff_for_coax.val(j+1,i-1) / self.Z
-                    coax_prob += self.Z_coax.val(i,j) * self.Z_cut.val(j,i) / self.Z
+                    coax_prob += self.Z_coax.val(i,j) * self.params.l_coax * self.params.l**2 * C_eff_for_coax.val(j+1,i-1) / Z
+                    coax_prob += self.Z_coax.val(i,j) * self.Z_cut.val(j,i) / Z
             derivs[ n ] = coax_prob
         elif parameter == 'l_coax':
             coax_prob = 0.0
             C_eff_for_coax = self.C_eff if self.params.allow_strained_3WJ else self.C_eff_no_BP_singlet
             for i in range( N ):
                 for j in range( N ):
-                    coax_prob += self.Z_coax.val(i,j) * self.params.l_coax * self.params.l**2 * C_eff_for_coax.val(j+1,i-1) / self.Z
+                    coax_prob += self.Z_coax.val(i,j) * self.params.l_coax * self.params.l**2 * C_eff_for_coax.val(j+1,i-1) / Z
             derivs[ n ] = coax_prob
         else:
             print "Did not recognize parameter ", parameter
@@ -110,5 +115,5 @@ def get_motif_prob( self, base_pair_type, base_pair_type2 ):
             if not self.ligated[(j-1)%N]: continue
             if Z_BPq1.val(j  ,  i) == 0: continue
             if Z_BPq2.val(i+1,j-1) == 0: continue
-            motif_prob += self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq1.val(j,i) * Z_BPq2.val(i+1,j-1) / self.Z / 2.0
+            motif_prob += self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq1.val(j,i) * Z_BPq2.val(i+1,j-1) / self.Z_final.val(0) / 2.0
     return motif_prob

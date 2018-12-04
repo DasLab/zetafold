@@ -6,6 +6,7 @@ from .util.secstruct_util import *
 from .util.output_util    import _show_results, _show_matrices
 from .util.sequence_util  import initialize_sequence_and_ligated, initialize_all_ligated, get_num_strand_connections
 from .util.constants import KT_IN_KCAL
+from .util.assert_equal import assert_equal
 from .derivatives import _get_log_derivs
 
 from math import log
@@ -14,6 +15,7 @@ from math import log
 def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = False,
                n_stochastic = 0, do_enumeration = False, structure = None, force_base_pairs = None, no_coax = False,
                verbose = False,  suppress_all_output = False,
+               deriv_params = None,
                calc_Kd_deriv_DP = False, use_simple_recursions = False  ):
     '''
     Wrapper function into Partition() class
@@ -29,13 +31,15 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
     if isinstance(params,str): params = get_params( params, suppress_all_output )
     if no_coax:                params.K_coax = 0.0
 
-    p = Partition( sequences, params, calc_all_elements = calc_bpp )
+    p = Partition( sequences, params )
+    p.calc_all_elements = calc_bpp or (deriv_params != None)
     p.use_simple_recursions = use_simple_recursions
     p.circle    = circle
     p.options.calc_deriv_DP = calc_Kd_deriv_DP
     p.structure = get_structure_string( structure )
     p.force_base_pairs = get_structure_string( force_base_pairs )
     p.suppress_all_output = suppress_all_output
+    p.deriv_params = deriv_params
     p.run()
     if calc_bpp:         p.get_bpp_matrix()
     if mfe:              p.calc_mfe()
@@ -53,7 +57,7 @@ class Partition:
     Statistical mechanical model for RNA folding, testing a bunch of extensions and with lots of cross-checks.
     (C) R. Das, Stanford University, 2018
     '''
-    def __init__( self, sequences, params, calc_all_elements = False ):
+    def __init__( self, sequences, params ):
         '''
         Required user input.
         sequences = string with sequence, or array of strings (sequences of interacting strands)
@@ -63,12 +67,13 @@ class Partition:
         self.params = params
         self.circle = False  # user can update later --> circularize sequence
         self.use_simple_recursions = False
-        self.calc_all_elements     = calc_all_elements
+        self.calc_all_elements     = False
         self.calc_bpp = False
         self.base_pair_types = params.base_pair_types
         self.suppress_all_output = False
         self.structure = None
         self.force_base_pairs = None
+        self.deriv_params = None
         self.options = PartitionOptions()
 
         # for output:
@@ -79,6 +84,8 @@ class Partition:
         self.struct_MFE = ''
         self.struct_stochastic = []
         self.struct_enumerate  = []
+        self.log_derivs = []
+        self.derivs     = []
         return
 
     ##############################################################################################
@@ -99,9 +106,9 @@ class Partition:
 
         for i in range( self.N): self.Z_final.update( self, i )
 
-        self.Z  = self.Z_final.val(0)
-        if self.Z > 0.0: self.dG = -KT_IN_KCAL * log( self.Z )
-        self.dZ_dKd_DP = self.Z_final.deriv(0)
+        self.log_derivs = self.get_log_derivs( self.deriv_params )
+
+        fill_in_outputs( self )
 
     # boring member functions -- defined later.
     def get_bpp_matrix( self ): _get_bpp_matrix( self ) # fill base pair probability matrix
@@ -110,11 +117,20 @@ class Partition:
     def enumerative_backtrack( self ): _enumerative_backtrack( self )
     def show_results( self ): _show_results( self )
     def show_matrices( self ): _show_matrices( self )
-    def get_log_derivs( self, parameters ): return _get_log_derivs( self, parameters )
+    def get_log_derivs( self, deriv_params ): return _get_log_derivs( self, deriv_params )
     def run_cross_checks( self ): _run_cross_checks( self )
     def num_strand_connections( self ):  return get_num_strand_connections( self.sequences, self.circle)
 
 ##################################################################################################
+def fill_in_outputs( self ):
+    self.Z  = self.Z_final.val(0)
+    if self.Z > 0.0: self.dG = -KT_IN_KCAL * log( self.Z )
+    self.dZ_dKd_DP = self.Z_final.deriv(0)
+    self.derivs = []
+    if self.deriv_params:
+        for n,log_deriv in enumerate(self.log_derivs):
+            self.derivs.append( log_deriv * self.Z / self.params.get_parameter_value( self.deriv_params[n] )  )
+
 def initialize_sequence_information( self ):
     '''
     Create sequence information from sequences of strands:
@@ -275,6 +291,7 @@ def _calc_mfe( self ):
 
     for i in range( n_test ):
         (bps_MFE[i], p_MFE[i] ) = mfe( self, self.Z_final.get_contribs(self,i) )
+        print( bps_MFE[i] )
         assert( abs( ( p_MFE[i] - p_MFE[0] ) / p_MFE[0] ) < 1.0e-5 )
         assert( bps_MFE[i] == bps_MFE[0] )
 
@@ -321,15 +338,13 @@ def _enumerative_backtrack( self ):
 def _run_cross_checks( self ):
     # stringent test that partition function is correct -- all the Z(i,i) agree.
     if self.calc_all_elements:
-        for i in range( self.N ):
-            assert( abs( ( self.Z_final.val(i) - self.Z_final.val(0) ) / self.Z_final.val(0) ) < 1.0e-5 )
+        for i in range( self.N ): assert_equal( self.Z_final.val(0), self.Z_final.val(i) )
 
-    if self.calc_all_elements and self.options.calc_deriv_DP and self.Z_final.deriv(0) > 0:
-        for i in range( self.N ):
-            assert( self.Z_final.deriv(0) == 0 or  abs( ( self.Z_final.deriv(i) - self.Z_final.deriv(0) ) / self.Z_final.deriv(0) ) < 1.0e-5 )
+        if self.options.calc_deriv_DP and self.Z_final.deriv(0) > 0:
+            for i in range( self.N ): assert_equal( self.Z_final.deriv(0), self.Z_final.deriv(i) )
 
-    # calculate bpp_tot = -dlog Z_final /dlog Kd in two ways! wow cool test
-    if self.options.calc_deriv_DP and len(self.bpp)>0:
+    # calculate bpp_tot = -dlog Z_final /dlog Kd in up to three ways! wow cool test
+    if len(self.bpp)>0:
         bpp_tot = 0.0
         for i in range( self.N ):
             for j in range( self.N ):
@@ -337,9 +352,11 @@ def _run_cross_checks( self ):
 
         # uh this is a hack -- only works for minimal model where all the Kd are the same:
         Kd = self.params.base_pair_types[0].Kd
-        bpp_tot_based_on_deriv = -self.Z_final.deriv(0) * Kd / self.Z_final.val(0)
-        print('bpp_tot',bpp_tot,'bpp_tot_based_on_deriv',bpp_tot_based_on_deriv)
-        if bpp_tot > 0: assert( abs( ( bpp_tot - bpp_tot_based_on_deriv )/bpp_tot ) < 1.0e-5 )
+        if self.options.calc_deriv_DP:
+            bpp_tot_based_on_deriv = -self.Z_final.deriv(0) * Kd / self.Z_final.val(0)
+            print('bpp_tot',bpp_tot,'bpp_tot_based_on_deriv',bpp_tot_based_on_deriv)
+            if bpp_tot > 0: assert_equal( bpp_tot, bpp_tot_based_on_deriv )
+
 
 
 
