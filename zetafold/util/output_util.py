@@ -16,14 +16,17 @@ def _show_results( self ):
     print('Z =',self.Z)
     print('dG =',-KT_IN_KCAL * math.log( self.Z ))
     if self.deriv_params:
-        print()
-        print( '%20s %25s' % ('parameter','d(logZ)/d(log parameter)' ) )
-        for i,parameter in enumerate(self.deriv_params):
-               print( '%20s %25.12f' % (parameter, self.log_derivs[i] ) )
-        # too much verbiage if we also include dZ/dparameter:
-        #print( '%20s %25s %25s' % ('parameter','d(logZ)/d(log parameter)','dZ/dparameter' ) )
-        #for i,parameter in enumerate(self.deriv_params):
-        #       print( '%20s %25.12f %25.8f' % (parameter, self.log_derivs[i], self.derivs[i] ) )
+        show_derivs( self.deriv_params, self.log_derivs )
+
+def show_derivs( deriv_params, log_derivs ):
+    print()
+    print( '%20s %25s' % ('parameter','d(logZ)/d(log parameter)' ) )
+    for i,parameter in enumerate(deriv_params):
+           print( '%20s %25.12f' % (parameter, log_derivs[i] ) )
+    # too much verbiage if we also include dZ/dparameter:
+    #print( '%20s %25s %25s' % ('parameter','d(logZ)/d(log parameter)','dZ/dparameter' ) )
+    #for i,parameter in enumerate(deriv_params):
+    #       print( '%20s %25.12f %25.8f' % (parameter, log_derivs[i], derivs[i] ) )
 
 def _show_matrices( self ):
     output_DP( "Z_BP", self.Z_BP )

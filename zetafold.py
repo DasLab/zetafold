@@ -22,9 +22,9 @@ if __name__ =='__main__':
     parser.add_argument("--calc_Kd_deriv_DP", action='store_true', default=False, help='Calculate derivative with respect to Kd_BP inline with dynamic programming [rarely used]')
     parser.add_argument( "--deriv_params",help="Parameters for which to calculate derivatives. Default: None, or all params if --calc_deriv",nargs='*')
     args     = parser.parse_args()
+    if args.calc_deriv and args.deriv_params == None: args.deriv_params = []
 
     if args.sequences != None: # run tests
-        if args.calc_deriv and args.deriv_params == None: args.deriv_params = []
         p = partition( args.sequences, circle = args.circle, params = args.parameters, verbose = args.verbose, mfe = args.mfe, calc_bpp = args.bpp, n_stochastic = int(args.stochastic), do_enumeration = args.enumerate, structure = args.structure, force_base_pairs = args.force_base_pairs, deriv_params = args.deriv_params, no_coax = args.no_coax, use_simple_recursions = args.simple )
     else:
         test_zetafold( verbose = args.verbose, use_simple_recursions = args.simple )

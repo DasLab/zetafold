@@ -1,16 +1,19 @@
 #!/usr/bin/python
 from __future__ import print_function
 import argparse
-from .partition import partition
-from .parameters import get_params
+from math import log
+import sys
+import os
+if __package__ == None: sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from zetafold.partition import partition
+from zetafold.parameters import get_params
 from zetafold.util import sequence_util
 from zetafold.util import secstruct_util
-#from .util.sequence_util import sequence_util
-#from .util.secstruct_util import secstruct_util
-from .util.constants import KT_IN_KCAL
-from math import log
+from zetafold.util.assert_equal import assert_equal
+from zetafold.util.constants import KT_IN_KCAL
+from zetafold.util.output_util import show_derivs
 
-def score_structure( sequences, structure, circle = False, params = '', test_mode = False ):
+def score_structure( sequences, structure, circle = False, params = '', test_mode = False, deriv_params = None ):
 
     # What we get if we parse out motifs
     structure = secstruct_util.get_structure_string( structure )
@@ -24,6 +27,7 @@ def score_structure( sequences, structure, circle = False, params = '', test_mod
 
     # Now go through each motif parsed out of the target structure
     Z = 1.0
+    log_derivs = None
     for motif in motifs:
         motif_res = []
         motif_sequences = []
@@ -49,9 +53,10 @@ def score_structure( sequences, structure, circle = False, params = '', test_mod
             motif_bps_list.append( (motif_res.index(i), motif_res.index(j)) )
         motif_structure = secstruct_util.secstruct( motif_bps_list, len( motif_res ) )
 
-        p = partition( motif_sequences, circle = motif_circle, structure = motif_structure, params = params, suppress_all_output = True )
-
+        p = partition( motif_sequences, circle = motif_circle, structure = motif_structure, params = params, suppress_all_output = True, deriv_params = deriv_params )
+        print( 'YEE!',p.log_derivs, p.deriv_params )
         Z_motif = p.Z
+        log_derivs_motif = p.log_derivs
 
         # Need to 'correct' for half-terminal penalties (a la Turner rules) and also remove extra costs
         # for connecting these 'sub-strands' together.
@@ -68,6 +73,11 @@ def score_structure( sequences, structure, circle = False, params = '', test_mod
 
         Z *= Z_motif
 
+        if deriv_params:
+            if log_derivs == None:
+                log_derivs = [0.0]*len( deriv_params )
+            for n, log_deriv_motif in enumerate( log_derivs_motif ): log_derivs[n] += log_deriv_motif
+
     # Compute cost of connecting the strands into a complex
     Z_connect = ( C_std / Kd_ref ) ** sequence_util.get_num_strand_connections( sequences, circle )
     Z *= Z_connect
@@ -78,9 +88,15 @@ def score_structure( sequences, structure, circle = False, params = '', test_mod
 
     if test_mode:
         # Reference value from 'hacked' dynamic programming, which takes a while.
-        p = partition( sequences, circle = circle, structure = structure, params = params, suppress_all_output = True )
+        p = partition( sequences, circle = circle, structure = structure, params = params, suppress_all_output = True, deriv_params = deriv_params )
         print('From dynamic programming:', p.Z)
-        assert( abs( p.Z - Z )/Z < 1.0e-5 )
+        assert_equal( Z, p.Z )
+
+        if deriv_params:
+            print( 'LOG-DERIVS FROM MOTIF-BY_MOTIF' )
+            show_derivs( deriv_params, log_derivs )
+            print( 'LOG-DERIVS FROM FULL PARTITION' )
+            show_derivs( deriv_params, p.log_derivs )
 
     dG = -KT_IN_KCAL * log( Z )
     return dG
@@ -92,8 +108,11 @@ if __name__=='__main__':
     parser.add_argument("-c","-circ","--circle", action='store_true', default=False, help='Sequence is a circle')
     parser.add_argument("-params","--parameters",type=str, default='', help='Parameters to use [default: '']')
     parser.add_argument("-test","--test_mode",action="store_true", default=False, help='In test mode, also run (slow) dynamic programming calculation to get Z' )
+    parser.add_argument("--calc_deriv", action='store_true', default=False, help='Calculate derivative with respect to all parameters')
+    parser.add_argument( "--deriv_params",help="Parameters for which to calculate derivatives. Default: None, or all params if --calc_deriv",nargs='*')
 
     args     = parser.parse_args()
+    if args.calc_deriv and args.deriv_params == None: args.deriv_params = []
 
-    dG = score_structure( args.sequences, args.structure, circle = args.circle, params = args.parameters, test_mode = args.test_mode )
+    dG = score_structure( args.sequences, args.structure, circle = args.circle, params = args.parameters, test_mode = args.test_mode, deriv_params = args.deriv_params )
     print('dG = ',dG)
