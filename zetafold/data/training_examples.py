@@ -19,9 +19,9 @@ P5abc_sequence =  'CCGUUCAGUACCAAGUCUCAGGGGAAACUUUGAGAUGGCCUUGCAAAGGGUAUGGUAAUAA
 P5abc_structure = '(((.((((.(((..(((((((((....)))))))))..((.......))....)))......)))))))'
 
 # P4-P6 outer junction -- further minimized -- easier to read input
-P4P6_outerjunction_sequence  = 'GGAAUUGCGGGAAAGG CUAACCACGCAGCCAAGUCCUAAGUC GAUAUGGAUGCAGUUCA'
-P4P6_outerjunction_structure = '.....((((((...(( ))..)).))))((...((((...((( )))..))))...))...'
-P4P6_outerjunction_force_bps = '...............( )........................( )................'
+P4P6_outerjunction = TrainingExample( 'GGAAUUGCGGGAAAGG CUAACCACGCAGCCAAGUCCUAAGUC GAUAUGGAUGCAGUUCA',
+                                      '.....((((((...(( ))..)).))))((...((((...((( )))..))))...))...',
+                   force_base_pairs = '...............( )........................( )................' )
 
 add_sequence  = 'CGCUUCAUAUAAUCCUAAUGAUAUGGUUUGGGAGUUUCUACCAAGAGCCUUAAACUCUUGAUUAUGAAGUG'
 add_structure = '(((((((((...((((((.........))))))........((((((.......))))))..)))))))))'
