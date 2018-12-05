@@ -3,6 +3,7 @@ from zetafold.parameters import get_params
 from zetafold.data.training_examples import *
 from zetafold.training import *
 from scipy.optimize import minimize
+import numpy as np
 from multiprocessing import Pool
 import math
 import argparse
@@ -11,7 +12,8 @@ import argparse
 parser = argparse.ArgumentParser( description = "Test nearest neighbor model partitition function for RNA sequence" )
 parser.add_argument("-params","--parameters",type=str, default='', help='Parameter file to use [default: '', which triggers latest version]')
 parser.add_argument( "--train_params",help="Parameters to optimize. Give none to get list.",nargs='*')
-parser.add_argument( "--init_log_params",help="Initial values for parameters",nargs='*')
+parser.add_argument( "--init_params",help="Initial values for parameters",nargs='*')
+parser.add_argument( "--init_log_params",help="Initial values for log parameters (alternative to init_params)",nargs='*')
 parser.add_argument("--no_coax", action='store_true', default=False, help='Turn off coaxial stacking')
 parser.add_argument("--jobs","-j", type=int, default=4, help='Number of jobs to run in parallel')
 args     = parser.parse_args()
@@ -22,15 +24,21 @@ if args.no_coax: params.set_parameter( 'K_coax', 0.0 )
 
 # set up training examples
 training_examples = [ tRNA ] #, P4P6_outerjunction ]
-train_parameters = args.train_params # ['C_init','C_eff_stack_WC_WC','C_eff_stack_WC_GU','C_eff_stack_WC_UG','C_eff_stack_GU_GU','C_eff_stack_UG_GU','C_eff_stack_GU_UG']
-x0      = args.init_log_params # np.array( [     0.5,                5.3,                4.1,                5.6,                4.9,                4,                    4] ) * np.log(10.0)
+train_parameters = args.train_params
+x0      = [float(log_param) for log_param in args.init_log_params ]
+
+if x0 == None and args.init_params: x0 = [ np.log(float(param)) for param in  args.init_params]
+# ['C_init','C_eff_stack_WC_WC','C_eff_stack_WC_GU','C_eff_stack_WC_UG','C_eff_stack_GU_GU','C_eff_stack_UG_GU','C_eff_stack_GU_UG']
+# np.array( [     0.5,                5.3,                4.1,                5.6,                4.9,                4,                    4] ) * np.log(10.0)
+
 
 if train_parameters == None:
+    print 'Must specify which parameters to optimize'
     params.show_parameters()
     exit()
 if x0 == None:
     x0 = np.zeros( len(train_parameters) )
-    for n,param_tag in enumerate(train_parameters): x0[ n ] = math.log( params.get_parameter_value( param_tag ) )
+    for n,param_tag in enumerate(train_parameters): x0[ n ] = np.log( params.get_parameter_value( param_tag ) )
     print x0
 
 #train_parameters = ['C_init']
