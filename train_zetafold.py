@@ -14,6 +14,7 @@ parser.add_argument( "--train_data",type=str,help="Training data to use. Give no
 parser.add_argument( "--train_params",help="Parameters to optimize. Give none to get list.",nargs='*')
 parser.add_argument( "--init_params",help="Initial values for parameters",nargs='*')
 parser.add_argument( "--init_log_params",help="Initial values for log parameters (alternative to init_params)",nargs='*')
+parser.add_argument( "--method",type=str,default='BFGS',help="Minimization routine")
 parser.add_argument("--no_coax", action='store_true', default=False, help='Turn off coaxial stacking')
 parser.add_argument("--jobs","-j", type=int, default=4, help='Number of jobs to run in parallel')
 parser.add_argument("--outfile","-out","-o", type=str, help='Outfile to save loss/variables during training')
@@ -60,7 +61,7 @@ grad = lambda x:free_energy_gap_deriv(x,params,train_parameters,training_example
 jac = grad if args.use_derivs else None
 
 create_outfile( args.outfile, params, train_parameters )
-result = minimize( loss, x0, method = 'L-BFGS-B', jac = jac )
+result = minimize( loss, x0, method = args.method, jac = jac )
 final_loss = loss( result.x )
 print( 'Deriv: ', grad( result.x ) )
 
