@@ -1,12 +1,16 @@
 #!/usr/bin/python
 from __future__ import print_function
 from scipy.optimize import minimize
-from parameters import get_params
-from partition import partition
-from score_structure import score_structure
 import numpy as np
+import sys
+import os
 from multiprocessing import Pool
 
+if __package__ == None: sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from zetafold.parameters import get_params
+from zetafold.partition import partition
+from zetafold.score_structure import score_structure
+from zetafold.data.training_examples import *
 
 def calc_dG_gap( sequence_structure_params_tuple ):
     sequence_structure_pair = sequence_structure_params_tuple[:-1]
@@ -26,7 +30,6 @@ def calc_dG_gap( sequence_structure_params_tuple ):
 
 def free_energy_gap( x, sequence_structure_pairs, apply_params ):
     dG_gap = 0.0
-    params = get_params( suppress_all_output = True )
     apply_params( params, x )
     print()
     print(x)
@@ -38,29 +41,9 @@ def free_energy_gap( x, sequence_structure_pairs, apply_params ):
 
     return sum( all_dG_gap )
 
-tRNA_sequence  = 'GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA'
-tRNA_structure = '(((((((..((((........)))).(((((.......))))).....(((((.......))))))))))))....'
-
-# P4-P6
-P4P6_sequence =  'GGAAUUGCGGGAAAGGGGUCAACAGCCGUUCAGUACCAAGUCUCAGGGGAAACUUUGAGAUGGCCUUGCAAAGGGUAUGGUAAUAAGCUGACGGACAUGGUCCUAACCACGCAGCCAAGUCCUAAGUCAACAGAUCUUCUGUUGAUAUGGAUGCAGUUCA'
-P4P6_structure = '.....((((((...((((((.....(((.((((.(((..(((((((((....)))))))))..((.......))....)))......)))))))....))))))..)).))))((...((((...(((((((((...)))))))))..))))...))...'
-
-# P5abc
-P5abc_sequence =  'CCGUUCAGUACCAAGUCUCAGGGGAAACUUUGAGAUGGCCUUGCAAAGGGUAUGGUAAUAAGCUGACGG'
-P5abc_structure = '(((.((((.(((..(((((((((....)))))))))..((.......))....)))......)))))))'
-
-# P4-P6 outer junction
-#sequence  = ['GGAAUUGCGGGAAAGGGGUC','GGUCCUAACCACGCAGCCAAGUCCUAAGUCAACAGAUCUUCUGUUGAUAUGGAUGCAGUUCA']
-#structure = '.....((((((...(((((())))))..)).))))((...((((...(((((((((...)))))))))..))))...))...'
-
-
-# P4-P6 outer junction -- further minimized -- easier to read input
-P4P6_outerjunction_sequence  = 'GGAAUUGCGGGAAAGG CUAACCACGCAGCCAAGUCCUAAGUC GAUAUGGAUGCAGUUCA'
-P4P6_outerjunction_structure = '.....((((((...(( ))..)).))))((...((((...((( )))..))))...))...'
-P4P6_outerjunction_force_bps = '...............( )........................( )................'
-
-add_sequence  = 'CGCUUCAUAUAAUCCUAAUGAUAUGGUUUGGGAGUUUCUACCAAGAGCCUUAAACUCUUGAUUAUGAAGUG'
-add_structure = '(((((((((...((((((.........))))))........((((((.......))))))..)))))))))'
+def apply_params_Ceff( params, x ):
+    q = np.exp( x )
+    params.set_parameter( 'C_eff_stacked_pair', q[0] )
 
 def apply_params_Ceff_Cinit_KdAU_KdGU( params, x ):
     q = 10.0**x
@@ -114,6 +97,12 @@ def apply_params_Ceff_Cinit_KdAU_KdGU_Kcoax( params, x ):
     params.base_pair_types[5].Kd = q[3] # G-U
     params.K_coax = q[4]
 
+x0 = np.array( [5] )
+apply_params_func = apply_params_Ceff
+sequence_structure_pairs  = [ (tRNA_sequence , tRNA_structure) ]
+params = get_params( suppress_all_output = True )
+params.set_parameter( 'K_coax', 0.0 )
+
 #x0 = np.array( [5, 1, 3, 3] )
 #apply_params_func = apply_params_Ceff_Cinit_KdAU_KdGU
 #sequence_structure_pairs  = [ (tRNA_sequence , tRNA_structure), (P4P6_outerjunction_sequence, P4P6_outerjunction_structure) ]
@@ -136,21 +125,15 @@ def apply_params_Ceff_Cinit_KdAU_KdGU_Kcoax( params, x ):
 #sequence_structure_pairs  = [ (tRNA_sequence , tRNA_structure), (P4P6_outerjunction_sequence, P4P6_outerjunction_structure) ]
 #sequence_structure_pairs  = [ (P4P6_outerjunction_sequence, P4P6_outerjunction_structure) ]
 
-x0 = np.array( [0.5, 5.3, 4.1, 5.6, 4.9, 4, 4, 0.5] )
-apply_params_func = apply_params_Cinit_CeffSix_Kcoax
-sequence_structure_pairs  = [ (tRNA_sequence , tRNA_structure), (P5abc_sequence, P5abc_structure), (P4P6_outerjunction_sequence, P4P6_outerjunction_structure, P4P6_outerjunction_force_bps), (add_sequence, add_structure) ]
+#x0 = np.array( [0.5, 5.3, 4.1, 5.6, 4.9, 4, 4, 0.5] )
+#apply_params_func = apply_params_Cinit_CeffSix_Kcoax
+#sequence_structure_pairs  = [ (tRNA_sequence , tRNA_structure), (P5abc_sequence, P5abc_structure), (P4P6_outerjunction_sequence, P4P6_outerjunction_structure, P4P6_outerjunction_force_bps), (add_sequence, add_structure) ]
 #sequence_structure_pairs  = [ (tRNA_sequence , tRNA_structure), (P4P6_sequence, P4P6_structure) ]
 
 loss = lambda x : free_energy_gap( x, sequence_structure_pairs, apply_params_func )
 
 pool = Pool( 4 )
-
-# simple 1-D scan
-#for x0 in range(10):  loss( [x0] )
-
-#result = minimize( loss, x0, method = 'Nelder-Mead' )
 result = minimize( loss, x0, method = 'L-BFGS-B' )
-
 final_loss = loss( result.x )
 print(result)
 print('Final parameters:', result.x, 'Loss:',final_loss)

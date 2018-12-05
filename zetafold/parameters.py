@@ -18,6 +18,8 @@ class AlphaFoldParams:
         if self.C_init == 0.0 and self.name == 'empty': print('WARNING! C_init not defined, and params appear empty. Look at get_params() for examples')
         return ( self.C_init, self.l, self.l_BP, self.K_coax, self.l_coax, self.C_std, self.min_loop_length, self.allow_strained_3WJ )
 
+    def set_parameter( self, tag, val ): _set_parameter( self, tag, val )
+
     def get_parameter_value( self, param_tag ):
         if self.parameter_tags.count( param_tag ) == 0: return None
         return self.parameter_values[ self.parameter_tags.index( param_tag ) ]
@@ -74,7 +76,7 @@ def get_params_from_file( params_file_tag ):
         return None
     params_fields = read_params_fields( params_file );
     for param_tag,param_val in params_fields:
-        val = set_parameter( params, param_tag, param_val )
+        val = _set_parameter( params, param_tag, param_val )
         if isinstance( val, float ):
             params.parameter_tags.append(   param_tag )
             params.parameter_values.append( val )
@@ -103,7 +105,7 @@ def get_all_params_files():
 #  Following has basic logic for setting parameter values based on input parameter -- note that
 #     in some cases, like C_eff_stacked_pair, multiple internal parameters need to get updated
 #############################################################################################################
-def set_parameter( params, tag, val ):
+def _set_parameter( params, tag, val ):
     '''
     Based on tag, one or multiple parameters might be set.
     Returns float( val ) if an actual continuous parameter is set; None otherwise.
