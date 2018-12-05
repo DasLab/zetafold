@@ -1257,13 +1257,122 @@ Final parameters: [ 1.07210079  4.83279421  4.15519529] Loss: 5.85113892604\
 real	0m30.469s\
 user	0m46.644s\
 sys	0m0.402s\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
-\fs22 \
+\fs22 \cf2 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
 \f4\fs24 \cf0 \cb1 \CocoaLigature1 \
+\ul Dec. 5, 2018\
+\ulnone Got derivatives working. Refactored train_alphafold.py\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
 \f0 \cf2 \cb3 \CocoaLigature0 \
+Let\'92s time training with single variable [ -d \'97> 
+\f1\b use analytical derivatives
+\f0\b0 ]:\
+\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
-\cf2 \
+
+\fs22 \cf2 time ./train_zetafold.py  --train_params Kd_CG -o blah.txt 
+\f1\b -d
+\f0\b0  --train_data minimal --no_coax\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\fs24 \cf2 \'85\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\fs22 \cf2  [ 567.83329156]\
+((...((((((...(())..)).)))).))..((((...((()))..))))........ P4P6_outerjunction 4.50535929773\
+(((.(((((((((.(((((((((....))))))))).((((......)))).)))).....)))))))) P5abc 5.11910101478\
+(((((((((...((((.............))))........((((((.......))))))..))))))))) add 2.31188770095\
+(((((((..((((........)))).(((((.......))))).....(((((.......)))))))))))).... tRNA 1.09042246488\
+('Deriv: ', array([ -4.26663024e-06]))\
+  status: 0\
+ success: True\
+    nfev: 6\
+     fun: 13.026770478348551\
+       x: array([ 6.34182787])\
+ message: 'CONVERGENCE: NORM_OF_PROJECTED_GRADIENT_<=_PGTOL'\
+     jac: array([ -4.26663024e-06])\
+     nit: 4\
+('Final parameters:', array([ 6.34182787]), 'Loss:', 13.026770478348551)\
+\
+real	0m10.860s\
+user	0m33.941s\
+sys	0m0.380s\
+\
+\
+And if we don\'92t use derivatives? Faster!? 7.8 s vs. 10.9 s!\
+\
+ [ 567.83465671]\
+((...((((((...(())..)).)))).))..((((...((()))..))))........ P4P6_outerjunction 4.50535895744\
+(((.(((((((((.(((((((((....))))))))).((((......)))).)))).....)))))))) P5abc 5.11910141331\
+(((((((((...((((.............))))........((((((.......))))))..))))))))) add 2.31188771256\
+(((((((..((((........)))).(((((.......))))).....(((((.......)))))))))))).... tRNA 1.09042239503\
+('Deriv: ', array([  1.79904295e-06]))\
+  status: 0\
+ success: True\
+    nfev: 5\
+     fun: 13.026770478346716\
+       x: array([ 6.34183028])\
+ message: 'CONVERGENCE: NORM_OF_PROJECTED_GRADIENT_<=_PGTOL'\
+     jac: array([  1.95399252e-06])\
+     nit: 3\
+('Final parameters:', array([ 6.34183028]), 'Loss:', 13.026770478346716)\
+\
+real	0m7.859s\
+user	0m24.283s\
+sys	0m0.302s\
+\
+\
+\ul Let\'92s try optimizing over 3 variables (the 3 Kd\'92s) \'97 OK see a slight speed boost\
+\ulnone time ./train_zetafold.py  --train_params Kd_CG Kd_AU Kd_GU 
+\f1\b -d
+\f0\b0  -o blah.txt --train_data minimal --no_coax\
+ [    537.82669944   46540.67149527  100763.29081011]\
+.(((((((.((...(())..))..........((((...((()))..))))))))))). P4P6_outerjunction 4.84939316794\
+(((.(((((((((.(((((((((....))))))))).((((......)))).)))).....)))))))) P5abc 5.47359275277\
+(((((((((...((((((.........))))))........((((((.......))))))..))))))))) add 1.16016530908\
+(((((((..((((........)))).(((((.......))))).....(((((.......)))))))))))).... tRNA 0.482388170349\
+('Deriv: ', array([  4.35537316e-07,  -9.68617177e-07,  -1.38335886e-07]))\
+  status: 0\
+ success: True\
+    nfev: 8\
+     fun: 11.96553940013328\
+       x: array([  6.28753639,  10.74808187,  11.52052939])\
+ message: 'CONVERGENCE: NORM_OF_PROJECTED_GRADIENT_<=_PGTOL'\
+     jac: array([  4.35537316e-07,  -9.68617177e-07,  -1.38335886e-07])\
+     nit: 7\
+('Final parameters:', array([  6.28753639,  10.74808187,  11.52052939]), 'Loss:', 11.96553940013328)\
+\
+real	0m14.446s\
+user	0m45.853s\
+sys	0m0.408s\
+\
+time ./train_zetafold.py  --train_params Kd_CG Kd_AU Kd_GU -o blah.txt --train_data minimal --no_coax\
+ [    537.82653549   46540.6821357   100763.25669417]\
+.(((((((.((...(())..))..........((((...((()))..))))))))))). P4P6_outerjunction 4.84939279105\
+(((.(((((((((.(((((((((....))))))))).((((......)))).)))).....)))))))) P5abc 5.47359278902\
+(((((((((...((((((.........))))))........((((((.......))))))..))))))))) add 1.160165537\
+(((((((..((((........)))).(((((.......))))).....(((((.......)))))))))))).... tRNA 0.482388283058\
+('Deriv: ', array([ -3.51557348e-07,   2.72900303e-07,  -8.83813825e-07]))\
+  status: 0\
+ success: True\
+    nfev: 8\
+     fun: 11.965539400133332\
+       x: array([  6.28753608,  10.74808209,  11.52052905])\
+ message: 'CONVERGENCE: NORM_OF_PROJECTED_GRADIENT_<=_PGTOL'\
+     jac: array([ -1.77635684e-07,  -7.10542736e-07,  -1.95399252e-06])\
+     nit: 7\
+('Final parameters:', array([  6.28753608,  10.74808209,  11.52052905]), 'Loss:', 11.965539400133332)\
+\
+real	0m18.254s\
+user	0m57.865s\
+sys	0m0.543s\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\fs24 \cf2 \
+\
 }

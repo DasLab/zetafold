@@ -2,26 +2,33 @@ class TrainingExample:
     '''
     Info needed for train_zetafold
     '''
-    def __init__( self, sequence, structure, force_base_pairs = None ):
+    def __init__( self, name, sequence, structure, force_base_pairs = None ):
+        self.name = name
         self.sequence = sequence
         self.structure = structure
         self.force_base_pairs = force_base_pairs
 
-tRNA = TrainingExample( 'GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA',
+tRNA = TrainingExample( 'tRNA',
+                        'GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA',
                         '(((((((..((((........)))).(((((.......))))).....(((((.......))))))))))))....' )
-
-# P4-P6
-P4P6_sequence =  'GGAAUUGCGGGAAAGGGGUCAACAGCCGUUCAGUACCAAGUCUCAGGGGAAACUUUGAGAUGGCCUUGCAAAGGGUAUGGUAAUAAGCUGACGGACAUGGUCCUAACCACGCAGCCAAGUCCUAAGUCAACAGAUCUUCUGUUGAUAUGGAUGCAGUUCA'
-P4P6_structure = '.....((((((...((((((.....(((.((((.(((..(((((((((....)))))))))..((.......))....)))......)))))))....))))))..)).))))((...((((...(((((((((...)))))))))..))))...))...'
-
-# P5abc
-P5abc_sequence =  'CCGUUCAGUACCAAGUCUCAGGGGAAACUUUGAGAUGGCCUUGCAAAGGGUAUGGUAAUAAGCUGACGG'
-P5abc_structure = '(((.((((.(((..(((((((((....)))))))))..((.......))....)))......)))))))'
-
-# P4-P6 outer junction -- further minimized -- easier to read input
-P4P6_outerjunction = TrainingExample( 'GGAAUUGCGGGAAAGG CUAACCACGCAGCCAAGUCCUAAGUC GAUAUGGAUGCAGUUCA',
+P5abc = TrainingExample( 'P5abc',
+                         'CCGUUCAGUACCAAGUCUCAGGGGAAACUUUGAGAUGGCCUUGCAAAGGGUAUGGUAAUAAGCUGACGG',
+                         '(((.((((.(((..(((((((((....)))))))))..((.......))....)))......)))))))' )
+P4P6_outerjunction = TrainingExample( 'P4P6_outerjunction',
+                                      'GGAAUUGCGGGAAAGG CUAACCACGCAGCCAAGUCCUAAGUC GAUAUGGAUGCAGUUCA',
                                       '.....((((((...(( ))..)).))))((...((((...((( )))..))))...))...',
-                   force_base_pairs = '...............( )........................( )................' )
+                                      '...............( )........................( )................' )
+add = TrainingExample( 'add',
+                        'CGCUUCAUAUAAUCCUAAUGAUAUGGUUUGGGAGUUUCUACCAAGAGCCUUAAACUCUUGAUUAUGAAGUG',
+                        '(((((((((...((((((.........))))))........((((((.......))))))..)))))))))' )
+# P4-P6
+P4P6 = TrainingExample( 'P4P6',
+                        'GGAAUUGCGGGAAAGGGGUCAACAGCCGUUCAGUACCAAGUCUCAGGGGAAACUUUGAGAUGGCCUUGCAAAGGGUAUGGUAAUAAGCUGACGGACAUGGUCCUAACCACGCAGCCAAGUCCUAAGUCAACAGAUCUUCUGUUGAUAUGGAUGCAGUUCA',
+                        '.....((((((...((((((.....(((.((((.(((..(((((((((....)))))))))..((.......))....)))......)))))))....))))))..)).))))((...((((...(((((((((...)))))))))..))))...))...' )
 
-add_sequence  = 'CGCUUCAUAUAAUCCUAAUGAUAUGGUUUGGGAGUUUCUACCAAGAGCCUUAAACUCUUGAUUAUGAAGUG'
-add_structure = '(((((((((...((((((.........))))))........((((((.......))))))..)))))))))'
+
+training_sets = {}
+training_sets[ 'tRNA' ]    = [tRNA]
+training_sets[ 'minimal' ] = [tRNA,P5abc,P4P6_outerjunction,add]
+training_sets[ 'full' ]    = [tRNA,P4P6,add]
+

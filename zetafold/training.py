@@ -14,7 +14,7 @@ def calc_dG_gap( training_example ):
     p = partition( sequence, params = params, suppress_all_output = True, mfe = True, force_base_pairs = force_base_pairs )
     dG = p.dG
     dG_gap = dG_structure - dG # will be a positive number, best case zero.
-    print(p.struct_MFE, dG_gap)
+    print(p.struct_MFE, training_example.name, dG_gap)
     return dG_gap
 
 def calc_dG_gap_deriv( training_example ):
