@@ -12,32 +12,40 @@ from zetafold.partition import partition
 from zetafold.score_structure import score_structure
 from zetafold.data.training_examples import *
 
-def calc_dG_gap( training_example_tuple ):
-    training_example = training_example_tuple[0]
-    params = training_example_tuple[-1]
-
+def calc_dG_gap( training_example ):
     sequence, structure = training_example.sequence, training_example.structure
-    dG_structure = score_structure( sequence, structure, params = params )
+    dG_structure = score_structure( sequence, structure, params = training_example.params )
 
     force_base_pairs = training_example.force_base_pairs
-    p = partition( sequence, params = params, suppress_all_output = True, mfe = True, force_base_pairs = force_base_pairs )
+    p = partition( sequence, params = training_example.params, suppress_all_output = True, mfe = True, force_base_pairs = force_base_pairs )
     dG = p.dG
 
     dG_gap = dG_structure - dG # will be a positive number, best case zero.
     print(p.struct_MFE, dG_gap)
     return dG_gap
 
+def calc_dG_gap_deriv( training_example ):
+    sequence, structure = training_example.sequence, training_example.structure
+    (dG_structure, log_derivs_structure ) = score_structure( sequence, structure, params = training_example.params, deriv_params = train_parameters )
+
+    force_base_pairs = training_example.force_base_pairs
+    p = partition( sequence, params = training_example.params, suppress_all_output = True, mfe = True, force_base_pairs = force_base_pairs, deriv_params = train_parameters )
+    log_derivs = p.log_derivs
+
+    return np.array( log_derivs ) - np.array( log_derivs_structure )
+
 def free_energy_gap( x ):
-    dG_gap = 0.0
     for n,param_tag in enumerate(train_parameters): params.set_parameter( param_tag, np.exp(x[n]))
-    print()
-    print(x)
-
-    training_example_tuples = map( lambda y: (y,params), training_examples )
-
-    all_dG_gap = pool.map( calc_dG_gap, training_example_tuples )
-
+    print('\n',np.exp(x))
+    all_dG_gap = pool.map( calc_dG_gap, training_examples )
     return sum( all_dG_gap )
+
+def free_energy_gap_deriv( x ):
+    for n,param_tag in enumerate(train_parameters):
+        assert( param_tag in params.parameter_tags )
+        params.set_parameter( param_tag, np.exp(x[n]))
+    all_dG_gap_deriv = map( calc_dG_gap_deriv, training_examples )
+    return sum( all_dG_gap_deriv )
 
 def apply_params_Ceff_Cinit_KdAU_KdGU( params, x ):
     q = 10.0**x
@@ -91,11 +99,13 @@ def apply_params_Ceff_Cinit_KdAU_KdGU_Kcoax( params, x ):
     params.base_pair_types[5].Kd = q[3] # G-U
     params.K_coax = q[4]
 
+# set up starter parameters
 params = get_params( suppress_all_output = True )
 params.set_parameter( 'K_coax', 0.0 )
 
+# set up training examples
 training_examples = [ tRNA ]
-train_parameters = ['C_eff_stacked_pair']
+train_parameters = ['Kd_CG']
 x0 = np.array( [5] )
 
 #x0 = np.array( [5, 1, 3, 3] )
@@ -125,8 +135,12 @@ x0 = np.array( [5] )
 #sequence_structure_pairs  = [ (tRNA_sequence , tRNA_structure), (P5abc_sequence, P5abc_structure), (P4P6_outerjunction_sequence, P4P6_outerjunction_structure, P4P6_outerjunction_force_bps), (add_sequence, add_structure) ]
 #sequence_structure_pairs  = [ (tRNA_sequence , tRNA_structure), (P4P6_sequence, P4P6_structure) ]
 
+for training_example in training_examples: training_example.params = params
+
 pool = Pool( 4 )
-result = minimize( free_energy_gap, x0, method = 'L-BFGS-B' )
+result = minimize( free_energy_gap, x0, method = 'L-BFGS-B', jac = free_energy_gap_deriv )
 final_loss = free_energy_gap( result.x )
+print( 'Deriv: ', free_energy_gap_deriv( result.x ) )
+
 print(result)
 print('Final parameters:', result.x, 'Loss:',final_loss)

@@ -107,7 +107,6 @@ class Partition:
         for i in range( self.N): self.Z_final.update( self, i )
 
         self.log_derivs = self.get_log_derivs( self.deriv_params )
-
         fill_in_outputs( self )
 
     # boring member functions -- defined later.
@@ -300,8 +299,9 @@ def _calc_mfe( self ):
     for i in range( n_test ):
         (bps_MFE[i], p_MFE[i] ) = mfe( self, self.Z_final.get_contribs(self,i) )
         if len(all_bps_MFE) > 0 and not ( tuple(bps_MFE[i]) in all_bps_MFE ):
-            print( 'Warning, MFE structure computed only approximately from partition, and another structure had been found backtracking from position %d:' % i )
-            print( secstruct(bps_MFE[i],N), "   ", p_MFE[i], "[MFE?]")
+            if not self.suppress_all_output:
+                print( 'Warning, MFE structure computed only approximately from partition, and another structure had been found backtracking from position %d:' % i )
+                print( secstruct(bps_MFE[i],N), "   ", p_MFE[i], "[MFE?]")
         all_bps_MFE.add( tuple(bps_MFE[i]) )
         #assert_equal( p_MFE[i], p_MFE[0] )
         # actually this doesn't always hold -- in some parameter sets and sequences there are literally ties.

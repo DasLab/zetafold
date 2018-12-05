@@ -148,7 +148,8 @@ def update_C_eff_stack( params, val = None ):
     for bpt1 in params.base_pair_types:
         if not params.C_eff_stack.has_key( bpt1 ):  params.C_eff_stack[ bpt1 ] = {}
         for bpt2 in params.base_pair_types:
-            params.C_eff_stack[ bpt1 ][ bpt2 ] = val
+            if not params.C_eff_stack[ bpt1 ].has_key( bpt2 ): params.C_eff_stack[ bpt1 ][ bpt2 ] = None
+            if val != None: params.C_eff_stack[ bpt1 ][ bpt2 ] = val
 
 def _check_C_eff_stack( params ):
     for bpt1 in params.base_pair_types:
@@ -161,8 +162,13 @@ def _check_C_eff_stack( params ):
 
 def setup_base_pair_type_by_tag( params, Kd_tag, val ):
     tag = Kd_tag[3:]
-    if get_base_pair_type_for_tag( params, tag ) != None: return
+    base_pair_type = get_base_pair_type_for_tag( params, tag )
+    if base_pair_type != None:
+        base_pair_type.Kd = val
+        base_pair_type.flipped.Kd = val
+        return
     if tag == 'matchlowercase':
         setup_base_pair_type( params, '*', '*', val, match_lowercase = True )
     else:
         setup_base_pair_type( params, tag[0], tag[1], val, match_lowercase = False )
+    assert( get_base_pair_type_for_tag( params, tag ) )
