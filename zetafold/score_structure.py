@@ -77,13 +77,14 @@ def score_structure( sequences, structure, circle = False, params = '', test_mod
         Z *= Z_motif
 
         if deriv_params:
-            if log_derivs == None:
-                log_derivs = [0.0]*len( deriv_params )
+            if log_derivs == None: log_derivs = [0.0]*len( deriv_params )
             for n, log_deriv_motif in enumerate( log_derivs_motif ): log_derivs[n] += log_deriv_motif
 
     # Compute cost of connecting the strands into a complex
     Z_connect = ( C_std / Kd_ref ) ** sequence_util.get_num_strand_connections( sequences, circle )
     Z *= Z_connect
+
+    if deriv_params and log_derivs == None: log_derivs = [0.0]*len( deriv_params )
 
     if test_mode:
         print("Connect strands: ", Z_connect)
@@ -102,6 +103,7 @@ def score_structure( sequences, structure, circle = False, params = '', test_mod
             show_derivs( deriv_params, p.log_derivs )
 
     dG = -KT_IN_KCAL * log( Z )
+    if deriv_params: return (dG,log_derivs)
     return dG
 
 if __name__=='__main__':
@@ -118,4 +120,5 @@ if __name__=='__main__':
     if args.calc_deriv and args.deriv_params == None: args.deriv_params = []
 
     dG = score_structure( args.sequences, args.structure, circle = args.circle, params = args.parameters, test_mode = args.test_mode, deriv_params = args.deriv_params )
+    if args.deriv_params: (dG,log_derivs) = dG
     print('dG = ',dG)

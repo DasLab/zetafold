@@ -31,6 +31,8 @@ def _get_log_derivs( self, deriv_parameters = [] ):
             for i in range( N ):
                 for j in range( N ):
                     if ( j - i ) % N < 2: continue
+                    if not self.ligated[i]: continue
+                    if not self.ligated[j-1]: continue
                     num_base_pairs_closed_by_loops += self.params.l**2 * self.params.l_BP * self.C_eff.val(i+1,j-1) * self.Z_BP.val(j,i) / Z
             derivs[ n ] = num_base_pairs_closed_by_loops
         elif parameter == 'C_init':

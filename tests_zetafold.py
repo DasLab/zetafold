@@ -94,15 +94,15 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     output_test( p, Z_ref, [0,4], bpp_ref )
 
     # an example with ties for MFE structure
+    print( 'Example with ties for MFE structure...' )
     sequence = 'CNGNC'
     p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions, mfe = True )
     Z_ref = 1 + 2 * C_init*l**2*l_BP/Kd
     bpp_ref = C_init*l**2*l_BP/Kd/ Z_ref
     output_test( p, Z_ref, [0,2], bpp_ref )
 
-    #################################################
     # let's do a numerical vs. analytic deriv test
-    #################################################
+    print( 'Numerical vs. analytic deriv (inline DP) test, Kd...' )
     params_perturb = get_params_from_file( 'minimal' )
     delta = 1.0e-10
     for base_pair_type in params_perturb.base_pair_types: base_pair_type.Kd += delta
@@ -112,6 +112,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     assert_equal( dZ_numerical, p.dZ_dKd_DP )
     print()
 
+    print( 'Enumeration tests...' )
     sequence = 'CNGCNG'
     p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, do_enumeration = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = (1 + C_init * l**2 *l_BP/Kd)**2  + C_init * l**5 * l_BP/Kd + (C_init * l**2 *l_BP/Kd)**2 * K_coax
@@ -122,22 +123,29 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     output_test( p, Z_ref,[0,2], bpp_ref, deriv_parameters, log_deriv_ref )
     assert( set(p.struct_enumerate) == set(['......', '(.)...', '(....)', '...(.)', '(.)(.)']) )
 
-    # stringent test of structure-constrained scores.
+    print( 'Stringent test of structure-constrained scores & derivs' )
     Z_tot_ref = p.Z
     Z_enumerate = []
     structures = ['......', '(.)...', '(....)', '...(.)', '(.)(.)']
     Z_refs     = [1, C_init * l**2 *l_BP/Kd, C_init * l**5 * l_BP/Kd,  C_init * l**2 *l_BP/Kd, (C_init * l**2 *l_BP/Kd)**2 * (1+K_coax)]
     bpp_refs_0_2=[0,1,0,0,1]
+    deriv_params =   ['Kd_CG','C_init','l','l_BP','C_eff_stacked_pair','K_coax','l_coax']
+    log_derivs_ref = [ [ 0,0,0,0,0,0,0],
+                       [-1,1,2,1,0,0,0],
+                       [-1,1,5,1,0,0,0],
+                       [-1,1,2,1,0,0,0],
+                       [-2,2,4,2,0,K_coax/(1+K_coax),0] ]
     for n,structure in enumerate( structures ):
-        p = partition( sequence, structure = structure, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, do_enumeration = False, verbose = verbose, use_simple_recursions = use_simple_recursions )
-        output_test( p, Z_refs[n], [0,2], bpp_refs_0_2[n] )
+        p = partition( sequence, structure = structure, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, do_enumeration = False, verbose = verbose, use_simple_recursions = use_simple_recursions, deriv_params = deriv_params )
+        output_test( p, Z_refs[n], [0,2], bpp_refs_0_2[n], deriv_params, log_derivs_ref[n] )
         # also throw in a test of score_structure here
-        dG = score_structure( sequence, structure, params = test_params )
+        ( dG, log_derivs ) = score_structure( sequence, structure, params = test_params, deriv_params = deriv_params )
         assert_equal( dG, p.dG )
+        for log_deriv,log_deriv_ref in zip( log_derivs, log_derivs_ref[n] ): assert_equal( log_deriv, log_deriv_ref )
         Z_enumerate.append( p.Z )
-    assert( abs( sum(Z_enumerate) - Z_tot_ref )/Z_tot_ref < 1.0e-6 )
+    assert_equal( sum(Z_enumerate), Z_tot_ref )
 
-    # testing extended alphabet & coaxial stacks
+    print( 'Testing extended alphabet & coaxial stacks...')
     sequence = ['xy','yz','zx']
     params_allow_strained_3WJ = get_params_from_file( 'minimal' )
     params_allow_strained_3WJ.allow_strained_3WJ = True
