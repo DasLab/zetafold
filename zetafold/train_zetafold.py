@@ -29,7 +29,7 @@ def calc_dG_gap( training_example_tuple ):
 
 def free_energy_gap( x ):
     dG_gap = 0.0
-    apply_params( params, x )
+    for n,param_tag in enumerate(train_parameters): params.set_parameter( param_tag, np.exp(x[n]))
     print()
     print(x)
 
@@ -38,10 +38,6 @@ def free_energy_gap( x ):
     all_dG_gap = pool.map( calc_dG_gap, training_example_tuples )
 
     return sum( all_dG_gap )
-
-def apply_params_Ceff( params, x ):
-    q = np.exp( x )
-    params.set_parameter( 'C_eff_stacked_pair', q[0] )
 
 def apply_params_Ceff_Cinit_KdAU_KdGU( params, x ):
     q = 10.0**x
@@ -95,11 +91,12 @@ def apply_params_Ceff_Cinit_KdAU_KdGU_Kcoax( params, x ):
     params.base_pair_types[5].Kd = q[3] # G-U
     params.K_coax = q[4]
 
-x0 = np.array( [5] )
-apply_params = apply_params_Ceff
-training_examples = [ tRNA ]
 params = get_params( suppress_all_output = True )
 params.set_parameter( 'K_coax', 0.0 )
+
+training_examples = [ tRNA ]
+train_parameters = ['C_eff_stacked_pair']
+x0 = np.array( [5] )
 
 #x0 = np.array( [5, 1, 3, 3] )
 #apply_params_func = apply_params_Ceff_Cinit_KdAU_KdGU
