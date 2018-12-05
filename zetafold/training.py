@@ -25,18 +25,22 @@ def calc_dG_gap_deriv( training_example ):
 
     return np.array( log_derivs ) - np.array( log_derivs_structure )
 
-def free_energy_gap( x, params, train_parameters, training_examples, pool ):
+def pack_variables( x, params, train_parameters, training_examples ):
     for n,param_tag in enumerate(train_parameters):
         assert( param_tag in params.parameter_tags )
         params.set_parameter( param_tag, np.exp(x[n]))
+    for training_example in training_examples:
+        training_example.params = params
+        training_example.train_parameters = train_parameters
+
+def free_energy_gap( x, params, train_parameters, training_examples, pool ):
+    pack_variables( x, params, train_parameters, training_examples )
     print('\n',np.exp(x))
     all_dG_gap = pool.map( calc_dG_gap, training_examples )
     return sum( all_dG_gap )
 
 def free_energy_gap_deriv( x, params, train_parameters, training_examples, pool ):
-    for n,param_tag in enumerate(train_parameters):
-        assert( param_tag in params.parameter_tags )
-        params.set_parameter( param_tag, np.exp(x[n]))
+    pack_variables( x, params, train_parameters, training_examples )
     all_dG_gap_deriv = pool.map( calc_dG_gap_deriv, training_examples )
     return sum( all_dG_gap_deriv )
 
