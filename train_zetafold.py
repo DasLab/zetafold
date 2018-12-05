@@ -25,12 +25,11 @@ if args.no_coax: params.set_parameter( 'K_coax', 0.0 )
 # set up training examples
 training_examples = [ tRNA ] #, P4P6_outerjunction ]
 train_parameters = args.train_params
-x0      = [float(log_param) for log_param in args.init_log_params ]
-
+x0 = None
+if args.init_log_params:            x0 = [float(log_param) for log_param in args.init_log_params ]
 if x0 == None and args.init_params: x0 = [ np.log(float(param)) for param in  args.init_params]
 # ['C_init','C_eff_stack_WC_WC','C_eff_stack_WC_GU','C_eff_stack_WC_UG','C_eff_stack_GU_GU','C_eff_stack_UG_GU','C_eff_stack_GU_UG']
 # np.array( [     0.5,                5.3,                4.1,                5.6,                4.9,                4,                    4] ) * np.log(10.0)
-
 
 if train_parameters == None:
     print 'Must specify which parameters to optimize'

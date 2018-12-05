@@ -92,6 +92,7 @@ def get_bpp_tot_for_base_pair_type( self, base_pair_type ):
     N = self.N
     for i in range( N ):
         for j in range( N ):
+            if self.Z_BPq[base_pair_type].val(i,j) == 0: continue
             bpp += self.Z_BPq[base_pair_type].val(i,j) * self.Z_BPq[base_pair_type.flipped].val(j,i) * base_pair_type.Kd / self.Z_final.val(0)
     return bpp
 
@@ -118,8 +119,8 @@ def get_motif_prob( self, base_pair_type, base_pair_type2 ):
             if ( j - i ) % N < 3: continue
             if not self.ligated[i]: continue
             if not self.ligated[(j-1)%N]: continue
-            if Z_BPq1.val(j  ,  i) == 0: continue
-            if Z_BPq2.val(i+1,j-1) == 0: continue
+            if not base_pair_type.flipped.is_match( self.sequence[j],self.sequence[i] ): continue
+            if not base_pair_type2       .is_match( self.sequence[(i+1)%N],self.sequence[(j-1)%N] ): continue
             motif_prob += self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq1.val(j,i) * Z_BPq2.val(i+1,j-1) / self.Z_final.val(0) / 2.0
     return motif_prob
 

@@ -270,6 +270,7 @@ def _get_bpp_matrix( self ):
         for j in range( self.N ):
             self.bpp[i][j] = 0.0
             for base_pair_type in self.params.base_pair_types:
+                if not base_pair_type.is_match( self.sequence[i],self.sequence[j] ): continue
                 self.bpp[i][j] += self.Z_BPq[base_pair_type].val(i,j) * self.Z_BPq[base_pair_type.flipped].val(j,i) * base_pair_type.Kd / self.Z_final.val(0)
 
 ##################################################################################################
