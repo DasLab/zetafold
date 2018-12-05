@@ -12,15 +12,14 @@ from zetafold.partition import partition
 from zetafold.score_structure import score_structure
 from zetafold.data.training_examples import *
 
-def calc_dG_gap( sequence_structure_params_tuple ):
-    sequence_structure_pair = sequence_structure_params_tuple[:-1]
-    params = sequence_structure_params_tuple[-1]
+def calc_dG_gap( training_example_tuple ):
+    training_example = training_example_tuple[0]
+    params = training_example_tuple[-1]
 
-    sequence, structure = sequence_structure_pair[0:2]
+    sequence, structure = training_example.sequence, training_example.structure
     dG_structure = score_structure( sequence, structure, params = params )
 
-    force_base_pairs = None
-    if len( sequence_structure_pair ) > 2: force_base_pairs = sequence_structure_pair[2]
+    force_base_pairs = training_example.force_base_pairs
     p = partition( sequence, params = params, suppress_all_output = True, mfe = True, force_base_pairs = force_base_pairs )
     dG = p.dG
 
@@ -28,16 +27,15 @@ def calc_dG_gap( sequence_structure_params_tuple ):
     print(p.struct_MFE, dG_gap)
     return dG_gap
 
-def free_energy_gap( x, sequence_structure_pairs, apply_params ):
+def free_energy_gap( x ):
     dG_gap = 0.0
     apply_params( params, x )
     print()
     print(x)
 
-    sequence_structure_params_tuples = map( lambda y: y+tuple([params]), sequence_structure_pairs )
-    #all_dG_gap = map( calc_dG_gap, sequence_structure_params_tuples )
+    training_example_tuples = map( lambda y: (y,params), training_examples )
 
-    all_dG_gap = pool.map( calc_dG_gap, sequence_structure_params_tuples )
+    all_dG_gap = pool.map( calc_dG_gap, training_example_tuples )
 
     return sum( all_dG_gap )
 
@@ -98,8 +96,8 @@ def apply_params_Ceff_Cinit_KdAU_KdGU_Kcoax( params, x ):
     params.K_coax = q[4]
 
 x0 = np.array( [5] )
-apply_params_func = apply_params_Ceff
-sequence_structure_pairs  = [ (tRNA_sequence , tRNA_structure) ]
+apply_params = apply_params_Ceff
+training_examples = [ tRNA ]
 params = get_params( suppress_all_output = True )
 params.set_parameter( 'K_coax', 0.0 )
 
@@ -130,10 +128,8 @@ params.set_parameter( 'K_coax', 0.0 )
 #sequence_structure_pairs  = [ (tRNA_sequence , tRNA_structure), (P5abc_sequence, P5abc_structure), (P4P6_outerjunction_sequence, P4P6_outerjunction_structure, P4P6_outerjunction_force_bps), (add_sequence, add_structure) ]
 #sequence_structure_pairs  = [ (tRNA_sequence , tRNA_structure), (P4P6_sequence, P4P6_structure) ]
 
-loss = lambda x : free_energy_gap( x, sequence_structure_pairs, apply_params_func )
-
 pool = Pool( 4 )
-result = minimize( loss, x0, method = 'L-BFGS-B' )
-final_loss = loss( result.x )
+result = minimize( free_energy_gap, x0, method = 'L-BFGS-B' )
+final_loss = free_energy_gap( result.x )
 print(result)
 print('Final parameters:', result.x, 'Loss:',final_loss)

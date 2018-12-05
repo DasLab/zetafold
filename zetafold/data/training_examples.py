@@ -1,5 +1,14 @@
-tRNA_sequence  = 'GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA'
-tRNA_structure = '(((((((..((((........)))).(((((.......))))).....(((((.......))))))))))))....'
+class TrainingExample:
+    '''
+    Info needed for train_zetafold
+    '''
+    def __init__( self, sequence, structure, force_base_pairs = None ):
+        self.sequence = sequence
+        self.structure = structure
+        self.force_base_pairs = force_base_pairs
+
+tRNA = TrainingExample( 'GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA',
+                        '(((((((..((((........)))).(((((.......))))).....(((((.......))))))))))))....' )
 
 # P4-P6
 P4P6_sequence =  'GGAAUUGCGGGAAAGGGGUCAACAGCCGUUCAGUACCAAGUCUCAGGGGAAACUUUGAGAUGGCCUUGCAAAGGGUAUGGUAAUAAGCUGACGGACAUGGUCCUAACCACGCAGCCAAGUCCUAAGUCAACAGAUCUUCUGUUGAUAUGGAUGCAGUUCA'
