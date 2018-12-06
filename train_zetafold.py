@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser( description = "Test nearest neighbor model par
 parser.add_argument("-params","--parameters",type=str, default='', help='Parameter file to use [default: '', which triggers latest version]')
 parser.add_argument( "--train_data",type=str,help="Training data to use. Give none to get list.")
 parser.add_argument( "--train_params",help="Parameters to optimize. Give none to get list.",nargs='*')
+parser.add_argument( "--train_params_exclude",help="Parameters to optimize. Give none to get list.",nargs='*')
 parser.add_argument( "--init_params",help="Initial values for parameters",nargs='*')
 parser.add_argument( "--init_log_params",help="Initial values for log parameters (alternative to init_params)",nargs='*')
 parser.add_argument( "--method",type=str,default='BFGS',help="Minimization routine")
@@ -36,19 +37,25 @@ if args.train_data == None:
 
 training_examples = training_sets[ args.train_data ] #, P4P6_outerjunction ]
 train_parameters = args.train_params
-x0 = None
-if args.init_log_params:            x0 = [float(log_param) for log_param in args.init_log_params ]
-if x0 == None and args.init_params: x0 = [ np.log(float(param)) for param in  args.init_params]
-
 if train_parameters == None:
-    print '\nMust specify which parameters to optimize'
-    params.show_parameters()
-    exit()
-if x0 == None:
+    if args.train_params_exclude:
+        train_parameters = []
+        for param_exclude in args.train_params_exclude:  assert( param_exclude in params.parameter_tags )
+        for param in params.parameter_tags:
+            if not param in args.train_params_exclude: train_parameters.append( param )
+    else:
+        print '\nMust specify which parameters to optimize'
+        params.show_parameters()
+        exit()
+
+x0 = None
+if args.init_log_params: x0 = [float(log_param) for log_param in args.init_log_params ]
+elif args.init_params:   x0 = [ np.log(float(param)) for param in  args.init_params]
+else:
     x0 = np.zeros( len(train_parameters) )
     for n,param_tag in enumerate(train_parameters):
         val = params.get_parameter_value( param_tag )
-        if val == 0.0:  x0[n] = -5.0
+        if val == 0.0:  x0[ n ] = -5.0
         else: x0[ n ] = np.log( val )
 
 pool = Pool( args.jobs )
