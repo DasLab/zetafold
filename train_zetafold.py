@@ -46,8 +46,10 @@ if train_parameters == None:
     exit()
 if x0 == None:
     x0 = np.zeros( len(train_parameters) )
-    for n,param_tag in enumerate(train_parameters): x0[ n ] = np.log( params.get_parameter_value( param_tag ) )
-    print x0
+    for n,param_tag in enumerate(train_parameters):
+        val = params.get_parameter_value( param_tag )
+        if val == 0.0:  x0[n] = -5.0
+        else: x0[ n ] = np.log( val )
 
 pool = Pool( args.jobs )
 
@@ -58,7 +60,6 @@ jac = grad if args.use_derivs else None
 create_outfile( args.outfile, params, train_parameters )
 result = minimize( loss, x0, method = args.method, jac = jac )
 final_loss = loss( result.x )
-print( 'Deriv: ', grad( result.x ) )
 
 print(result)
 print('Final parameters:', result.x, 'Loss:',final_loss)
