@@ -1,4 +1,4 @@
-def secstruct( bps, N ):
+def secstruct_from_bps( bps, N ):
     '''
     Convert list of base pairs to dot-paren string. N is length of RNA.
     '''
@@ -10,7 +10,7 @@ def secstruct( bps, N ):
         secstruct_string[j] = ')'
     return ''.join(secstruct_string)
 
-def bps( secstruct ):
+def bps_from_secstruct( secstruct ):
     '''
     Convert dot-paren secstruct into sorted list of base pairs
     '''
@@ -42,7 +42,7 @@ def parse_motifs( secstruct, N = 0 ):
         assert( N > 0 ) # must provide N if secstruct is entered as a list.
     else:
         assert( isinstance( secstruct, str ) )
-        bps_list = bps( secstruct )
+        bps_list = bps_from_secstruct( secstruct )
         N = len( secstruct )
     pair_map = {}
     for i,j in bps_list:

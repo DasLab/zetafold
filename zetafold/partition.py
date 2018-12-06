@@ -211,10 +211,10 @@ def initialize_force_base_pair( self ):
     self.in_forced_base_pair = None
     if self.structure != None:
         assert( self.force_base_pairs == None )
-        bp_list = bps( self.structure )
+        bp_list = bps_from_secstruct( self.structure )
     elif self.force_base_pairs != None:
         assert( self.structure == None )
-        bp_list = bps( self.force_base_pairs )
+        bp_list = bps_from_secstruct( self.force_base_pairs )
     else:
         return
 
@@ -302,17 +302,17 @@ def _calc_mfe( self ):
         if len(all_bps_MFE) > 0 and not ( tuple(bps_MFE[i]) in all_bps_MFE ):
             if not self.suppress_all_output:
                 print( 'Warning, MFE structure computed only approximately from partition, and another structure had been found backtracking from position %d:' % i )
-                print( secstruct(bps_MFE[i],N), "   ", p_MFE[i], "[MFE?]")
+                print( secstruct_from_bps(bps_MFE[i],N), "   ", p_MFE[i], "[MFE?]")
         all_bps_MFE.add( tuple(bps_MFE[i]) )
         #assert_equal( p_MFE[i], p_MFE[0] )
         # actually this doesn't always hold -- in some parameter sets and sequences there are literally ties.
         # assert( bps_MFE[i] == bps_MFE[0] )
 
     if not self.suppress_all_output:
-        print( secstruct(bps_MFE[0],N), "   ", p_MFE[0], "[MFE]")
+        print( secstruct_from_bps(bps_MFE[0],N), "   ", p_MFE[0], "[MFE]")
         print()
     self.bps_MFE = bps_MFE[0]
-    self.struct_MFE = secstruct( bps_MFE[0], N)
+    self.struct_MFE = secstruct_from_bps( bps_MFE[0], N)
 
 ##################################################################################################
 def _stochastic_backtrack( self, N_backtrack ):
@@ -324,8 +324,8 @@ def _stochastic_backtrack( self, N_backtrack ):
     print(self.sequence)
     for i in range( N_backtrack ):
         bps, p = boltzmann_sample( self, self.Z_final.get_contribs(self,0) )
-        print(secstruct(bps,self.N), "   ", p, "[stochastic]")
-        self.struct_stochastic.append( secstruct(bps,self.N) )
+        print(secstruct_from_bps(bps,self.N), "   ", p, "[stochastic]")
+        self.struct_stochastic.append( secstruct_from_bps(bps,self.N) )
     print()
 
     return
@@ -340,8 +340,8 @@ def _enumerative_backtrack( self ):
     print(self.sequence)
     p_bps = enumerative_backtrack( self )
     for (p,bps) in p_bps:
-        print(secstruct(bps,self.N), "   ", p, "[enumerative]")
-        self.struct_enumerate.append( secstruct(bps,self.N) )
+        print(secstruct_from_bps(bps,self.N), "   ", p, "[enumerative]")
+        self.struct_enumerate.append( secstruct_from_bps(bps,self.N) )
     p_tot = sum( p_bp[0] for p_bp in p_bps )
     print('p_tot = ',p_tot)
     assert( abs(p_tot - 1.0) < 1.0e-5 )

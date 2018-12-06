@@ -17,7 +17,7 @@ def score_structure( sequences, structure, circle = False, params = None, test_m
 
     # What we get if we parse out motifs
     structure = secstruct_util.get_structure_string( structure )
-    bps_list  = secstruct_util.bps( structure )
+    bps_list  = secstruct_util.bps_from_secstruct( structure )
     motifs = secstruct_util.parse_motifs( structure )
     sequence, ligated, sequences = sequence_util.initialize_sequence_and_ligated( sequences, circle )
     params = get_params( params, suppress_all_output = True )
@@ -50,7 +50,7 @@ def score_structure( sequences, structure, circle = False, params = None, test_m
             if motif_res.count( i ) == 0: continue
             if motif_res.count( j ) == 0: continue
             motif_bps_list.append( (motif_res.index(i), motif_res.index(j)) )
-        motif_structure = secstruct_util.secstruct( motif_bps_list, len( motif_res ) )
+        motif_structure = secstruct_util.secstruct_from_bps( motif_bps_list, len( motif_res ) )
 
         p = partition( motif_sequences, circle = motif_circle, structure = motif_structure, params = params, suppress_all_output = True, deriv_params = deriv_params )
         Z_motif = p.Z
