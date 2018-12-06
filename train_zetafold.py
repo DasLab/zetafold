@@ -33,8 +33,8 @@ if args.train_data == None:
     print( '\nMust specify training set. Options are:' )
     for set_name in training_sets.keys():
         print( '%30s:' % set_name, end='' )
-        for training_example in training_sets[ set_name ]: print( training_example.name, end='' )
-        print
+        for training_example in training_sets[ set_name ]: print( ' ',training_example.name, end='' )
+        print()
     exit()
 
 training_examples = training_sets[ args.train_data ] #, P4P6_outerjunction ]
