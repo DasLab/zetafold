@@ -25,10 +25,11 @@ def calc_dG_gap_deriv( training_example ):
 
     return np.array( log_derivs ) - np.array( log_derivs_structure )
 
-def pack_variables( x, params, train_parameters, training_examples ):
+def pack_variables( x, params, train_parameters, training_examples = None):
     for n,param_tag in enumerate(train_parameters):
         assert( param_tag in params.parameter_tags )
         params.set_parameter( param_tag, np.exp(x[n]))
+    if not training_examples: return
     for training_example in training_examples:
         training_example.params = params
         training_example.train_parameters = train_parameters

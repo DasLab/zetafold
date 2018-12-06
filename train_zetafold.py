@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import print_function
 from zetafold.parameters import get_params
 from zetafold.data.training_examples import *
 from zetafold.training import *
@@ -29,10 +30,10 @@ if args.no_coax: params.set_parameter( 'K_coax', 0.0 )
 
 # set up training examples
 if args.train_data == None:
-    print '\nMust specify training set. Options are:'
+    print( '\nMust specify training set. Options are:' )
     for set_name in training_sets.keys():
-        print '%30s:' % set_name,
-        for training_example in training_sets[ set_name ]: print training_example.name,
+        print( '%30s:' % set_name, end='' )
+        for training_example in training_sets[ set_name ]: print( training_example.name, end='' )
         print
     exit()
 
@@ -45,7 +46,7 @@ if train_parameters == None:
         for param in params.parameter_tags:
             if not param in args.train_params_exclude: train_parameters.append( param )
     else:
-        print '\nMust specify which parameters to optimize'
+        print( '\nMust specify which parameters to optimize' )
         params.show_parameters()
         exit()
 
@@ -70,4 +71,7 @@ result = minimize( loss, x0, method = args.method, jac = jac )
 final_loss = loss( result.x )
 
 print(result)
-print('Final parameters:', result.x, 'Loss:',final_loss)
+print('Final parameters:', result.x, 'Loss:',final_loss, ' outputted to ', args.final_params_file )
+
+pack_variables( result.x, params, train_parameters )
+params.output_to_file( args.final_params_file )

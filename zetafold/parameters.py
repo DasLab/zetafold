@@ -11,8 +11,10 @@ class AlphaFoldParams:
     '''
     def __init__( self ):
         self.C_std  = 1.0      # 1 M. drops out in end (up to overall scale factor).
-        self.parameter_tags   = []
-        self.parameter_values = []
+        self.parameter_tags   = [] # K_CG, etc.
+        self.parameter_values = [] # floats
+        self.string_tags   = [] # name, version, etc.
+        self.string_values = [] # strings
 
     def get_variables( self ):
         if self.C_init == 0.0 and self.name == 'empty': print('WARNING! C_init not defined, and params appear empty. Look at get_params() for examples')
@@ -20,7 +22,6 @@ class AlphaFoldParams:
 
     def set_parameter( self, tag, val ):
         val = _set_parameter( self, tag, val )
-        if isinstance( val, float ):  self.parameter_values[ self.parameter_tags.index( tag ) ] = val
 
     def get_parameter_value( self, param_tag ):
         if self.parameter_tags.count( param_tag ) == 0: return None
@@ -31,6 +32,8 @@ class AlphaFoldParams:
     def show_parameters( self ):
         print( '%25s %12s %12s' % ('Parameter','log val','val')  )
         for tag, val in zip( self.parameter_tags, self.parameter_values ): print( '%25s %12.7f %12.6f' % (tag,math.log(val),val) )
+
+    def output_to_file( self, params_file ): _output_to_file( self, params_file )
 
 def get_params( params = None, suppress_all_output = False ):
     '''
@@ -84,9 +87,6 @@ def get_params_from_file( params_file_tag ):
     params_fields = read_params_fields( params_file );
     for param_tag,param_val in params_fields:
         val = _set_parameter( params, param_tag, param_val )
-        if isinstance( val, float ):
-            params.parameter_tags.append(   param_tag )
-            params.parameter_values.append( val )
 
     return params
 
@@ -108,47 +108,62 @@ def get_all_params_files():
     params_files.sort()
     return [ os.path.basename(x).replace('.params','') for x in params_files ]
 
+def _output_to_file( self, params_file ):
+    fid = open( params_file, 'w' )
+    for tag,val in zip(self.string_tags,self.string_values): fid.write( '%s %s\n' % (tag, val) )
+    for tag,val in zip(self.parameter_tags,self.parameter_values): fid.write( '%s %12.6f\n' % (tag, val) )
+    fid.close()
+
 #############################################################################################################
 #  Following has basic logic for setting parameter values based on input parameter -- note that
 #     in some cases, like C_eff_stacked_pair, multiple internal parameters need to get updated
 #############################################################################################################
-def _set_parameter( params, tag, val ):
+def _set_parameter( self, tag, val ):
     '''
     Based on tag, one or multiple parameters might be set.
     Returns float( val ) if an actual continuous parameter is set; None otherwise.
     '''
-    if tag == 'name': params.name = val
-    elif tag == 'version': params.version = val
-    elif tag == 'min_loop_length':    params.min_loop_length = int( val )
-    elif tag == 'allow_strained_3WJ': params.allow_strained_3WJ = (val == 'True')
+    float_parameter = False
+    if tag == 'name': self.name = val
+    elif tag == 'version': self.version = val
+    elif tag == 'min_loop_length':    self.min_loop_length = int( val )
+    elif tag == 'allow_strained_3WJ': self.allow_strained_3WJ = (val == 'True')
     elif len( tag )>=2 and tag[:2] == 'Kd':
-        setup_base_pair_type_by_tag( params, tag, float(val) )
-        update_C_eff_stack( params )
-        return float(val)
+        setup_base_pair_type_by_tag( self, tag, float(val) )
+        update_C_eff_stack( self )
+        float_parameter = True
     elif len( tag )>=11 and tag[:11] == 'C_eff_stack':
         if tag == 'C_eff_stacked_pair':
-            for bpt1 in params.base_pair_types:
-                for bpt2 in params.base_pair_types:
-                    params.C_eff_stack[bpt1][bpt2] = float(val)
-            return float(val)
+            for bpt1 in self.base_pair_types:
+                for bpt2 in self.base_pair_types:
+                    self.C_eff_stack[bpt1][bpt2] = float(val)
         else:
             assert( len(tag) > 11 )
             tags = tag[12:].split('_')
             assert( len( tags ) == 2 )
-            bpts1 = get_base_pair_types_for_tag( params, tags[0] )
-            bpts2 = get_base_pair_types_for_tag( params, tags[1] )
+            bpts1 = get_base_pair_types_for_tag( self, tags[0] )
+            bpts2 = get_base_pair_types_for_tag( self, tags[1] )
             for bpt1 in bpts1:
                 for bpt2 in bpts2:
-                    params.C_eff_stack[ bpt1 ][ bpt2 ] = float(val)
-                    params.C_eff_stack[ bpt2.flipped ][ bpt1.flipped ] = float(val)
-            return float( val )
+                    self.C_eff_stack[ bpt1 ][ bpt2 ] = float(val)
+                    self.C_eff_stack[ bpt2.flipped ][ bpt1.flipped ] = float(val)
+        float_parameter = True
     else:
         if not tag in ('name','version','C_init','l','l_BP','l_coax','K_coax'):
             print( 'Unrecognized tag!!', tag )
             exit()
-        setattr( params, tag, float( val ) )
-        return float( val )
-    return None
+        setattr( self, tag, float( val ) )
+        float_parameter = True
+    if float_parameter:
+        if self.parameter_tags.count( tag ) == 0:
+            self.parameter_tags.append( tag )
+            self.parameter_values.append( None )
+        self.parameter_values[ self.parameter_tags.index( tag ) ] = float(val)
+    else:
+        if self.string_tags.count( tag ) == 0:
+            self.string_tags.append( tag )
+            self.string_values.append( None )
+        self.string_values[ self.string_tags.index( tag ) ] = val
 
 def update_C_eff_stack( params, val = None ):
     if not hasattr( params, 'C_eff_stack' ): params.C_eff_stack = {}
@@ -179,3 +194,4 @@ def setup_base_pair_type_by_tag( params, Kd_tag, val ):
     else:
         setup_base_pair_type( params, tag[0], tag[1], val, match_lowercase = False )
     assert( get_base_pair_type_for_tag( params, tag ) )
+
