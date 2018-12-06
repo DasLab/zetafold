@@ -9,17 +9,18 @@ import math
 import argparse
 
 parser = argparse.ArgumentParser( description = "Test nearest neighbor model partitition function for RNA sequence" )
-parser.add_argument("-params","--parameters",type=str, default='', help='Parameter file to use [default: '', which triggers latest version]')
-parser.add_argument( "--train_data",type=str,help="Training data to use. Give none to get list.")
-parser.add_argument( "--train_params",help="Parameters to optimize. Give none to get list.",nargs='*')
-parser.add_argument( "--train_params_exclude",help="Parameters to optimize. Give none to get list.",nargs='*')
-parser.add_argument( "--init_params",help="Initial values for parameters",nargs='*')
-parser.add_argument( "--init_log_params",help="Initial values for log parameters (alternative to init_params)",nargs='*')
-parser.add_argument( "--method",type=str,default='BFGS',help="Minimization routine")
-parser.add_argument("--no_coax", action='store_true', default=False, help='Turn off coaxial stacking')
+parser.add_argument("-params","--parameters", type=str, help='Parameter file to use [default: use latest zetafold version]')
+parser.add_argument("--train_data", type=str, help="Training data to use. Give none to get list.")
+parser.add_argument("--train_params", help="Parameters to optimize. Give none to get list.", nargs='*')
+parser.add_argument("--train_params_exclude", help="Parameters to optimize. Give none to get list.", nargs='*')
 parser.add_argument("--jobs","-j", type=int, default=4, help='Number of jobs to run in parallel')
 parser.add_argument("--outfile","-out","-o", type=str, help='Outfile to save loss/variables during training')
+parser.add_argument("--final_params_file",type=str,default='optimized.params',help="Name of params file for outputting final",nargs='*')
 parser.add_argument("--use_derivs","-d", action='store_true', help='Use analytical derivatives during training')
+parser.add_argument("--init_params",help="Initial values for parameters (default are values in params file)",nargs='*')
+parser.add_argument("--init_log_params",help="Initial values for log parameters (alternative to init_params)",nargs='*')
+parser.add_argument("--no_coax", action='store_true', default=False, help='Turn off coaxial stacking')
+parser.add_argument("--method",type=str,default='BFGS',help="Minimization routine")
 args     = parser.parse_args()
 
 # set up parameter file
