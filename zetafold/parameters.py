@@ -18,7 +18,9 @@ class AlphaFoldParams:
         if self.C_init == 0.0 and self.name == 'empty': print('WARNING! C_init not defined, and params appear empty. Look at get_params() for examples')
         return ( self.C_init, self.l, self.l_BP, self.K_coax, self.l_coax, self.C_std, self.min_loop_length, self.allow_strained_3WJ )
 
-    def set_parameter( self, tag, val ): _set_parameter( self, tag, val )
+    def set_parameter( self, tag, val ):
+        val = _set_parameter( self, tag, val )
+        if isinstance( val, float ):  self.parameter_values[ self.parameter_tags.index( tag ) ] = val
 
     def get_parameter_value( self, param_tag ):
         if self.parameter_tags.count( param_tag ) == 0: return None

@@ -13,14 +13,13 @@ from zetafold.util.assert_equal import assert_equal
 from zetafold.util.constants import KT_IN_KCAL
 from zetafold.util.output_util import show_derivs
 
-def score_structure( sequences, structure, circle = False, params = '', test_mode = False, deriv_params = None ):
+def score_structure( sequences, structure, circle = False, params = None, test_mode = False, deriv_params = None ):
 
     # What we get if we parse out motifs
     structure = secstruct_util.get_structure_string( structure )
     bps_list  = secstruct_util.bps( structure )
     motifs = secstruct_util.parse_motifs( structure )
     sequence, ligated, sequences = sequence_util.initialize_sequence_and_ligated( sequences, circle )
-
     params = get_params( params, suppress_all_output = True )
     Kd_ref = params.base_pair_types[0].Kd # Kd[G-C], a la Turner rule convention
     C_std  = params.C_std
