@@ -74,7 +74,7 @@ def score_structure( sequences, structure, circle = False, params = None, test_m
         if test_mode: print("Motif: ", Z_motif, motif, motif_sequences, motif_structure)
 
         Z *= Z_motif
-
+        if Z_motif == 0.0: print( 'Hey, motif not permitted!: ', motif_sequences, motif_structure )
         if deriv_params:
             if log_derivs == None: log_derivs = [0.0]*len( deriv_params )
             for n, log_deriv_motif in enumerate( log_derivs_motif ): log_derivs[n] += log_deriv_motif

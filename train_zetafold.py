@@ -29,12 +29,9 @@ params = get_params( args.parameters, suppress_all_output = True )
 if args.no_coax: params.set_parameter( 'K_coax', 0.0 )
 
 # set up training examples
-if args.train_data == None:
+if args.train_data == None or not args.train_data in training_sets.keys():
     print( '\nMust specify training set. Options are:' )
-    for set_name in training_sets.keys():
-        print( '%30s:' % set_name, end='' )
-        for training_example in training_sets[ set_name ]: print( ' ',training_example.name, end='' )
-        print()
+    for set_name in training_set_names:  print( '%30s (%s)' % (set_name,len(training_sets[set_name]) ) )
     exit()
 
 training_examples = training_sets[ args.train_data ] #, P4P6_outerjunction ]
