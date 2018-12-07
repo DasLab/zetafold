@@ -37,6 +37,7 @@ def test_known_final_partition_with_structure(verbose = False, use_simple_recurs
     (C_init, l, l_BP, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
     Kd = test_params.base_pair_types[0].Kd
     C_eff_stacked_pair = test_params.C_eff_stack[ test_params.base_pair_types[0] ][ test_params.base_pair_types[0] ]
+    sequence = 'CNNNGNN' # CIRCLE!
 
     structure= '(...)..'
     p = partition( sequence, circle = True, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions, structure = structure )
@@ -126,6 +127,7 @@ def test_CNGGC_structured(verbose = False, use_simple_recursions = False):
     (C_init, l, l_BP, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
     Kd = test_params.base_pair_types[0].Kd
     C_eff_stacked_pair = test_params.C_eff_stack[ test_params.base_pair_types[0] ][ test_params.base_pair_types[0] ]
+    sequence = 'CNGGC'
 
     structure= '(..).'
     p = partition( sequence, params = test_params, structure = structure, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose,  use_simple_recursions = use_simple_recursions )
@@ -164,6 +166,8 @@ def test_num_analytic_deriv(verbose = False, use_simple_recursions = False):
     Kd = test_params.base_pair_types[0].Kd
     C_eff_stacked_pair = test_params.C_eff_stack[ test_params.base_pair_types[0] ][ test_params.base_pair_types[0] ]
 
+    sequence = 'CNGNC'
+    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions, mfe = True )
     # let's do a numerical vs. analytic deriv test
     print( 'Numerical vs. analytic deriv (inline DP) test, Kd...' )
     params_perturb = get_params_from_file( 'minimal' )
@@ -198,6 +202,8 @@ def test_constrain(verbose = False, use_simple_recursions = False):
     Kd = test_params.base_pair_types[0].Kd
     C_eff_stacked_pair = test_params.C_eff_stack[ test_params.base_pair_types[0] ][ test_params.base_pair_types[0] ]
 
+    sequence = 'CNGCNG'
+    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, do_enumeration = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     print( 'Stringent test of structure-constrained scores & derivs' )
     Z_tot_ref = p.Z
     Z_enumerate = []
