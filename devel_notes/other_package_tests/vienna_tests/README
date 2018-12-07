@@ -1,3 +1,0 @@
-time RNAfold -d0 -p tRNA.fasta 
-time RNAfold -d0 -p tRNAtRNA.fasta
-time RNAfold -d0 -p tRNA4.fasta
