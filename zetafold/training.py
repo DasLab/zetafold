@@ -37,6 +37,7 @@ def pack_variables( x, params, train_parameters, training_examples = None):
 
 def free_energy_gap( x, params, train_parameters, training_examples, pool, outfile ):
     pack_variables( x, params, train_parameters, training_examples )
+    params.output_to_file( 'current.params' )
     print('\n',np.exp(x))
     all_dG_gap = pool.map( calc_dG_gap, training_examples )
     sum_dG_gap = sum( all_dG_gap )
