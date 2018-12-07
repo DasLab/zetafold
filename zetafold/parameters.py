@@ -168,9 +168,9 @@ def _set_parameter( self, tag, val ):
 def update_C_eff_stack( params, val = None ):
     if not hasattr( params, 'C_eff_stack' ): params.C_eff_stack = {}
     for bpt1 in params.base_pair_types:
-        if not bpt1 in params.C_eff_stack.keys():  params.C_eff_stack[ bpt1 ] = {}
+        if not bpt1 in params.C_eff_stack:  params.C_eff_stack[ bpt1 ] = {}
         for bpt2 in params.base_pair_types:
-            if not bpt2 in params.C_eff_stack[ bpt1 ].keys(): params.C_eff_stack[ bpt1 ][ bpt2 ] = None
+            if not bpt2 in params.C_eff_stack[ bpt1 ]: params.C_eff_stack[ bpt1 ][ bpt2 ] = None
             if val != None: params.C_eff_stack[ bpt1 ][ bpt2 ] = val
 
 def _check_C_eff_stack( params ):
