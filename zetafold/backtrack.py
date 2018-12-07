@@ -1,25 +1,17 @@
 from .recursions.explicit_recursions import *
 import random
+import sys
 
-def get_random_contrib( contribs ):
-    # Random sample weighted by probability. Must be a simple function for this.
-    contrib_cumsum = [ contribs[0][0] ]
-    for contrib in contribs[1:]: contrib_cumsum.append( contrib_cumsum[-1] + contrib[0] )
-    r = random.random() * contrib_cumsum[ -1 ]
-    for (idx,psum) in enumerate( contrib_cumsum ):
-        if r < psum: return contribs[idx]
-
-def max_contrib(contribs):
-    max_contrib_val = None
-    tracker = None
-    for c in contribs:
-        if max_contrib_val is None or c[0] > max_contrib_val:
-            tracker = c
-            max_contrib_val = c[0]
-    return tracker
 
 ##################################################################################################
 def backtrack( self, contribs_input, mode = 'mfe' ):
+    '''
+    modes are:
+      mfe = backtrack, following maximum boltzmann weight. note that this is not *quite* MFE
+      stochastic  = choose track based on boltzmann weights
+      enumerative = follow all tracks!
+    '''
+    #print_contribs( contribs_input )
     if len( contribs_input ) == 0: return []
     contrib_sum = sum( contrib[0] for contrib in contribs_input )
     if   mode == 'enumerative':
@@ -38,10 +30,12 @@ def backtrack( self, contribs_input, mode = 'mfe' ):
         for backtrack_info in contrib[1]:
             ( Z_backtrack, i, j )  = backtrack_info
             if ( i == j ): continue
-            if Z_backtrack == self.Z_BP:
-                base_pair = [i%N,j%N]
-                base_pair.sort()
-                p_bps_contrib = [ [p_bp[0], p_bp[1]+[tuple( base_pair )] ] for p_bp in p_bps_contrib ]
+            for base_pair_type in self.params.base_pair_types:
+                if Z_backtrack == self.Z_BPq[ base_pair_type ]:
+                    base_pair = [i%N,j%N]
+                    base_pair.sort()
+                    # TODO: could also add type of base pair here -- we have the info!
+                    p_bps_contrib = [ [p_bp[0], p_bp[1]+[tuple( base_pair )] ] for p_bp in p_bps_contrib ]
             backtrack_contribs = Z_backtrack.get_contribs(self,i%N,j%N)
             p_bps_component = backtrack( self, backtrack_contribs, mode )
             if len( p_bps_component ) == 0: continue
@@ -72,3 +66,40 @@ def boltzmann_sample( self, Z_final_contrib ):
 ##################################################################################################
 def enumerative_backtrack( self ):
     return backtrack( self, self.Z_final.get_contribs(self,0), 'enumerative' )
+
+
+##################################################################################################
+def get_random_contrib( contribs ):
+    # Random sample weighted by probability. Must be a simple function for this.
+    contrib_cumsum = [ contribs[0][0] ]
+    for contrib in contribs[1:]: contrib_cumsum.append( contrib_cumsum[-1] + contrib[0] )
+    r = random.random() * contrib_cumsum[ -1 ]
+    for (idx,psum) in enumerate( contrib_cumsum ):
+        if r < psum: return contribs[idx]
+
+def max_contrib(contribs):
+    max_contrib_val = None
+    best_contrib = None
+    for c in contribs:
+        if max_contrib_val is None or \
+           c[0] > max_contrib_val:
+            best_contrib = c
+            max_contrib_val = c[0]
+    return best_contrib
+
+def print_contrib( contrib ):
+    sys.stdout.write('[')
+    print '%s:' % contrib[0],
+    for n,backtrack_info in enumerate(contrib[1]):
+        sys.stdout.write( '%s(%d,%d)' % (backtrack_info[0].name,backtrack_info[1],backtrack_info[2]) )
+        if n < len( contrib[1] )-1: sys.stdout.write(',')
+    sys.stdout.write(']')
+
+def print_contribs( contribs ):
+    print '[ ',
+    for contrib in contribs[:-1]:
+        print_contrib( contrib )
+        print '; ',
+    print_contrib( contribs[-1] )
+    print ' ]'
+    return

@@ -1,4 +1,4 @@
-from alphafold.util.wrapped_array import WrappedArray
+from zetafold.util.wrapped_array import WrappedArray
 
 class DynamicProgrammingMatrix:
     '''
@@ -6,7 +6,7 @@ class DynamicProgrammingMatrix:
       does wrapping modulo N,
       knows how to update values at i,j
     '''
-    def __init__( self, N, val = 0.0, diag_val = 0.0, DPlist = None, update_func = None, options = None ):
+    def __init__( self, N, val = 0.0, diag_val = 0.0, DPlist = None, update_func = None, options = None, name = None ):
         self.N = N
         self.data = WrappedArray(N)
         for i in range( N ):
@@ -22,6 +22,7 @@ class DynamicProgrammingMatrix:
 
         self.contribs_updated = [None]*N
         for i in range( N ): self.contribs_updated[i] = [False]*N
+        self.name = name
 
     def __getitem__( self, idx ):
         return self.data[ idx ]
@@ -51,7 +52,7 @@ class DynamicProgrammingList:
       knows how to update values at i,j
     Used for Z_final
     '''
-    def __init__( self, N, val = 0.0, update_func = None, options = None ):
+    def __init__( self, N, val = 0.0, update_func = None, options = None, name = None ):
         self.N = N
         self.data = WrappedArray( N )
         for i in range( N ):
@@ -59,6 +60,7 @@ class DynamicProgrammingList:
         self.options = options
         self.update_func = update_func
         self.contribs_updated = [False]*N
+        self.name = name
 
     def __getitem__( self, idx ):
         return self.data[ idx ]
@@ -103,8 +105,9 @@ class DynamicProgrammingData:
         self.contribs = []
 
     def __iadd__(self, other):
+        if other.Q == 0.0: return self
         self.Q  += other.Q
-        if self.options and self.options.calc_deriv:
+        if self.options and self.options.calc_deriv_DP:
             self.dQ += other.dQ
         if self.options and self.options.calc_contrib:
             if len( other.info ) > 0: self.contribs.append( [other.Q, other.info] )
@@ -116,7 +119,7 @@ class DynamicProgrammingData:
         if not prod.options: prod.options = other.options
         if isinstance( other, DynamicProgrammingData ):
             prod.Q  = self.Q * other.Q
-            if self.options and self.options.calc_deriv:
+            if self.options and self.options.calc_deriv_DP:
                 prod.dQ = self.Q * other.dQ + self.dQ * other.Q
             if self.options and self.options.calc_contrib:
                 info = self.info + other.info
@@ -125,7 +128,7 @@ class DynamicProgrammingData:
                     prod.info = info
         else:
             prod.Q  = self.Q * other
-            if self.options and self.options.calc_deriv:
+            if self.options and self.options.calc_deriv_DP:
                 prod.dQ = self.dQ * other
             if self.options and self.options.calc_contrib:
                 for contrib in self.contribs:

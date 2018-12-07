@@ -4,15 +4,19 @@ from .parameters import get_params
 from .util.wrapped_array  import WrappedArray, initialize_matrix
 from .util.secstruct_util import *
 from .util.output_util    import _show_results, _show_matrices
-from .util.sequence_util  import initialize_sequence_and_ligated, initialize_all_ligated
+from .util.sequence_util  import initialize_sequence_and_ligated, initialize_all_ligated, get_num_strand_connections
 from .util.constants import KT_IN_KCAL
+from .util.assert_equal import assert_equal
+from .derivatives import _get_log_derivs
+
 from math import log
 
 ##################################################################################################
 def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = False,
                n_stochastic = 0, do_enumeration = False, structure = None, force_base_pairs = None, no_coax = False,
                verbose = False,  suppress_all_output = False,
-               calc_deriv = False, use_simple_recursions = False  ):
+               deriv_params = None,
+               calc_Kd_deriv_DP = False, use_simple_recursions = False  ):
     '''
     Wrapper function into Partition() class
     Returns Partition object p which holds results like:
@@ -21,18 +25,21 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
       p.bpp = matrix of base pair probabilities (if requested by user with calc_bpp = True)
       p.struct_MFE = minimum free energy secondary structure in dot-parens notation
       p.bps_MFE  = minimum free energy secondary structure as sorted list of base pairs
-      p.dZ  = derivative of Z w.r.t. Kd (will later generalize) (if requested by user with calc_deriv = True)
+      p.dZ_dKd_DP = derivative of Z w.r.t. Kd computed in-line with dynamic programming (if requested by user with calc_Kd_deriv_DP = True)
 
     '''
     if isinstance(params,str): params = get_params( params, suppress_all_output )
     if no_coax:                params.K_coax = 0.0
 
-    p = Partition( sequences, params, calc_deriv, calc_all_elements = calc_bpp )
+    p = Partition( sequences, params )
+    p.calc_all_elements = calc_bpp or (deriv_params != None)
     p.use_simple_recursions = use_simple_recursions
     p.circle    = circle
+    p.options.calc_deriv_DP = calc_Kd_deriv_DP
     p.structure = get_structure_string( structure )
     p.force_base_pairs = get_structure_string( force_base_pairs )
     p.suppress_all_output = suppress_all_output
+    p.deriv_params = deriv_params
     p.run()
     if calc_bpp:         p.get_bpp_matrix()
     if mfe:              p.calc_mfe()
@@ -48,11 +55,9 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
 class Partition:
     '''
     Statistical mechanical model for RNA folding, testing a bunch of extensions and with lots of cross-checks.
-    TODO: complete expressions for derivatives (only doing derivatives w.r.t. Kd right now)
-    TODO: replace dynamic programming matrices with a class that auto-updates derivatives, caches each contribution for backtracking, and automatically does the modulo N wrapping
     (C) R. Das, Stanford University, 2018
     '''
-    def __init__( self, sequences, params, calc_deriv = False, calc_all_elements = False ):
+    def __init__( self, sequences, params ):
         '''
         Required user input.
         sequences = string with sequence, or array of strings (sequences of interacting strands)
@@ -61,14 +66,15 @@ class Partition:
         self.sequences = sequences
         self.params = params
         self.circle = False  # user can update later --> circularize sequence
-        self.options = PartitionOptions( calc_deriv = calc_deriv )
         self.use_simple_recursions = False
-        self.calc_all_elements     = calc_all_elements
+        self.calc_all_elements     = False
         self.calc_bpp = False
         self.base_pair_types = params.base_pair_types
         self.suppress_all_output = False
         self.structure = None
         self.force_base_pairs = None
+        self.deriv_params = None
+        self.options = PartitionOptions()
 
         # for output:
         self.Z       = 0
@@ -78,6 +84,8 @@ class Partition:
         self.struct_MFE = ''
         self.struct_stochastic = []
         self.struct_enumerate  = []
+        self.log_derivs = []
+        self.derivs     = []
         return
 
     ##############################################################################################
@@ -98,9 +106,8 @@ class Partition:
 
         for i in range( self.N): self.Z_final.update( self, i )
 
-        self.Z  = self.Z_final.val(0)
-        if self.Z > 0.0: self.dG = -KT_IN_KCAL * log( self.Z )
-        self.dZ = self.Z_final.deriv(0)
+        self.log_derivs = self.get_log_derivs( self.deriv_params )
+        fill_in_outputs( self )
 
     # boring member functions -- defined later.
     def get_bpp_matrix( self ): _get_bpp_matrix( self ) # fill base pair probability matrix
@@ -109,9 +116,20 @@ class Partition:
     def enumerative_backtrack( self ): _enumerative_backtrack( self )
     def show_results( self ): _show_results( self )
     def show_matrices( self ): _show_matrices( self )
+    def get_log_derivs( self, deriv_params ): return _get_log_derivs( self, deriv_params )
     def run_cross_checks( self ): _run_cross_checks( self )
+    def num_strand_connections( self ):  return get_num_strand_connections( self.sequences, self.circle)
 
 ##################################################################################################
+def fill_in_outputs( self ):
+    self.Z  = self.Z_final.val(0)
+    if self.Z > 0.0: self.dG = -KT_IN_KCAL * log( self.Z )
+    self.dZ_dKd_DP = self.Z_final.deriv(0)
+    self.derivs = []
+    if self.deriv_params:
+        for n,log_deriv in enumerate(self.log_derivs):
+            self.derivs.append( log_deriv * self.Z / self.params.get_parameter_value( self.deriv_params[n] )  )
+
 def initialize_sequence_information( self ):
     '''
     Create sequence information from sequences of strands:
@@ -132,9 +150,9 @@ def initialize_sequence_information( self ):
 
 ##################################################################################################
 class PartitionOptions:
-    def __init__( self, calc_deriv = False ):
-        self.calc_deriv   = calc_deriv
-        self.calc_contrib = False
+    def __init__( self ):
+        self.calc_deriv_DP = False
+        self.calc_contrib  = False
 
 ##################################################################################################
 def initialize_dynamic_programming_matrices( self ):
@@ -161,7 +179,7 @@ def initialize_dynamic_programming_matrices( self ):
     self.Z_all = Z_all = []
 
     # some preliminary helpers
-    self.Z_cut    = DynamicProgrammingMatrix( N, DPlist = Z_all, update_func = update_Z_cut, options = self.options );
+    self.Z_cut    = DynamicProgrammingMatrix( N, DPlist = Z_all, update_func = update_Z_cut, options = self.options, name = 'Z_cut' );
 
     # base pairs and co-axial stacks
     self.Z_BPq = {}
@@ -169,21 +187,21 @@ def initialize_dynamic_programming_matrices( self ):
         # the bpt = base_pair_type holds the base_pair_type info in the lambda (Python FAQ)
         update_func = lambda partition,i,j,bpt=base_pair_type: update_Z_BPq(partition,i,j,bpt)
         self.Z_BPq[ base_pair_type ] = DynamicProgrammingMatrix( N, DPlist = Z_all,
-                                                                 update_func = update_func, options = self.options )
-    self.Z_BP     = DynamicProgrammingMatrix( N, DPlist = Z_all, update_func = update_Z_BP, options = self.options );
-    self.Z_coax   = DynamicProgrammingMatrix( N, DPlist = Z_all, update_func = update_Z_coax, options = self.options );
+                                                                 update_func = update_func, options = self.options, name = 'Z_BPq_%s' % base_pair_type.get_tag() )
+    self.Z_BP     = DynamicProgrammingMatrix( N, DPlist = Z_all, update_func = update_Z_BP, options = self.options, name = 'Z_BP' );
+    self.Z_coax   = DynamicProgrammingMatrix( N, DPlist = Z_all, update_func = update_Z_coax, options = self.options, name = 'Z_coax' );
 
     # C_eff makes use of information on Z_BP, so compute last
     C_init = self.params.C_init
-    self.C_eff_basic           = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff_basic, options = self.options );
-    self.C_eff_no_BP_singlet   = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff_no_BP_singlet, options = self.options );
-    self.C_eff_no_coax_singlet = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff_no_coax_singlet, options = self.options );
-    self.C_eff                 = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff, options = self.options );
+    self.C_eff_basic           = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff_basic, options = self.options, name = 'C_eff_basic' );
+    self.C_eff_no_BP_singlet   = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff_no_BP_singlet, options = self.options, name = 'C_eff_basic_no_BP_singlet' );
+    self.C_eff_no_coax_singlet = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff_no_coax_singlet, options = self.options, name = 'C_eff_basic_no_coax_singlet' );
+    self.C_eff                 = DynamicProgrammingMatrix( N, diag_val = C_init, DPlist = Z_all, update_func = update_C_eff, options = self.options, name = 'C_eff' );
 
-    self.Z_linear = DynamicProgrammingMatrix( N, diag_val = 1.0, DPlist = Z_all, update_func = update_Z_linear, options = self.options );
+    self.Z_linear = DynamicProgrammingMatrix( N, diag_val = 1.0, DPlist = Z_all, update_func = update_Z_linear, options = self.options, name = 'Z_linear' );
 
     # Last DP 1-D list (not a 2-D N x N matrix)
-    self.Z_final = DynamicProgrammingList( N, update_func = update_Z_final, options = self.options  )
+    self.Z_final = DynamicProgrammingList( N, update_func = update_Z_final, options = self.options, name = 'Z_final'  )
 
     self.params.check_C_eff_stack()
 
@@ -252,13 +270,21 @@ def _get_bpp_matrix( self ):
         for j in range( self.N ):
             self.bpp[i][j] = 0.0
             for base_pair_type in self.params.base_pair_types:
+                if not base_pair_type.is_match( self.sequence[i],self.sequence[j] ): continue
                 self.bpp[i][j] += self.Z_BPq[base_pair_type].val(i,j) * self.Z_BPq[base_pair_type.flipped].val(j,i) * base_pair_type.Kd / self.Z_final.val(0)
 
 ##################################################################################################
 def _calc_mfe( self ):
-    #
-    # Wrapper into mfe(), written out in backtrack.py
-    #
+    '''
+     Wrapper into mfe(), written out in backtrack.py
+     Note that this is not *quite* MFE -- would have to rerun dynamic programming with max() instead of sum over Z
+     And that means that backtracking from different points can lead to different apparent MFE's -- for example
+      a fully unfolded structure can be accumulated with a bunch of dinky hairpins to win over the actual MFE.
+    Example case:
+         CAAUGCUCAUUGGG G --circle
+    vs.
+         GCAAUGCUCAUUGGG
+    '''
     N = self.N
     p_MFE   = [0.0]*N
     bps_MFE = [[]]*N
@@ -270,10 +296,17 @@ def _calc_mfe( self ):
         print('Doing backtrack to get minimum free energy structure:')
         print(self.sequence)
 
+    all_bps_MFE = set()
     for i in range( n_test ):
         (bps_MFE[i], p_MFE[i] ) = mfe( self, self.Z_final.get_contribs(self,i) )
-        assert( abs( ( p_MFE[i] - p_MFE[0] ) / p_MFE[0] ) < 1.0e-5 )
-        assert( bps_MFE[i] == bps_MFE[0] )
+        if len(all_bps_MFE) > 0 and not ( tuple(bps_MFE[i]) in all_bps_MFE ):
+            if not self.suppress_all_output:
+                print( 'Warning, MFE structure computed only approximately from partition, and another structure had been found backtracking from position %d:' % i )
+                print( secstruct(bps_MFE[i],N), "   ", p_MFE[i], "[MFE?]")
+        all_bps_MFE.add( tuple(bps_MFE[i]) )
+        #assert_equal( p_MFE[i], p_MFE[0] )
+        # actually this doesn't always hold -- in some parameter sets and sequences there are literally ties.
+        # assert( bps_MFE[i] == bps_MFE[0] )
 
     if not self.suppress_all_output:
         print( secstruct(bps_MFE[0],N), "   ", p_MFE[0], "[MFE]")
@@ -318,15 +351,13 @@ def _enumerative_backtrack( self ):
 def _run_cross_checks( self ):
     # stringent test that partition function is correct -- all the Z(i,i) agree.
     if self.calc_all_elements:
-        for i in range( self.N ):
-            assert( abs( ( self.Z_final.val(i) - self.Z_final.val(0) ) / self.Z_final.val(0) ) < 1.0e-5 )
+        for i in range( self.N ): assert_equal( self.Z_final.val(0), self.Z_final.val(i) )
 
-    if self.calc_all_elements and self.options.calc_deriv and self.Z_final.deriv(0) > 0:
-        for i in range( self.N ):
-            assert( self.Z_final.deriv(0) == 0 or  abs( ( self.Z_final.deriv(i) - self.Z_final.deriv(0) ) / self.Z_final.deriv(0) ) < 1.0e-5 )
+        if self.options.calc_deriv_DP and self.Z_final.deriv(0) > 0:
+            for i in range( self.N ): assert_equal( self.Z_final.deriv(0), self.Z_final.deriv(i) )
 
-    # calculate bpp_tot = -dlog Z_final /dlog Kd in two ways! wow cool test
-    if self.options.calc_deriv and len(self.bpp)>0:
+    # calculate bpp_tot = -dlog Z_final /dlog Kd in up to three ways! wow cool test
+    if len(self.bpp)>0:
         bpp_tot = 0.0
         for i in range( self.N ):
             for j in range( self.N ):
@@ -334,9 +365,11 @@ def _run_cross_checks( self ):
 
         # uh this is a hack -- only works for minimal model where all the Kd are the same:
         Kd = self.params.base_pair_types[0].Kd
-        bpp_tot_based_on_deriv = -self.Z_final.deriv(0) * Kd / self.Z_final.val(0)
-        print('bpp_tot',bpp_tot,'bpp_tot_based_on_deriv',bpp_tot_based_on_deriv)
-        if bpp_tot > 0: assert( abs( ( bpp_tot - bpp_tot_based_on_deriv )/bpp_tot ) < 1.0e-5 )
+        if self.options.calc_deriv_DP:
+            bpp_tot_based_on_deriv = -self.Z_final.deriv(0) * Kd / self.Z_final.val(0)
+            print('bpp_tot',bpp_tot,'bpp_tot_based_on_deriv',bpp_tot_based_on_deriv)
+            if bpp_tot > 0: assert_equal( bpp_tot, bpp_tot_based_on_deriv )
+
 
 
 

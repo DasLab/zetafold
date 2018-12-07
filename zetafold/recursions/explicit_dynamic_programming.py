@@ -7,7 +7,7 @@ class DynamicProgrammingMatrix:
     Dynamic Programming 2-D Matrix that automatically:
       knows how to update values at i,j
     '''
-    def __init__( self, N, val = 0.0, diag_val = 0.0, DPlist = None, update_func = None, options = None ):
+    def __init__( self, N, val = 0.0, diag_val = 0.0, DPlist = None, update_func = None, options = None, name = None ):
         self.N = N
 
         self.Q = [None]*N
@@ -27,6 +27,8 @@ class DynamicProgrammingMatrix:
 
         if DPlist != None: DPlist.append( self )
         self.update_func = update_func
+
+        self.name = name
 
     def val( self, i, j ): return self.Q[i%self.N][j%self.N]
     def set_val( self, i, j, val ): self.Q[i%self.N][j%self.N] = val
@@ -56,7 +58,7 @@ class DynamicProgrammingList:
       knows how to update values at i,j
     Used for Z_final
     '''
-    def __init__( self, N, val = 0.0, update_func = None, options = None ):
+    def __init__( self, N, val = 0.0, update_func = None, options = None, name = None ):
         self.N = N
         self.Q = [ val ]*N
         self.dQ = [ 0.0 ]*N
@@ -64,6 +66,7 @@ class DynamicProgrammingList:
         for i in range( N ): self.contribs[i] = []
         self.contribs_updated = [False]*N
         self.update_func = update_func
+        self.name = name
 
     def __len__( self ): return self.N
 
