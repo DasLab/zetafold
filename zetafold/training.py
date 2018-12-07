@@ -22,7 +22,8 @@ def calc_dG_gap_deriv( training_example ):
     (dG_structure, log_derivs_structure ) = score_structure( sequence, structure, params = params, deriv_params = train_parameters )
     p = partition( sequence, params = params, suppress_all_output = True, mfe = True, force_base_pairs = force_base_pairs, deriv_params = train_parameters )
     log_derivs = p.log_derivs
-
+    dG_gap = dG_structure - p.dG
+    print(p.struct_MFE, training_example.name, dG_gap, ' in deriv' )
     return np.array( log_derivs ) - np.array( log_derivs_structure )
 
 def pack_variables( x, params, train_parameters, training_examples = None):
@@ -37,14 +38,14 @@ def pack_variables( x, params, train_parameters, training_examples = None):
 def free_energy_gap( x, params, train_parameters, training_examples, pool, outfile ):
     pack_variables( x, params, train_parameters, training_examples )
     print('\n',np.exp(x))
-    all_dG_gap = map( calc_dG_gap, training_examples )
+    all_dG_gap = pool.map( calc_dG_gap, training_examples )
     sum_dG_gap = sum( all_dG_gap )
     output_info( outfile, x, sum_dG_gap )
     return sum_dG_gap
 
 def free_energy_gap_deriv( x, params, train_parameters, training_examples, pool ):
     pack_variables( x, params, train_parameters, training_examples )
-    all_dG_gap_deriv = map( calc_dG_gap_deriv, training_examples )
+    all_dG_gap_deriv = pool.map( calc_dG_gap_deriv, training_examples )
     return sum( all_dG_gap_deriv )
 
 def output_info( outfile, x, sum_dG_gap ):
