@@ -68,7 +68,7 @@ result = minimize( loss, x0, method = args.method, jac = jac )
 final_loss = loss( result.x )
 
 print(result)
-print('Final parameters:', result.x, 'Loss:',final_loss, ' outputted to ', args.final_params_file )
+print('Final parameters:', result.x, 'Loss:',final_loss )
 
 pack_variables( result.x, params, train_parameters )
 params.output_to_file( args.final_params_file )
