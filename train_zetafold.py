@@ -39,6 +39,7 @@ train_parameters = args.train_params
 if train_parameters == None:
     if args.train_params_exclude:
         train_parameters = []
+        if args.no_coax: args.train_params_exclude += [ 'K_coax', 'l_coax' ]
         for param_exclude in args.train_params_exclude:  assert( param_exclude in params.parameter_tags )
         for param in params.parameter_tags:
             if not param in args.train_params_exclude: train_parameters.append( param )
