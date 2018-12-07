@@ -109,6 +109,7 @@ def get_all_params_files():
     return [ os.path.basename(x).replace('.params','') for x in params_files ]
 
 def _output_to_file( self, params_file ):
+    print( 'Outputting parameters to file: ', params_file )
     fid = open( params_file, 'w' )
     for tag,val in zip(self.string_tags,self.string_values): fid.write( '%s %s\n' % (tag, val) )
     for tag,val in zip(self.parameter_tags,self.parameter_values): fid.write( '%s %12.6f\n' % (tag, val) )
