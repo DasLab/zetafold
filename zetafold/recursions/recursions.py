@@ -105,7 +105,8 @@ def update_Z_BPq( self, i, j, base_pair_type ):
         #    i ... j -
         #
         if ligated[i]:
-            for k in range( i+2, i+offset ): Z_BPq[i][j] += Z_BP[i+1][k] * Z_cut[k][j] * C_std * K_coax / Kdq
+            for k in range( i+2, i+offset ):
+                Z_BPq[i][j] += Z_BP[i+1][k] * Z_cut[k][j] * C_std * K_coax / Kdq
 
         # "right stack" but no loop closed on left (free strands hanging off i end)
         #       ___
@@ -115,7 +116,8 @@ def update_Z_BPq( self, i, j, base_pair_type ):
         #   - i ... j
         #
         if ligated[j-1]:
-            for k in range( i, i+offset-1 ): Z_BPq[i][j] += Z_cut[i][k] * Z_BP[k][j-1] * C_std * K_coax / Kdq
+            for k in range( i, i+offset-1 ):
+                Z_BPq[i][j] += Z_cut[i][k] * Z_BP[k][j-1] * C_std * K_coax / Kdq
 
     # key 'special sauce' for derivative w.r.t. Kd
     if self.options.calc_deriv_DP: Z_BPq[i][j].dQ += -(1.0/Kdq) * Z_BPq[i][j].Q
