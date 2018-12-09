@@ -42,7 +42,7 @@ def get_base_pair_type_for_tag( params, tag ):
 def get_base_pair_types_for_tag( params, tag ):
     if not hasattr( params, 'base_pair_types' ): return None
     if tag == 'WC':
-        WC_nts =  [('C','G'),('G','C'),('A','U'),('U','A'),('G','U'),('U','G')]
+        WC_nts =  [('C','G'),('G','C'),('A','U'),('U','A')] # ,('G','U'),('U','G')]
         base_pair_types = []
         for base_pair_type in params.base_pair_types:
             if (base_pair_type.nt1,base_pair_type.nt2) in WC_nts:
