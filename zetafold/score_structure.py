@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from __future__ import print_function
 import argparse
-from math import log
+from math import log,exp
 import sys
 import os
 if __package__ == None: sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -114,6 +114,7 @@ if __name__=='__main__':
     parser.add_argument("-test","--test_mode",action="store_true", default=False, help='In test mode, also run (slow) dynamic programming calculation to get Z' )
     parser.add_argument("--calc_deriv", action='store_true', default=False, help='Calculate derivative with respect to all parameters')
     parser.add_argument( "--deriv_params",help="Parameters for which to calculate derivatives. Default: None, or all params if --calc_deriv",nargs='*')
+    parser.add_argument("--deriv_check", action='store_true', default=False, help='Run numerical vs. analytical deriv check')
 
     args     = parser.parse_args()
     if args.calc_deriv and args.deriv_params == None: args.deriv_params = []
@@ -121,3 +122,30 @@ if __name__=='__main__':
     dG = score_structure( args.sequences, args.structure, circle = args.circle, params = args.parameters, test_mode = args.test_mode, deriv_params = args.deriv_params )
     if args.deriv_params: (dG,log_derivs) = dG
     print('dG = ',dG)
+
+    if args.deriv_check:
+        print('\nCHECKING LOG DERIVS:')
+        params = get_params( args.parameters, suppress_all_output = True )
+        logZ_val  = -dG/KT_IN_KCAL
+        dG_rpt = score_structure( args.sequences, args.structure, circle = args.circle, params = params )
+        print( 'Check logZ value upon recomputation: ',logZ_val, 'vs', -dG_rpt/KT_IN_KCAL )
+        assert_equal( logZ_val, -dG_rpt/KT_IN_KCAL )
+        analytic_grad_val = log_derivs
+        epsilon = 1.0e-7
+        numerical_grad_val = []
+        for n,param in enumerate( args.deriv_params ):
+            save_val = params.get_parameter_value( param )
+            if save_val == 0.0:
+                numerical_grad_val.append( float('nan') )
+                continue
+            params.set_parameter( param,  exp( log(save_val) + epsilon ) )
+            dG_shift = score_structure( args.sequences, args.structure, circle = args.circle, params = params )
+            numerical_grad_val.append( ( -dG_shift/KT_IN_KCAL - logZ_val ) / epsilon )
+            params.set_parameter( param, save_val )
+        print()
+        print( '%20s %25s %25s' % ('','','d(logZ)/d(log parameter)' ) )
+        print( '%20s %25s %25s %25s' % ('parameter','analytic','numerical', 'diff' ) )
+        for i,parameter in enumerate(args.deriv_params):
+               print( '%20s %25.12f %25.12f %25.12f' % (parameter, analytic_grad_val[i], numerical_grad_val[i], analytic_grad_val[i] - numerical_grad_val[i] ) )
+        print()
+

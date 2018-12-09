@@ -27,17 +27,18 @@ def _get_log_derivs( self, deriv_parameters = [] ):
                 num_internal_linkages += self.params.l * self.C_eff_no_coax_singlet.val( i+1, i ) / self.params.C_std / Z
             derivs[ n ] = num_internal_linkages
         elif parameter == 'l_BP':
-            num_base_pairs_closed_by_loops = 0.0
+            derivs[ n ] = get_num_base_pairs_closed_by_loops( self )
+        elif parameter == 'C_init':
+            num_loops = 0.0
+            # first count up loops closed by base pairs (i,j), i < j
             for i in range( N ):
-                for j in range( N ):
-                    if ( j - i ) % N < 2: continue
+                for j in range( i+2, N ):
                     if not self.ligated[i]: continue
                     if not self.ligated[j-1]: continue
-                    num_base_pairs_closed_by_loops += self.params.l**2 * self.params.l_BP * self.C_eff.val(i+1,j-1) * self.Z_BP.val(j,i) / Z
-            derivs[ n ] = num_base_pairs_closed_by_loops
-        elif parameter == 'C_init':
-            num_closed_loops = get_bpp_tot( self ) - self.num_strand_connections()
-            derivs[ n ] = num_closed_loops
+                    num_loops += self.params.l**2 * self.params.l_BP * self.C_eff.val(i+1,j-1) * self.Z_BP.val(j,i) / self.Z_final.val(0)
+            # one more loop if RNA is a circle.
+            if self.ligated[ N-1 ]: num_loops += 1
+            derivs[ n ] = num_loops
         elif len(parameter)>=2 and  parameter[:2] == 'Kd':
             if parameter == 'Kd':
                 # currently can only handle case where Kd controls *all* of the base pair types
@@ -100,6 +101,27 @@ def get_bpp_tot( self ):
     bpp_tot = []
     for base_pair_type in self.params.base_pair_types: bpp_tot.append( get_bpp_tot_for_base_pair_type( self, base_pair_type ) )
     return sum( bpp_tot ) / 2.0
+
+def get_num_base_pairs_closed_by_loops( self ):
+    # base pair forms a stacked pair with previous pair
+    #
+    #     ~~~~~
+    #  i+1     j-1
+    #    |     |
+    #    i ... j
+    #      bp1
+    #
+    num_base_pairs_closed_by_loops = 0.0
+    N = self.N
+    # this is slightly different than num_closed_loops for C_init -- each base pair is counted
+    # if it closes a loop in either direction (i<j) vs. (i>j)
+    for i in range( N ):
+        for j in range( N ):
+            if ( j - i ) % N < 2: continue
+            if not self.ligated[i]: continue
+            if not self.ligated[(j-1)%N]: continue
+            num_base_pairs_closed_by_loops += self.params.l**2 * self.params.l_BP * self.C_eff.val(i+1,j-1) * self.Z_BP.val(j,i) / self.Z_final.val(0)
+    return num_base_pairs_closed_by_loops
 
 def get_motif_prob( self, base_pair_type, base_pair_type2 ):
     # base pair forms a stacked pair with previous pair

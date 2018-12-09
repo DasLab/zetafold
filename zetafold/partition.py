@@ -9,14 +9,14 @@ from .util.constants import KT_IN_KCAL
 from .util.assert_equal import assert_equal
 from .derivatives import _get_log_derivs
 
-from math import log
+from math import log, exp
 
 ##################################################################################################
 def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = False,
                n_stochastic = 0, do_enumeration = False, structure = None, force_base_pairs = None, no_coax = False,
                verbose = False,  suppress_all_output = False,
                deriv_params = None,
-               calc_Kd_deriv_DP = False, use_simple_recursions = False  ):
+               calc_Kd_deriv_DP = False, use_simple_recursions = False, deriv_check = False  ):
     '''
     Wrapper function into Partition() class
     Returns Partition object p which holds results like:
@@ -40,6 +40,7 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
     p.force_base_pairs = get_structure_string( force_base_pairs )
     p.suppress_all_output = suppress_all_output
     p.deriv_params = deriv_params
+    p.deriv_check  = deriv_check
     p.run()
     if calc_bpp:         p.get_bpp_matrix()
     if mfe:              p.calc_mfe()
@@ -128,7 +129,10 @@ def fill_in_outputs( self ):
     self.derivs = []
     if self.deriv_params:
         for n,log_deriv in enumerate(self.log_derivs):
-            self.derivs.append( log_deriv * self.Z / self.params.get_parameter_value( self.deriv_params[n] )  )
+            param_val = self.params.get_parameter_value( self.deriv_params[n] )
+            val = float('nan')
+            if param_val != 0.0: val = log_deriv * self.Z /param_val
+            self.derivs.append( val )
 
 def initialize_sequence_information( self ):
     '''
@@ -371,5 +375,27 @@ def _run_cross_checks( self ):
             if bpp_tot > 0: assert_equal( bpp_tot, bpp_tot_based_on_deriv )
 
 
-
-
+    if self.deriv_check:
+        print('\nCHECKING LOG DERIVS:')
+        logZ_val  = log( self.Z )
+        p_shift = partition( self.sequences, circle = self.circle, params = self.params, mfe = False, suppress_all_output = True, structure = self.structure, force_base_pairs = self.force_base_pairs )
+        print( 'Check logZ value upon recomputation: ',logZ_val, 'vs', log(p_shift.Z) )
+        assert_equal( logZ_val, log(p_shift.Z) )
+        analytic_grad_val = self.log_derivs
+        epsilon = 1.0e-7
+        numerical_grad_val = []
+        for n,param in enumerate( self.deriv_params ):
+            save_val = self.params.get_parameter_value( param )
+            if save_val == 0.0:
+                numerical_grad_val.append( float('nan') )
+                continue
+            self.params.set_parameter( param,  exp( log(save_val) + epsilon ) )
+            p_shift = partition( self.sequences, circle = self.circle, params = self.params, mfe = False, suppress_all_output = True, structure = self.structure, force_base_pairs = self.force_base_pairs )
+            numerical_grad_val.append( ( log( p_shift.Z ) - logZ_val ) / epsilon )
+            self.params.set_parameter( param, save_val )
+        print()
+        print( '%20s %25s %25s' % ('','','d(logZ)/d(log parameter)' ) )
+        print( '%20s %25s %25s %25s' % ('parameter','analytic','numerical', 'diff' ) )
+        for i,parameter in enumerate(self.deriv_params):
+               print( '%20s %25.12f %25.12f %25.12f' % (parameter, analytic_grad_val[i], numerical_grad_val[i], analytic_grad_val[i] - numerical_grad_val[i] ) )
+        print()

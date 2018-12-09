@@ -6,7 +6,7 @@ import os
 from .parameters import get_params
 from .partition import partition
 from .score_structure import score_structure
-
+from .util.constants import KT_IN_KCAL
 
 def calc_dG_gap( training_example ):
     ( sequence, structure, force_base_pairs, params, train_parameters ) = ( training_example.sequence, training_example.structure, training_example.force_base_pairs, training_example.params, training_example.train_parameters )
@@ -24,7 +24,7 @@ def calc_dG_gap_deriv( training_example ):
     log_derivs = p.log_derivs
     dG_gap = dG_structure - p.dG
     print(p.struct_MFE, training_example.name, dG_gap, ' in deriv' )
-    return np.array( log_derivs ) - np.array( log_derivs_structure )
+    return KT_IN_KCAL * ( np.array( log_derivs ) - np.array( log_derivs_structure ) )
 
 def pack_variables( x, params, train_parameters, training_examples = None):
     for n,param_tag in enumerate(train_parameters):

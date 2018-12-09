@@ -3,7 +3,7 @@ from __future__ import print_function
 from zetafold.parameters import get_params
 from zetafold.data.training_examples import *
 from zetafold.training import *
-from scipy.optimize import minimize
+from scipy.optimize import minimize, check_grad
 import numpy as np
 from multiprocessing import Pool
 import math
@@ -21,6 +21,7 @@ parser.add_argument("--use_derivs","-d", action='store_true', help='Use analytic
 parser.add_argument("--init_params",help="Initial values for parameters (default are values in params file)",nargs='*')
 parser.add_argument("--init_log_params",help="Initial values for log parameters (alternative to init_params)",nargs='*')
 parser.add_argument("--no_coax", action='store_true', default=False, help='Turn off coaxial stacking')
+parser.add_argument("--deriv_check", action='store_true', default=False, help='Run numerical vs. analytical deriv check')
 parser.add_argument("--method",type=str,default='BFGS',help="Minimization routine")
 args     = parser.parse_args()
 
@@ -30,7 +31,7 @@ if args.no_coax: params.set_parameter( 'K_coax', 0.0 )
 
 # set up training examples
 if args.train_data == None or not args.train_data in training_sets.keys():
-    print( '\nMust specify training set. Options are:' )
+    print( '\nMust specify --train_data. Options are:' )
     for set_name in training_set_names:  print( '%30s (%s)' % (set_name,len(training_sets[set_name]) ) )
     exit()
 
@@ -43,6 +44,8 @@ if train_parameters == None:
         for param_exclude in args.train_params_exclude:  assert( param_exclude in params.parameter_tags )
         for param in params.parameter_tags:
             if not param in args.train_params_exclude: train_parameters.append( param )
+    elif args.deriv_check:
+        train_parameters = params.parameter_tags
     else:
         print( '\nMust specify which parameters to optimize' )
         params.show_parameters()
@@ -63,6 +66,27 @@ pool = Pool( args.jobs )
 loss = lambda x:free_energy_gap(      x,params,train_parameters,training_examples,pool,args.outfile)
 grad = lambda x:free_energy_gap_deriv(x,params,train_parameters,training_examples,pool)
 jac = grad if args.use_derivs else None
+
+if args.deriv_check:
+    # Not enough information in check_grad:
+    #print( 'Deriv error: ', check_grad( loss, grad, x0 ) )
+    loss_val = loss( x0 )
+    analytic_grad_val = grad( x0 )
+    numerical_grad_val = []
+    x0_start = x0
+    epsilon = 1.0e-8
+    for n in range( len(x0) ):
+        x0 = x0_start
+        x0[ n ] += epsilon
+        numerical_grad_val.append( ( loss( x0 ) - loss_val ) / epsilon )
+    print()
+    print( '%20s %25s' % ('','d(logZ)/d(log parameter)' ) )
+    print( '%20s %25s %25s' % ('parameter','analytic','numerical' ) )
+    for i,parameter in enumerate(train_parameters):
+           print( '%20s %25.12f %25.12f' % (parameter, analytic_grad_val[i], numerical_grad_val[i] ) )
+    print()
+
+    exit()
 
 create_outfile( args.outfile, params, train_parameters )
 result = minimize( loss, x0, method = args.method, jac = jac )
