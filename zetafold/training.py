@@ -7,6 +7,7 @@ from .parameters import get_params
 from .partition import partition
 from .score_structure import score_structure
 from .util.constants import KT_IN_KCAL
+from scipy.optimize import check_grad
 
 def calc_dG_gap( training_example ):
     ( sequence, structure, force_base_pairs, params, train_parameters ) = ( training_example.sequence, training_example.structure, training_example.force_base_pairs, training_example.params, training_example.train_parameters )
@@ -63,3 +64,23 @@ def create_outfile( outfile, params, training_params ):
     for param_tag in training_params: fid.write( '%25s' % param_tag )
     fid.write( '\n' )
 
+
+def train_deriv_check( x0, loss, grad, train_parameters ):
+    # Not enough output from scipy.check_grad, so I wrote my own deriv_check
+    #print( 'Deriv error: ', check_grad( loss, grad, x0 ) )
+    loss_val = loss( x0 )
+    analytic_grad_val = grad( x0 )
+    numerical_grad_val = []
+    epsilon = 1.0e-8
+    for n in range( len(x0) ):
+        x = np.array( x0 ) # need to make an actual copy
+        x[ n ] += epsilon
+        numerical_grad_val.append( ( loss( x ) - loss_val ) / epsilon )
+    print()
+    print( '%20s %25s' % ('','-dG/d(log parameter)' ) )
+    print( '%20s %25s %25s %25s' % ('parameter','analytic','numerical','diff' ) )
+    for i,parameter in enumerate(train_parameters):
+           print( '%20s %25.12f %25.12f %25.12f' % (parameter, analytic_grad_val[i], numerical_grad_val[i], analytic_grad_val[i] - numerical_grad_val[i]  ) )
+    print()
+
+    exit()

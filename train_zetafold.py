@@ -3,7 +3,7 @@ from __future__ import print_function
 from zetafold.parameters import get_params
 from zetafold.data.training_examples import *
 from zetafold.training import *
-from scipy.optimize import minimize, check_grad
+from scipy.optimize import minimize
 import numpy as np
 from multiprocessing import Pool
 import math
@@ -67,26 +67,7 @@ loss = lambda x:free_energy_gap(      x,params,train_parameters,training_example
 grad = lambda x:free_energy_gap_deriv(x,params,train_parameters,training_examples,pool)
 jac = grad if args.use_derivs else None
 
-if args.deriv_check:
-    # Not enough information in check_grad:
-    #print( 'Deriv error: ', check_grad( loss, grad, x0 ) )
-    loss_val = loss( x0 )
-    analytic_grad_val = grad( x0 )
-    numerical_grad_val = []
-    x0_start = x0
-    epsilon = 1.0e-8
-    for n in range( len(x0) ):
-        x0 = x0_start
-        x0[ n ] += epsilon
-        numerical_grad_val.append( ( loss( x0 ) - loss_val ) / epsilon )
-    print()
-    print( '%20s %25s' % ('','d(logZ)/d(log parameter)' ) )
-    print( '%20s %25s %25s' % ('parameter','analytic','numerical' ) )
-    for i,parameter in enumerate(train_parameters):
-           print( '%20s %25.12f %25.12f' % (parameter, analytic_grad_val[i], numerical_grad_val[i] ) )
-    print()
-
-    exit()
+if args.deriv_check: train_deriv_check( x0, loss, grad, train_parameters )
 
 create_outfile( args.outfile, params, train_parameters )
 result = minimize( loss, x0, method = args.method, jac = jac )
