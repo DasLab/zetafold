@@ -130,7 +130,7 @@ def fill_in_outputs( self ):
     if self.deriv_params:
         for n,log_deriv in enumerate(self.log_derivs):
             param_val = self.params.get_parameter_value( self.deriv_params[n] )
-            val = float('nan')
+            val = 0.0
             if param_val != 0.0: val = log_deriv * self.Z /param_val
             self.derivs.append( val )
 
@@ -387,15 +387,17 @@ def _run_cross_checks( self ):
         for n,param in enumerate( self.deriv_params ):
             save_val = self.params.get_parameter_value( param )
             if save_val == 0.0:
-                numerical_grad_val.append( float('nan') )
+                numerical_grad_val.append( 0.0 )
                 continue
             self.params.set_parameter( param,  exp( log(save_val) + epsilon ) )
             p_shift = partition( self.sequences, circle = self.circle, params = self.params, mfe = False, suppress_all_output = True, structure = self.structure, force_base_pairs = self.force_base_pairs )
             numerical_grad_val.append( ( log( p_shift.Z ) - logZ_val ) / epsilon )
             self.params.set_parameter( param, save_val )
+
         print()
         print( '%20s %25s %25s' % ('','','d(logZ)/d(log parameter)' ) )
         print( '%20s %25s %25s %25s' % ('parameter','analytic','numerical', 'diff' ) )
         for i,parameter in enumerate(self.deriv_params):
                print( '%20s %25.12f %25.12f %25.12f' % (parameter, analytic_grad_val[i], numerical_grad_val[i], analytic_grad_val[i] - numerical_grad_val[i] ) )
         print()
+        for val1,val2 in zip(analytic_grad_val,numerical_grad_val): assert_equal( val1, val2 )

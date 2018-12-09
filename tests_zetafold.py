@@ -74,8 +74,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     log_deriv_C_eff_stacked_pair = (cross_C_eff_stacked_pair/Kd) / (2 + (l**2 * l_BP**2 *C_init/Kd) + cross_C_eff_stacked_pair/Kd )
     log_deriv_C_init = l**2 * l_BP**2 *C_init/Kd /  (2 + (l**2 * l_BP**2 *C_init/Kd) + cross_C_eff_stacked_pair/Kd )
     deriv_parameters = ('C_init','l','l_BP','C_eff_stack_GC_GC','C_eff_stack_CG_CG','C_eff_stack_CG_GC','C_eff_stack_GC_CG','C_eff_stack_GC_matchlowercase','C_eff_stack_matchlowercase_GC')
-    # NOTE THERE MAY BE AN ISSUE WITH C_eff_stack MATCHLOWERCASE derivs --> currently dividing 'ref' by 2.0 as a hack
-    log_derivs_ref =  [ log_deriv_C_init,log_deriv_l, log_deriv_l, 0,0,0,0, log_deriv_C_eff_stacked_pair/2.0, 0]
+    log_derivs_ref =  [ log_deriv_C_init,log_deriv_l, log_deriv_l, 0,0,0,0, log_deriv_C_eff_stacked_pair, 0]
     output_test( p, Z_ref, [0,3], bpp_ref, deriv_parameters, log_derivs_ref )
 
     sequence = 'CNGGC'

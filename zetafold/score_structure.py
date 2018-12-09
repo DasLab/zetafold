@@ -136,7 +136,7 @@ if __name__=='__main__':
         for n,param in enumerate( args.deriv_params ):
             save_val = params.get_parameter_value( param )
             if save_val == 0.0:
-                numerical_grad_val.append( float('nan') )
+                numerical_grad_val.append( 0.0 )
                 continue
             params.set_parameter( param,  exp( log(save_val) + epsilon ) )
             dG_shift = score_structure( args.sequences, args.structure, circle = args.circle, params = params )
@@ -147,5 +147,6 @@ if __name__=='__main__':
         print( '%20s %25s %25s %25s' % ('parameter','analytic','numerical', 'diff' ) )
         for i,parameter in enumerate(args.deriv_params):
                print( '%20s %25.12f %25.12f %25.12f' % (parameter, analytic_grad_val[i], numerical_grad_val[i], analytic_grad_val[i] - numerical_grad_val[i] ) )
+        for val1,val2 in zip(analytic_grad_val,numerical_grad_val): assert_equal( val1, val2 )
         print()
 

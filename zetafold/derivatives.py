@@ -50,23 +50,22 @@ def _get_log_derivs( self, deriv_parameters = [] ):
         elif len(parameter)>=11 and parameter[:11] == 'C_eff_stack':
             # Derivatives with respect to motifs (stacked pairs first)
             if parameter == 'C_eff_stacked_pair':
-                motif_prob = 0.0
-                for base_pair_type in self.params.base_pair_types:
-                    for base_pair_type2 in self.params.base_pair_types:
-                        # currently can only handle case where C_eff_stacked_pair controls *all* of the stacked pairs
-                        assert( self.params.C_eff_stack[base_pair_type][base_pair_type2] == self.params.C_eff_stack[self.params.base_pair_types[0]][self.params.base_pair_types[0]])
-                        motif_prob += get_motif_prob( self, base_pair_type, base_pair_type2 )
-                derivs[n] = motif_prob
+                bpts1 = self.params.base_pair_types
+                bpts2 = self.params.base_pair_types
             else:
                 assert( len(parameter) > 11 )
                 tags = parameter[12:].split('_')
                 assert( len( tags ) == 2 )
                 bpts1 = get_base_pair_types_for_tag( self.params, tags[0] )
                 bpts2 = get_base_pair_types_for_tag( self.params, tags[1] )
-                derivs[ n ] = 0.0
-                for bpt1 in bpts1:
-                    for bpt2 in bpts2:
-                        derivs[ n ] += get_motif_prob( self, bpt1, bpt2 )
+            derivs[ n ] = 0.0
+            motif_types_computed = []
+            for bpt1 in bpts1:
+                for bpt2 in bpts2:
+                    if (bpt1, bpt2) in motif_types_computed: continue
+                    derivs[ n ] += get_motif_prob( self, bpt1, bpt2 )
+                    motif_types_computed.append( (bpt1, bpt2 ) )
+                    motif_types_computed.append( (bpt2.flipped, bpt1.flipped ) ) # prevents overcounting
         elif parameter == 'K_coax':
             coax_prob = get_coax_prob( self )
             derivs[ n ] = coax_prob
@@ -143,7 +142,8 @@ def get_motif_prob( self, base_pair_type, base_pair_type2 ):
             if not self.ligated[(j-1)%N]: continue
             if not base_pair_type.flipped.is_match( self.sequence[j],self.sequence[i] ): continue
             if not base_pair_type2       .is_match( self.sequence[(i+1)%N],self.sequence[(j-1)%N] ): continue
-            motif_prob += self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq1.val(j,i) * Z_BPq2.val(i+1,j-1) / self.Z_final.val(0) / 2.0
+            motif_prob += self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq1.val(j,i) * Z_BPq2.val(i+1,j-1) / self.Z_final.val(0)
+    if base_pair_type == base_pair_type2.flipped: motif_prob /= 2.0 # symmetry correction
     return motif_prob
 
 def get_loop_closed_coax_prob( self ):
