@@ -1,0 +1,8 @@
+tRNA
+tRNA
+
+minimal
+tRNA P5abc P4P6_outerjunction add
+
+favorites
+tRNA P4P6 add

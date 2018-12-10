@@ -34,8 +34,8 @@ if args.train_data == None or not args.train_data in training_sets.keys():
     print( '\nMust specify --train_data. Options are:' )
     for set_name in training_set_names:  print( '%30s (%s)' % (set_name,len(training_sets[set_name]) ) )
     exit()
+training_examples = [ all_training_examples[ tag ] for tag in training_sets[ args.train_data ] ]
 
-training_examples = training_sets[ args.train_data ] #, P4P6_outerjunction ]
 train_parameters = args.train_params
 if train_parameters == None:
     if args.train_params_exclude:
