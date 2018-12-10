@@ -80,7 +80,7 @@ class Partition:
         # for output:
         self.Z       = 0
         self.dG      = None
-        self.bpp     = []
+        self.bpp     = None
         self.bps_MFE = []
         self.struct_MFE = ''
         self.struct_stochastic = []
@@ -269,10 +269,10 @@ def _get_bpp_matrix( self ):
     So: it becomes easy to calculate partition function over all structures with base pair (i,j), and then divide by total Z.
     '''
     assert( self.calc_all_elements )
-    self.bpp = initialize_matrix( self.N, 0.0 )
+    self.bpp = [None]*self.N
+    for i in range( self.N ): self.bpp[i] = [0.0]*self.N
     for i in range( self.N ):
         for j in range( self.N ):
-            self.bpp[i][j] = 0.0
             for base_pair_type in self.params.base_pair_types:
                 if not base_pair_type.is_match( self.sequence[i],self.sequence[j] ): continue
                 self.bpp[i][j] += self.Z_BPq[base_pair_type].val(i,j) * self.Z_BPq[base_pair_type.flipped].val(j,i) * base_pair_type.Kd / self.Z_final.val(0)

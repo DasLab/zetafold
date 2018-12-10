@@ -18,6 +18,28 @@ def _show_results( self ):
     print()
     if self.deriv_params:
         show_derivs( self.deriv_params, self.log_derivs )
+    if self.bpp:
+        output_bpp_matrix( self )
+        output_bpp_plot( self )
+
+def output_bpp_matrix( self ):
+    bpp_file = 'bpp.txt'
+    fid = open( bpp_file, 'w' )
+    for i in range( self.N ):
+        for j in range( self.N ):
+            fid.write(' %25.12f' % self.bpp[i][j] )
+        fid.write('\n')
+    fid.close()
+    print( 'Outputted base pair probability matrix  to: ', bpp_file )
+
+def output_bpp_plot( self ):
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    f, ax = plt.subplots(dpi=50)
+    sns.heatmap( self.bpp, linewidths=0.1,square=True, vmin=0, vmax=1,ax=ax)
+    bpp_fig_file = 'bpp.png'
+    plt.savefig( bpp_fig_file )
+    print( 'Outputted base pair probability heatmap to: ', bpp_fig_file )
 
 def show_derivs( deriv_params, log_derivs ):
     print( '%20s %25s' % ('parameter','d(logZ)/d(log parameter)' ) )
