@@ -27,15 +27,15 @@ This code brings together features pioneered in (but scattered across) prior pac
  * Modeling of ligand/protein binding to RNA hairpins and internal loops (_coming soon_)
  * Modeling of protein binding to RNA single-stranded segments (_coming soon_)
  
-This code also presents entirely new features, based on recent theoretical insights from R. Das & students:
+This code also presents entirely new features, based on recent theoretical insights from R. Das & laboratory:
  * Cross-checks based on computation of the partition function `N` different ways for each RNA.
+ * Efficient learning from large data sets through stochastic gradient-based calculations
  * Loop penalties that rise like the logarithm of the number of loop nucleotides, still in `N^3` time (_coming soon_)
  * Parameters for chemically modified bases, and some modified backbones, based on Rosetta calculations (_coming soon_)
  * Linear motifs identified by Rosetta or by crystallography as having favorable energy bonuses (_coming soon_)
  * Modeling of protein binding to RNA, including proper steric exclusion effects. (_coming soon_)
  * Modeling of RNA tertiary contacts, through a novel iterative sampling method, Rosetta-calculated properties of the contacts, and efficient C_eff calculations. (_coming soon_)
  * Tracking and propagation of estimated model uncertainties. (_coming soon_)
- * Efficient learning from large data sets through stochastic gradient-based calculations (_coming soon_)
  * Easy install through `sudo pip` (_coming soon_)
  
 ## License
