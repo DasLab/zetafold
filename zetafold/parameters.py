@@ -31,7 +31,7 @@ class AlphaFoldParams:
 
     def show_parameters( self ):
         print( '%25s %12s %12s' % ('Parameter','log val','val')  )
-        for tag, val in zip( self.parameter_tags, self.parameter_values ): print( '%25s %12.7f %12.6f' % (tag,math.log(val),val) )
+        for tag, val in zip( self.parameter_tags, self.parameter_values ): print( '%25s %12.7f %12.6f' % (tag,math.log(val) if val !=0 else 0.0,val) )
 
     def output_to_file( self, params_file ): _output_to_file( self, params_file )
 

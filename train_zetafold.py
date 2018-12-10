@@ -47,7 +47,7 @@ if train_parameters == None:
     elif args.deriv_check:
         train_parameters = params.parameter_tags
     else:
-        print( '\nMust specify which parameters to optimize' )
+        print( '\nMust specify which parameters to optimize with --train_params or --train_params_exclude' )
         params.show_parameters()
         exit()
 
