@@ -18,7 +18,7 @@ def _show_results( self ):
     print()
     if self.deriv_params:
         show_derivs( self.deriv_params, self.log_derivs )
-    if self.bpp:
+    if self.bpp and not self.suppress_bpp_output:
         output_bpp_matrix( self )
         output_bpp_plot( self )
 

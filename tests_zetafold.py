@@ -22,7 +22,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
 
     # test of sequences where we know the final partition function.
     sequence = 'CNNNGNN' # CIRCLE!
-    p = partition( sequence, circle = True, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, circle = True, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref   = C_init  * (l**7) * (1 + (C_init * l_BP**2) / Kd ) / C_std
     bpp_ref = (C_init * l_BP**2/ Kd) / ( 1 + C_init * l_BP**2/ Kd)
     deriv_parameters = ('Kd','Kd_matchlowercase','Kd_GC' ,'Kd_CG','l','l_BP','C_init','C_eff_stacked_pair')
@@ -30,7 +30,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     output_test( p, Z_ref, [0,4], bpp_ref, deriv_parameters, log_derivs_ref )
 
     structure= '(...)..'
-    p = partition( sequence, circle = True, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions, structure = structure )
+    p = partition( sequence, circle = True, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, structure = structure )
     Z_ref = C_init  * (l**7) * (C_init * l_BP**2) / Kd / C_std
     bpp_ref = 1.0
     deriv_parameters = ('Kd','Kd_matchlowercase','Kd_GC' ,'Kd_CG','l','l_BP','C_init','C_eff_stacked_pair')
@@ -38,19 +38,19 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     output_test( p, Z_ref, [0,4], bpp_ref, deriv_parameters, log_derivs_ref )
 
     sequence = 'CNG'
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, mfe = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, mfe = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     assert( p.bps_MFE == [(0,2)] )
     Z_ref = 1 + C_init * l**2 * l_BP/ Kd
     bpp_ref = (C_init * l**2 * l_BP/Kd)/( 1 + C_init * l**2 * l_BP/Kd )
     output_test( p, Z_ref, [0,2], bpp_ref )
 
     sequences = ['C','G']
-    p = partition( sequences, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions ) # note that Z sums over only base pair (not dissociated strands!)
+    p = partition( sequences, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions ) # note that Z sums over only base pair (not dissociated strands!)
     output_test( p, C_std/ Kd, \
                  [0,1], 1.0 )
 
     sequences = ['GC','GC']
-    p = partition( sequences, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequences, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = (C_std/Kd)*(2 + l**2 * l_BP**2 *C_init/Kd + C_eff_stacked_pair/Kd )
     bpp_ref = (1 + l**2 * l_BP**2 * C_init/Kd + C_eff_stacked_pair/Kd )/(2 + l**2 * l_BP**2 *C_init/Kd + C_eff_stacked_pair/Kd )
     log_deriv_C_init = (l**2 * l_BP**2 * C_init/Kd ) / (2 + (l**2 * l_BP**2 *C_init/Kd) + C_eff_stacked_pair/Kd )
@@ -60,6 +60,21 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     log_derivs_ref =  [ log_deriv_C_init, log_deriv_l, log_deriv_l, log_deriv_C_eff_stacked_pair, 0,0,0, log_deriv_C_eff_stacked_pair ]
     output_test( p, Z_ref, [0,3], bpp_ref, deriv_parameters, log_derivs_ref )
 
+    print( 'Testing structure calc, without and with all_extra_base_pairs' )
+    sequences = ['GC','GC']
+    structure = '(..)'
+    p = partition( sequences, structure = structure, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    Z_ref = (C_std/Kd)
+    output_test( p, Z_ref, [0,3], 1.0 )
+    output_test( p, Z_ref, [1,2], 0.0 )
+
+    sequences = ['GC','GC']
+    structure = '(..)'
+    p = partition( sequences, structure = structure, allow_extra_base_pairs = True, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    Z_ref = (C_std/Kd)*(1 + l**2 * l_BP**2 *C_init/Kd + C_eff_stacked_pair/Kd )
+    output_test( p, Z_ref, [0,3], 1.0 )
+    output_test( p, Z_ref, [1,2], (l**2 * l_BP**2 *C_init/Kd + C_eff_stacked_pair/Kd)/( 1 + l**2 * l_BP**2 *C_init/Kd + C_eff_stacked_pair/Kd ) )
+
     # what if C_eff_stacked_pair is not uniform
     sequences = ['Ga','aC']
     test_params_C_eff_stack = get_params_from_file( 'minimal' )
@@ -67,7 +82,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     for base_pair_type_GC in test_params_C_eff_stack.base_pair_types[1:3]:
         test_params_C_eff_stack.C_eff_stack[ base_pair_type_GC ][  test_params_C_eff_stack.base_pair_types[0] ]= cross_C_eff_stacked_pair
         test_params_C_eff_stack.C_eff_stack[  test_params_C_eff_stack.base_pair_types[0] ][ base_pair_type_GC ] = cross_C_eff_stacked_pair
-    p = partition( sequences, params = test_params_C_eff_stack, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequences, params = test_params_C_eff_stack, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = (C_std/Kd)*(2 + l**2 * l_BP**2 *C_init/Kd + cross_C_eff_stacked_pair/Kd )
     bpp_ref = (1 + l**2 * l_BP**2 * C_init/Kd + cross_C_eff_stacked_pair/Kd )/(2 + l**2 * l_BP**2 *C_init/Kd + cross_C_eff_stacked_pair/Kd )
     log_deriv_l = 2 * (l**2 * l_BP**2 * C_init/Kd ) / (2 + (l**2 * l_BP**2 *C_init/Kd) + cross_C_eff_stacked_pair/Kd )
@@ -78,18 +93,19 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     output_test( p, Z_ref, [0,3], bpp_ref, deriv_parameters, log_derivs_ref )
 
     sequence = 'CNGGC'
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose,  use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose,  use_simple_recursions = use_simple_recursions )
     Z_ref = 1 + C_init * l**2 *l_BP/Kd * ( 2 + l )
     bpp_ref = C_init*l**2*l_BP/Kd /(  1+C_init*l**2*l_BP/Kd * ( 2 + l ))
     output_test( p, Z_ref, [0,2], bpp_ref )
 
     structure= '(..).'
-    p = partition( sequence, params = test_params, structure = structure, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose,  use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, params = test_params, structure = structure, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True,
+                   verbose = verbose,  use_simple_recursions = use_simple_recursions )
     output_test( p,  C_init * l**2 *l_BP/Kd * l, \
                  [0,2], 0.0 )
 
     sequence = 'CGNCG'
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions, mfe = True )
+    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, mfe = True )
     Z_ref = 1 + C_init*l**2*l_BP/Kd + C_init*l**4*l_BP/Kd  + C_init**2 * (l_BP**3) * l**4 /Kd /Kd + C_init * l_BP * l**2 * C_eff_stacked_pair/Kd /Kd
     bpp_ref = ( C_init*l**4*l_BP/Kd  + C_init**2 * (l_BP**3) * l**4 /Kd /Kd  + C_init * l_BP * l**2 * C_eff_stacked_pair/Kd /Kd) / ( 1 + C_init*l**2*l_BP/Kd + C_init*l**4*l_BP/Kd  + C_init**2 * (l_BP**3) * l**4 /Kd /Kd + C_init * l_BP * l**2 * C_eff_stacked_pair/Kd /Kd )
     output_test( p, Z_ref, [0,4], bpp_ref )
@@ -97,7 +113,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     # an example with ties for MFE structure
     print( 'Example with ties for MFE structure...' )
     sequence = 'CNGNC'
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions, mfe = True )
+    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, mfe = True )
     Z_ref = 1 + 2 * C_init*l**2*l_BP/Kd
     bpp_ref = C_init*l**2*l_BP/Kd/ Z_ref
     output_test( p, Z_ref, [0,2], bpp_ref )
@@ -115,7 +131,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
 
     print( 'Enumeration tests...' )
     sequence = 'CNGCNG'
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, do_enumeration = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, do_enumeration = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = (1 + C_init * l**2 *l_BP/Kd)**2  + C_init * l**5 * l_BP/Kd + (C_init * l**2 *l_BP/Kd)**2 * K_coax
     bpp_ref = (C_init * l**2 *l_BP/Kd*(1 + C_init * l**2 *l_BP/Kd) + (C_init * l**2 *l_BP/Kd)**2 * K_coax) / Z_ref
     deriv_parameters = ('C_eff_stacked_pair','Kd')
@@ -137,7 +153,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
                        [-1,1,2,1,0,0,0],
                        [-2,2,4,2,0,K_coax/(1+K_coax),0] ]
     for n,structure in enumerate( structures ):
-        p = partition( sequence, structure = structure, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, do_enumeration = False, verbose = verbose, use_simple_recursions = use_simple_recursions, deriv_params = deriv_params )
+        p = partition( sequence, structure = structure, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, do_enumeration = False, verbose = verbose, use_simple_recursions = use_simple_recursions, deriv_params = deriv_params )
         output_test( p, Z_refs[n], [0,2], bpp_refs_0_2[n], deriv_params, log_derivs_ref[n] )
         # also throw in a test of score_structure here
         ( dG, log_derivs ) = score_structure( sequence, structure, params = test_params, deriv_params = deriv_params )
@@ -150,7 +166,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     sequence = ['xy','yz','zx']
     params_allow_strained_3WJ = get_params_from_file( 'minimal' )
     params_allow_strained_3WJ.allow_strained_3WJ = True
-    p = partition( sequence, params = params_allow_strained_3WJ, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, params = params_allow_strained_3WJ, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = 3*(C_std/Kd)**2 * (1 + K_coax)  + \
             (C_std/Kd)**2 * (C_init/Kd) * l**3 * l_BP**3  + \
             3*(C_std/Kd)**2 * (C_init/Kd) * K_coax * l_coax*l**2 * l_BP
@@ -167,7 +183,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
 
     # testing extended alphabet & coaxial stacks
     sequence = ['xy','yz','zx']
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = 3*(C_std/Kd)**2 * (1 + K_coax)  + \
             (C_std/Kd)**2 * (C_init/Kd) * l**3 * l_BP**3
     bpp_ref = ( 2 * (C_std/Kd)**2 * (1 + K_coax) + \
@@ -176,7 +192,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
 
     # test that caught a bug in Z_final
     sequence = 'NyNyxNx'
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = (1 + C_init * l**2 *l_BP/Kd)**2  +(C_init * l**2 *l_BP/Kd)**2 * K_coax
     bpp_ref = ( C_init * l**2 *l_BP/Kd * (1 + C_init * l**2 *l_BP/Kd)  + (C_init * l**2 *l_BP/Kd)**2 * K_coax ) / Z_ref
     output_test( p, Z_ref, [1,3], bpp_ref  )

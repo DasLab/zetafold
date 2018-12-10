@@ -13,8 +13,8 @@ from math import log, exp
 
 ##################################################################################################
 def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = False,
-               n_stochastic = 0, do_enumeration = False, structure = None, force_base_pairs = None, no_coax = False,
-               verbose = False,  suppress_all_output = False,
+               n_stochastic = 0, do_enumeration = False, structure = None, allow_extra_base_pairs = None, no_coax = False,
+               verbose = False,  suppress_all_output = False, suppress_bpp_output = False,
                deriv_params = None,
                calc_Kd_deriv_DP = False, use_simple_recursions = False, deriv_check = False  ):
     '''
@@ -37,8 +37,9 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
     p.circle    = circle
     p.options.calc_deriv_DP = calc_Kd_deriv_DP
     p.structure = get_structure_string( structure )
-    p.force_base_pairs = get_structure_string( force_base_pairs )
+    p.allow_extra_base_pairs = allow_extra_base_pairs
     p.suppress_all_output = suppress_all_output
+    p.suppress_bpp_output = suppress_bpp_output
     p.deriv_params = deriv_params
     p.deriv_check  = deriv_check
     p.run()
@@ -73,7 +74,7 @@ class Partition:
         self.base_pair_types = params.base_pair_types
         self.suppress_all_output = False
         self.structure = None
-        self.force_base_pairs = None
+        self.allow_extra_base_pairs = None
         self.deriv_params = None
         self.options = PartitionOptions()
 
@@ -214,13 +215,8 @@ def initialize_force_base_pair( self ):
     self.allow_base_pair     = None
     self.in_forced_base_pair = None
     if self.structure != None:
-        assert( self.force_base_pairs == None )
         bp_list = bps_from_secstruct( self.structure )
-    elif self.force_base_pairs != None:
-        assert( self.structure == None )
-        bp_list = bps_from_secstruct( self.force_base_pairs )
-    else:
-        return
+    else: return
 
     N = self.N
     self.in_forced_base_pair = [False] * N
@@ -234,15 +230,16 @@ def initialize_force_base_pair( self ):
         self.C_eff.set_val( i, i, 0.0 )
         self.C_eff.set_val( j, j, 0.0 )
 
-    if self.structure != None:
+    if not self.allow_extra_base_pairs:
         self.allow_base_pair = initialize_matrix( N, False )
+        # only allow base pairs specified in structure
         for i,j in bp_list:
             self.allow_base_pair[ i ][ j ] = True
             self.allow_base_pair[ j ][ i ] = True
     else:
-        assert( self.force_base_pairs != None )
+        assert( self.allow_extra_base_pairs )
         # allow the specified base pairs (indeed, force them), but
-        #  now disallow any base pairs that might cross with them.
+        #  also allow any base pairs that do not cross with them.
         self.allow_base_pair = initialize_matrix( N, True )
         for i,j in bp_list:
             # no crossing pairs
@@ -361,7 +358,7 @@ def _run_cross_checks( self ):
             for i in range( self.N ): assert_equal( self.Z_final.deriv(0), self.Z_final.deriv(i) )
 
     # calculate bpp_tot = -dlog Z_final /dlog Kd in up to three ways! wow cool test
-    if len(self.bpp)>0:
+    if self.bpp:
         bpp_tot = 0.0
         for i in range( self.N ):
             for j in range( self.N ):
@@ -378,7 +375,7 @@ def _run_cross_checks( self ):
     if self.deriv_check:
         print('\nCHECKING LOG DERIVS:')
         logZ_val  = log( self.Z )
-        p_shift = partition( self.sequences, circle = self.circle, params = self.params, mfe = False, suppress_all_output = True, structure = self.structure, force_base_pairs = self.force_base_pairs )
+        p_shift = partition( self.sequences, circle = self.circle, params = self.params, mfe = False, suppress_all_output = True, structure = self.structure, allow_extra_base_pairs = self.allow_extra_base_pairs )
         print( 'Check logZ value upon recomputation: ',logZ_val, 'vs', log(p_shift.Z) )
         assert_equal( logZ_val, log(p_shift.Z) )
         analytic_grad_val = self.log_derivs
@@ -390,7 +387,7 @@ def _run_cross_checks( self ):
                 numerical_grad_val.append( 0.0 )
                 continue
             self.params.set_parameter( param,  exp( log(save_val) + epsilon ) )
-            p_shift = partition( self.sequences, circle = self.circle, params = self.params, mfe = False, suppress_all_output = True, structure = self.structure, force_base_pairs = self.force_base_pairs )
+            p_shift = partition( self.sequences, circle = self.circle, params = self.params, mfe = False, suppress_all_output = True, structure = self.structure, allow_extra_base_pairs = self.allow_extra_base_pairs )
             numerical_grad_val.append( ( log( p_shift.Z ) - logZ_val ) / epsilon )
             self.params.set_parameter( param, save_val )
 
