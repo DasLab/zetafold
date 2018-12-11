@@ -11,7 +11,7 @@ from scipy.optimize import check_grad
 
 def calc_dG_gap( training_example ):
     ( sequence, structure, force_base_pairs, params, train_parameters ) = ( training_example.sequence, training_example.structure, training_example.force_base_pairs, training_example.params, training_example.train_parameters )
-    dG_structure = score_structure( sequence, structure, params = params )
+    dG_structure = score_structure( sequence, structure, params = params, allow_extra_base_pairs = True  )
     p = partition( sequence, params = params, suppress_all_output = True, mfe = True, structure = force_base_pairs, allow_extra_base_pairs = True )
     dG = p.dG
     dG_gap = dG_structure - dG # will be a positive number, best case zero.
@@ -20,7 +20,7 @@ def calc_dG_gap( training_example ):
 
 def calc_dG_gap_deriv( training_example ):
     ( sequence, structure, force_base_pairs, params, train_parameters ) = ( training_example.sequence, training_example.structure, training_example.force_base_pairs, training_example.params, training_example.train_parameters )
-    (dG_structure, log_derivs_structure ) = score_structure( sequence, structure, params = params, deriv_params = train_parameters )
+    (dG_structure, log_derivs_structure ) = score_structure( sequence, structure, params = params, deriv_params = train_parameters, allow_extra_base_pairs = True )
     p = partition( sequence, params = params, suppress_all_output = True, mfe = True, structure = force_base_pairs, allow_extra_base_pairs = True, deriv_params = train_parameters )
     log_derivs = p.log_derivs
     dG_gap = dG_structure - p.dG
