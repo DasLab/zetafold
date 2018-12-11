@@ -24,7 +24,7 @@ def setup_base_pair_type( params, nt1, nt2, Kd, match_lowercase = False ):
     if not hasattr( params, 'base_pair_types' ): params.base_pair_types = []
     bpt1 = BasePairType( nt1, nt2, Kd, match_lowercase = match_lowercase )
     params.base_pair_types.append( bpt1 )
-    if not match_lowercase:
+    if not match_lowercase and nt1 != nt2: # for now
         bpt2 = BasePairType( nt2, nt1, Kd, match_lowercase = match_lowercase )
         bpt1.flipped = bpt2
         bpt2.flipped = bpt1
