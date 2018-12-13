@@ -11,10 +11,39 @@ GGAAUUGCGGGAAAGG CUAACCACGCAGCCAAGUCCUAAGUC GAUAUGGAUGCAGUUCA
 .....((((((...(( ))..)).))))((...((((...((( )))..))))...))...
 ...............( )........................( )................ 
 
-add
+add_riboswitch_aptamer
 CGCUUCAUAUAAUCCUAAUGAUAUGGUUUGGGAGUUUCUACCAAGAGCCUUAAACUCUUGAUUAUGAAGUG
 (((((((((...((((((.........))))))........((((((.......))))))..))))))))) 
 
 P4P6
 GGAAUUGCGGGAAAGGGGUCAACAGCCGUUCAGUACCAAGUCUCAGGGGAAACUUUGAGAUGGCCUUGCAAAGGGUAUGGUAAUAAGCUGACGGACAUGGUCCUAACCACGCAGCCAAGUCCUAAGUCAACAGAUCUUCUGUUGAUAUGGAUGCAGUUCA
 .....((((((...((((((.....(((.((((.(((..(((((((((....)))))))))..((.......))....)))......)))))))....))))))..)).))))((...((((...(((((((((...)))))))))..))))...))... 
+
+5S_rRNA
+UGCCUGGCGGCCGUAGCGCGGUGGUCCCACCUGACCCCAUGCCGAACUCAGAAGUGAAACGCCGUAGCGCCGAUGGUAGUGUGGGGUCUCCCCAUGCGAGAGUAGGGAACUGCCAGGCAU
+((((((((((.....((((((((....(((((((.............))))..)))...)))))).)).((.......((((((((...)))))))).......))...)))))))))).
+
+cdiGMP_riboswitch_aptamer
+GUCACGCACAGGGCAAACCAUUCGAAAGAGUGGGACGCAAAGCCUCCGGCCUAAACCAGAAGACAUGGUAGGUAGCGGGGUUACCGAUGG
+..((((......((...((((((....))))))...))...(((.((((((((..((.........)))))))..))))))...)).)).
+
+FN_glycine_riboswitch_aptamer
+GGAUAUGAGGAGAGAUUUCAUUUUAAUGAAACACCGAAGAAGUAAAUCUUUCAGGUAAAAAGGACUCAUAUUGGACGAACCUCUGGAGAGCUUAUCUAAGAGAUAACACCGAAGGAGCAAAGCUAAUUUUAGCCUAAACUCUCAGGUAAAAGGACGGAG
+.((((((((......((((((....)))))).(((...((((.....))))..)))........))))))))........(((((......(((((.....))))).(((...((((....((((....)))).....))))..))).......)))))
+
+AdoCBL_riboswitch_aptamer
+CGGCAGGUGCUCCCGACCCUGCGGUCGGGAGUUAAAAGGGAAGCCGGUGCAAGUCCGGCACGGUCCCGCCACUGUGACGGGGAGUCGCCCCUCGGGAUGUGCCACUGGCCCGAAGGCCGGGAAGGCGGAGGGGCGGCGAGGAUCCGGAGUCAGGAAACCUGCCUGCCG
+((((((((((((((((((....))))))))))....(((...(((((.......)))))..(((...))).(((...((((..((((((((((......((((.((((((....))))))...)))))))))))))).....))))....)))....)))))))))))
+
+GIR1_ribozyme
+GGUUGGGUUGGGAAGUAUCAUGGCUAAUCACCAUGAUGCAAUCGGGUUGAACACUUAAUUGGGUUAAAACGGUGGGGGACGAUCCCGUAACAUCCGUCCUAACGGCGACAGACUGCACGGCCCUGCCUCUUAGGUGUGUUCAAUGAACAGUCGUUCCGAAAGGAAGCAUCCGGUAUCCCAAGACAAUC
+(((((..((((((.(((((((((.......))))))))).((((((((((((((......(((((...((((((((((....))))....)).))))((....)).............))))).((((...))))))))))))).........((((....))))....))))).))))))..)))))
+
+FMN_riboswitch_aptamer
+AUCUUCGGGGCAGGGUGAAAUUCCCGACCGGUGGUAUAGUCCACGAAAGUAUUUGCUUUGAUUUGGUGAAAUUCCAAAACCGACAGUAGAGUCUGGAUGAGAGAAGAU
+((((((....(.(((.......))))..((((((......))))..((((....))))...(((((.......)))))..)).(((......))).......))))))
+
+HCV_IRES_domainII
+CCAUGAAUCACUCCCCUGUGAGGAACUACUGUCUUCACGCAGAAAGCGUCUAGCCAUGGCGUUAGUAUGAGUGUCGUGCAGCCUCCAGGACCCCC
+..............((((.((((.....(((((..(((.((...((((((.......))))))....)).)))..).))))))))))))......
+

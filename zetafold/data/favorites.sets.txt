@@ -5,4 +5,5 @@ minimal
 tRNA P5abc P4P6_outerjunction add
 
 favorites
-tRNA P4P6 add
+tRNA P4P6 add_riboswitch_aptamer 5S_rRNA cdiGMP_riboswitch_aptamer FN_glycine_riboswitch_aptamer AdoCBL_riboswitch_aptamer GIR1_ribozyme FMN_riboswitch_aptamer HCV_IRES_domainII
+
