@@ -22,6 +22,7 @@ parser.add_argument("--init_params",help="Initial values for parameters (default
 parser.add_argument("--init_log_params",help="Initial values for log parameters (alternative to init_params)",nargs='*')
 parser.add_argument("--no_coax", action='store_true', default=False, help='Turn off coaxial stacking')
 parser.add_argument("--deriv_check", action='store_true', default=False, help='Run numerical vs. analytical deriv check')
+parser.add_argument("--allow_extra_base_pairs",action='store_true',default=False, help='allow extra base pairs compatible with --structure')
 parser.add_argument("--method",type=str,default='BFGS',help="Minimization routine")
 args     = parser.parse_args()
 
@@ -63,8 +64,8 @@ else:
 
 pool = Pool( args.jobs )
 
-loss = lambda x:free_energy_gap(      x,params,train_parameters,training_examples,pool,args.outfile)
-grad = lambda x:free_energy_gap_deriv(x,params,train_parameters,training_examples,pool)
+loss = lambda x:free_energy_gap(      x,params,train_parameters,training_examples,args.allow_extra_base_pairs,pool,args.outfile)
+grad = lambda x:free_energy_gap_deriv(x,params,train_parameters,training_examples,args.allow_extra_base_pairs,pool)
 jac = grad if args.use_derivs else None
 
 if args.deriv_check: train_deriv_check( x0, loss, grad, train_parameters )
