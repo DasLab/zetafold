@@ -17,10 +17,10 @@ def update_Z_cut( self, i, j ):
     for c in range( i, i+offset ):
         if not ligated[c]:
             # strand 1  (i --> c), strand 2  (c+1 -- > j)
-            if c == i and (c+1)%N == j: Z_cut[i][j].Q += 1.0
-            if c == i and (c+1)%N != j: Z_cut[i][j] += Z_linear[c+1][j-1]
-            if c != i and (c+1)%N == j: Z_cut[i][j] += Z_linear[i+1][c]
-            if c != i and (c+1)%N != j: Z_cut[i][j] += Z_linear[i+1][c] * Z_linear[c+1][j-1]
+            if c == i and (c+1)%N == j:                                 Z_cut[i][j].Q += 1.0
+            if c == i and (c+1)%N != j and ligated[j-1]:                Z_cut[i][j] += Z_linear[c+1][j-1]
+            if c != i and (c+1)%N == j and ligated[i]:                  Z_cut[i][j] += Z_linear[i+1][c]
+            if c != i and (c+1)%N != j and ligated[i] and ligated[j-1]: Z_cut[i][j] += Z_linear[i+1][c] * Z_linear[c+1][j-1]
 
 ##################################################################################################
 def update_Z_BPq( self, i, j, base_pair_type ):
