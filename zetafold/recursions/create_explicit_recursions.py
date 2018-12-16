@@ -3,8 +3,8 @@ with open('recursions.py') as f:
     lines = f.readlines()
 
 
-not_data_objects = ['self.Z_BPq','sequence','self.params.C_eff_stack']
-not_2D_dynamic_programming_objects = ['all_ligated','ligated','self.Z_BPq','sequence','self.allow_base_pair','self.in_forced_base_pair','self.params.C_eff_stack']
+not_data_objects = ['self.Z_BPq','sequence','self.params.C_eff_stack', 'motif_type.strands' ]
+not_2D_dynamic_programming_objects = ['all_ligated','ligated','self.Z_BPq','sequence','self.allow_base_pair','self.in_forced_base_pair','self.params.C_eff_stack','motif_type.strands']
 dynamic_programming_lists = ['Z_final']
 dynamic_programming_data = ['Z_seg1','Z_seg2']
 

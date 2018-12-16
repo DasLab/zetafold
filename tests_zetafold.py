@@ -197,6 +197,24 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     bpp_ref = ( C_init * l**2 *l_BP/Kd * (1 + C_init * l**2 *l_BP/Kd)  + (C_init * l**2 *l_BP/Kd)**2 * K_coax ) / Z_ref
     output_test( p, Z_ref, [1,3], bpp_ref  )
 
+    # Try adding a 'motif' to our scorefunction
+    print( 'Testing motif (single nt bulge)' )
+    params = get_params_from_file( 'minimal' )
+    params.set_parameter( 'K_coax', 0.0 )
+    C_eff_motif = 10.0
+    params.set_parameter( 'C_eff_motif_startbpCG_strandCG_bpGC_strandCAG_bpGC', C_eff_motif )
+
+    sequences = ['CG','CAG']
+    p = partition( sequences, params = params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    Z_ref = (C_std/Kd)*(2 + l**3 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
+    bpp_ref = (1 + l**3 * l_BP**2 * C_init/Kd + C_eff_motif/Kd )/(2 + l**3 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
+    #log_deriv_C_init = (l**2 * l_BP**2 * C_init/Kd ) / (2 + (l**2 * l_BP**2 *C_init/Kd) + C_eff_stacked_pair/Kd )
+    #log_deriv_l = 2 *  log_deriv_C_init
+    #log_deriv_C_eff_stacked_pair = (C_eff_stacked_pair/Kd) / (2 + (l**2 * l_BP**2 *C_init/Kd) + C_eff_stacked_pair/Kd )
+    #deriv_parameters = ('C_init','l','l_BP','C_eff_stacked_pair','C_eff_stack_GC_GC','C_eff_stack_CG_CG','C_eff_stack_CG_GC','C_eff_stack_GC_CG')
+    #log_derivs_ref =  [ log_deriv_C_init, log_deriv_l, log_deriv_l, log_deriv_C_eff_stacked_pair, 0,0,0, log_deriv_C_eff_stacked_pair ]
+    output_test( p, Z_ref, [0,4], bpp_ref )
+
     # test secstruct
     assert( secstruct_from_bps( [(0,5),(1,4)],7 ) == '((..)).' )
     assert( bps_from_secstruct(  '((..)).' ) == [(0,5),(1,4)] )

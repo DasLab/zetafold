@@ -57,15 +57,30 @@ def update_Z_BPq( self, i, j, base_pair_type ):
         Z_BPq[i][j]  += (1.0/Kdq ) * ( C_eff_for_BP[i+1][j-1] * l * l * l_BP)
 
         # base pair forms a stacked pair with previous pair
-        #      ___
-        #     /   \
+        #
         #  i+1 ... j-1
         #    |     |
         #    i ... j
         #
         for base_pair_type2 in self.params.base_pair_types:
             if base_pair_type2.is_match( sequence[(i+1)%N], sequence[(j-1)%N] ):
-                Z_BPq[i][j]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BP[i+1][j-1]
+                Z_BPq2 = self.Z_BPq[base_pair_type2]
+                Z_BPq[i][j]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2[i+1][j-1]
+
+    # base pair forms a motif with previous pair
+    #
+    #             bp2
+    #           i'... j'
+    #   strand  |     | strand2
+    #           i ... j
+    #          5' bp1  3
+    #'
+    for motif_type in self.params.motif_types:
+        if motif_type.start_base_pair_type != base_pair_type: continue
+        if motif_type.is_match( sequence, ligated, i, j ):
+            (base_pair_type2, i_next, j_next) = motif_type.get_other_base_pair( i, j )
+            Z_BPq2 = self.Z_BPq[base_pair_type2]
+            Z_BPq[i][j]  += (1.0/Kdq ) * motif_type.C_eff * Z_BPq2[i_next][j_next]
 
     # base pair brings together two strands that were previously disconnected
     #
@@ -208,7 +223,6 @@ def update_C_eff_basic( self, i, j ):
         for k in range( i+1, i+offset):
             if ligated[k-1]: C_eff_basic[i][j] += C_eff_for_coax[i][k-1] * Z_coax[k][j] * l * l_coax
 
-
 ##################################################################################################
 def update_C_eff_no_coax_singlet( self, i, j ):
     (C_init, l, l_BP,  K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ, N, \
@@ -340,14 +354,16 @@ def update_Z_final( self, i ):
         for c in range( i, i + N - 1):
             if not ligated[c]: Z_final[i] += Z_linear[i][c] * Z_linear[c+1][i-1]
 
-        # base pair forms a stacked pair with previous pair
-        #
-        #   - j+1 - j -
-        #      :    :
-        #      :    :
-        #   - i-1 - i -
-        #         *
         for j in range( i+1, (i + N - 1) ):
+            # base pair forms a stacked pair with previous pair
+            #
+            #        <--3'
+            #   - j+1 - j -
+            #      :    :
+            #      :    :
+            #   - i-1 - i -
+            #         * 5'-->
+            #
             if ligated[j]:
                 if Z_BP.val(i,j) > 0.0 and Z_BP.val(j+1,i-1) > 0.0:
                     for base_pair_type in self.params.base_pair_types:
@@ -358,6 +374,27 @@ def update_Z_final( self, i ):
                             Z_BPq2 = self.Z_BPq[base_pair_type2]
                             # could also use self.params.C_eff_stack[base_pair_type.flipped][base_pair_type2]  -- should be the same as below.
                             Z_final[i] += self.params.C_eff_stack[base_pair_type2.flipped][base_pair_type] * Z_BPq2[j+1][i-1] * Z_BPq1[i][j]
+
+            # ligation allows a motif to form across i-1 to i
+            #
+            #           <--
+            #   - j_next - j -
+            #      :       :
+            #      :       :
+            #   - k_next - k -
+            #         *  -->
+            #
+            #   where k = i, i-1, ... (i + strand_length-2),
+            #      i.e., ligation is inside last strand of motif
+            #
+            for motif_type in self.params.motif_types:
+                for k in range( i, i+len( motif_type.strands[-1] )-1 ):
+                    if motif_type.is_match( sequence, ligated, j, k ):
+                        (base_pair_type2, j_next, k_next) = motif_type.get_other_base_pair( j, k )
+                        Z_BPq1 = self.Z_BPq[motif_type.start_base_pair_type.flipped]
+                        Z_BPq2 = self.Z_BPq[base_pair_type2]
+                        Z_final[i]  += motif_type.C_eff * Z_BPq2[j_next][k_next] * Z_BPq1[k][j]
+
 
         if K_coax > 0:
             C_eff_for_coax = C_eff if allow_strained_3WJ else C_eff_no_BP_singlet

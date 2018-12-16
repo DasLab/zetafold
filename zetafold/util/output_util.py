@@ -53,6 +53,7 @@ def show_derivs( deriv_params, log_derivs ):
 
 def _show_matrices( self ):
     output_DP( "Z_BP", self.Z_BP )
+    output_DP( "Z_cut", self.Z_cut )
     output_DP( "C_eff_basic", self.C_eff_basic )
     output_DP( "C_eff", self.C_eff, self.Z_final )
     #output_DP( "dC_eff", self.dC_eff, self.dZ_final )

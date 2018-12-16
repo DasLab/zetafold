@@ -2,6 +2,7 @@ from __future__ import print_function
 import math
 from .base_pair_types import BasePairType, setup_base_pair_type, get_base_pair_types_for_tag, get_base_pair_type_for_tag
 from .util.constants import KT_IN_KCAL
+from .motif_types import MotifType, get_motif_type_for_tag
 import glob
 import os.path
 
@@ -11,6 +12,8 @@ class AlphaFoldParams:
     '''
     def __init__( self ):
         self.C_std  = 1.0      # 1 M. drops out in end (up to overall scale factor).
+        self.base_pair_types = []
+        self.motif_types = []
         self.parameter_tags   = [] # K_CG, etc.
         self.parameter_values = [] # floats
         self.string_tags   = [] # name, version, etc.
@@ -149,6 +152,10 @@ def _set_parameter( self, tag, val ):
                     self.C_eff_stack[ bpt1 ][ bpt2 ] = float(val)
                     self.C_eff_stack[ bpt2.flipped ][ bpt1.flipped ] = float(val)
         float_parameter = True
+    elif len( tag )>=11 and tag[:11] == 'C_eff_motif':
+        motif_type_tag = tag[12:]
+        setup_motif_type_by_tag( self, motif_type_tag, float(val) )
+        float_parameter = True
     else:
         if not tag in ('name','version','C_init','l','l_BP','l_coax','K_coax'):
             print( 'Unrecognized tag!!', tag )
@@ -171,7 +178,7 @@ def update_C_eff_stack( params, val = None ):
     for bpt1 in params.base_pair_types:
         if not params.C_eff_stack.has_key( bpt1 ):  params.C_eff_stack[ bpt1 ] = {}
         for bpt2 in params.base_pair_types:
-            if not params.C_eff_stack[ bpt1 ].has_key( bpt2 ): params.C_eff_stack[ bpt1 ][ bpt2 ] = None
+            if not params.C_eff_stack[ bpt1 ].has_key( bpt2 ): params.C_eff_stack[ bpt1 ][ bpt2 ] = 0.0
             if val != None: params.C_eff_stack[ bpt1 ][ bpt2 ] = val
 
 def _check_C_eff_stack( params ):
@@ -195,4 +202,55 @@ def setup_base_pair_type_by_tag( params, Kd_tag, val ):
     else:
         setup_base_pair_type( params, tag[0], tag[1], val, match_lowercase = False )
     assert( get_base_pair_type_for_tag( params, tag ) )
+
+def setup_motif_type_by_tag( params, motif_type_tag, val ):
+    # e.g.,
+    # startbpGC_strandGU_bpUAwh_strandAGC_bpCG
+    #
+    # TODO: later generalize to handle:
+    # startbpWC_strandNU_bpUAwh_strandANN_bpWC
+    #
+    strands = []
+    base_pair_types = []
+    cols = motif_type_tag.split( '_' )
+    # for now, just do two-way junctions, TODO: later generalize to N-way
+    assert( len( cols ) == 5 )
+
+    assert( cols[0][:7] == 'startbp') # deprecate?
+    base_pair_type_tag = cols[0][7:]
+    start_base_pair_type = get_base_pair_type_for_tag( params, base_pair_type_tag )
+
+    assert( cols[1][:6] == 'strand' )
+    strands.append( cols[1][6:] )
+
+    assert( cols[2][:2] == 'bp' )
+    base_pair_type_tag =  cols[2][2:]
+    base_pair_types.append( get_base_pair_type_for_tag( params, base_pair_type_tag ) )
+
+    assert( cols[3][:6] == 'strand' )
+    strands.append( cols[3][6:] )
+
+    assert( cols[4][:2] == 'bp' )
+    base_pair_type_tag =  cols[4][2:]
+    base_pair_types.append( get_base_pair_type_for_tag( params, base_pair_type_tag ) )
+    assert( base_pair_types[-1] == start_base_pair_type.flipped )
+
+    motif_type = get_motif_type_for_tag( params, motif_type_tag )
+    if motif_type:
+        motif_type.Kd = val
+        # actually should generalize to all 'permutations' of N-way junction
+        motif_type.permuted.Kd = val
+    else:
+        motif_type1 = MotifType( start_base_pair_type, strands, base_pair_types, val )
+        params.motif_types.append( motif_type1 )
+        # for now this will work -- will *not* work when we allow tags like WC that represent multiple base pairs
+        assert( motif_type1.get_tag() == motif_type_tag )
+
+        # set up permutations
+        motif_type2 = MotifType( base_pair_types[1].flipped, strands[1:]+[strands[0]], base_pair_types[1:]+[base_pair_types[0]], val )
+        params.motif_types.append( motif_type2 )
+
+        motif_type1.permuted = motif_type2
+        motif_type2.permuted = motif_type1
+
 

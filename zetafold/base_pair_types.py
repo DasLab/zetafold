@@ -31,7 +31,6 @@ def setup_base_pair_type( params, nt1, nt2, Kd, match_lowercase = False ):
         params.base_pair_types.append( bpt2 )
 
 def get_base_pair_type_for_tag( params, tag ):
-    if not hasattr( params, 'base_pair_types' ): return None
     for base_pair_type in params.base_pair_types:
         if (tag == 'matchlowercase' and base_pair_type.match_lowercase) or \
            (tag == base_pair_type.nt1 + base_pair_type.nt2 ):
