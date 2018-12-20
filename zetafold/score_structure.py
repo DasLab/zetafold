@@ -5,13 +5,13 @@ from math import log,exp
 import sys
 import os
 if __package__ == None: sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from zetafold.partition import partition
-from zetafold.parameters import get_params
-from zetafold.util import sequence_util
-from zetafold.util import secstruct_util
-from zetafold.util.assert_equal import assert_equal
-from zetafold.util.constants import KT_IN_KCAL
-from zetafold.util.output_util import show_derivs
+import partition
+from .parameters import get_params
+from .util import sequence_util
+from .util import secstruct_util
+from .util.assert_equal import assert_equal
+from .util.constants import KT_IN_KCAL
+from .util.output_util import show_derivs
 
 def score_structure( sequences, structure, circle = False, params = None, test_mode = False, deriv_params = None, allow_extra_base_pairs = False ):
 
@@ -52,7 +52,7 @@ def score_structure( sequences, structure, circle = False, params = None, test_m
             motif_bps_list.append( (motif_res.index(i), motif_res.index(j)) )
         motif_structure = secstruct_util.secstruct_from_bps( motif_bps_list, len( motif_res ) )
 
-        p = partition( motif_sequences, circle = motif_circle, structure = motif_structure, params = params, suppress_all_output = True, deriv_params = deriv_params, allow_extra_base_pairs = allow_extra_base_pairs )
+        p = partition.partition( motif_sequences, circle = motif_circle, structure = motif_structure, params = params, suppress_all_output = True, deriv_params = deriv_params, allow_extra_base_pairs = allow_extra_base_pairs )
         Z_motif = p.Z
         log_derivs_motif = p.log_derivs
 
@@ -91,7 +91,7 @@ def score_structure( sequences, structure, circle = False, params = None, test_m
 
     if test_mode:
         # Reference value from 'hacked' dynamic programming, which takes a while.
-        p = partition( sequences, circle = circle, structure = structure, params = params, suppress_all_output = True, deriv_params = deriv_params, allow_extra_base_pairs = allow_extra_base_pairs )
+        p = partition.partition( sequences, circle = circle, structure = structure, params = params, suppress_all_output = True, deriv_params = deriv_params, allow_extra_base_pairs = allow_extra_base_pairs )
         print('From dynamic programming:', p.Z)
         assert_equal( Z, p.Z )
         print()

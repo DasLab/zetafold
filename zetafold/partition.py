@@ -8,12 +8,14 @@ from .util.sequence_util  import initialize_sequence_and_ligated, initialize_all
 from .util.constants import KT_IN_KCAL
 from .util.assert_equal import assert_equal
 from .derivatives import _get_log_derivs
-
+import score_structure
 from math import log, exp
 
 ##################################################################################################
 def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = False,
-               n_stochastic = 0, do_enumeration = False, structure = None, allow_extra_base_pairs = None, no_coax = False,
+               n_stochastic = 0, do_enumeration = False, structure = None, allow_extra_base_pairs = None,
+               calc_gap_structure = None,
+               no_coax = False,
                verbose = False,  suppress_all_output = False, suppress_bpp_output = False,
                deriv_params = None,
                calc_Kd_deriv_DP = False, use_simple_recursions = False, deriv_check = False  ):
@@ -38,6 +40,7 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
     p.options.calc_deriv_DP = calc_Kd_deriv_DP
     p.structure = get_structure_string( structure )
     p.allow_extra_base_pairs = allow_extra_base_pairs
+    p.calc_gap_structure = get_structure_string( calc_gap_structure )
     p.suppress_all_output = suppress_all_output
     p.suppress_bpp_output = suppress_bpp_output
     p.deriv_params = deriv_params
@@ -48,6 +51,7 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
     if n_stochastic > 0: p.stochastic_backtrack( n_stochastic )
     if do_enumeration:   p.enumerative_backtrack()
     if verbose:          p.show_matrices()
+    if calc_gap_structure:   p.calculate_energy_gap()
     if not suppress_all_output: p.show_results()
     p.run_cross_checks()
 
@@ -81,6 +85,7 @@ class Partition:
         # for output:
         self.Z       = 0
         self.dG      = None
+        self.dG_gap  = None
         self.bpp     = None
         self.bps_MFE = []
         self.struct_MFE = None
@@ -120,6 +125,7 @@ class Partition:
     def show_matrices( self ): _show_matrices( self )
     def get_log_derivs( self, deriv_params ): return _get_log_derivs( self, deriv_params )
     def run_cross_checks( self ): _run_cross_checks( self )
+    def calculate_energy_gap( self ): _calculate_energy_gap( self )
     def num_strand_connections( self ):  return get_num_strand_connections( self.sequences, self.circle)
 
 ##################################################################################################
@@ -334,6 +340,13 @@ def _enumerative_backtrack( self ):
     print('p_tot = ',p_tot)
     assert( abs(p_tot - 1.0) < 1.0e-5 )
     return
+
+##################################################################################################
+def _calculate_energy_gap( self ):
+    # TODO: perhaps should also update derivs...
+    assert( self.calc_gap_structure != None and len( self.calc_gap_structure ) > 0 )
+    dG = score_structure.score_structure( self.sequences, self.calc_gap_structure, circle = self.circle, params = self.params, allow_extra_base_pairs = self.allow_extra_base_pairs )
+    self.dG_gap = dG - self.dG
 
 ##################################################################################################
 def _run_cross_checks( self ):

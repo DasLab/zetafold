@@ -6,30 +6,31 @@ import sys
 
 def _show_results( self ):
     fid = sys.stdout
-    write_string_with_spaces( self.sequence, self.ligated, fid )
-    fid.write(' sequence\n')
-    if self.structure != None:
-        write_string_with_spaces( self.structure, self.ligated, fid )
-        fid.write(' input structure\n')
-    if self.struct_MFE != None:
-        write_string_with_spaces( self.struct_MFE, self.ligated, fid )
-        fid.write(' (pseudo)MFE\n')
-    if len( self.struct_stochastic ) > 0:
-        for struct in self.struct_stochastic:
-            write_string_with_spaces( struct, self.ligated, fid )
-            fid.write(' stochastic\n')
-    if len( self.struct_enumerate ) > 0:
-        for struct in self.struct_enumerate:
-            write_string_with_spaces( struct, self.ligated, fid )
-            fid.write(' enumerate\n')
+    write_result( 'sequence',self.sequence, self.ligated, fid )
+    write_result( 'input structure',self.structure, self.ligated, fid )
+    write_result( 'calculate gap structure',self.calc_gap_structure, self.ligated, fid )
+    write_result( '(pseudo)MFE',self.struct_MFE, self.ligated, fid )
+    write_result( 'stochastic',self.struct_stochastic, self.ligated, fid )
+    write_result( 'enumerate',self.struct_enumerate, self.ligated, fid )
     print('Z =',self.Z)
-    print('dG =',-KT_IN_KCAL * math.log( self.Z ))
+    print('dG (kcal/mol) =',self.dG, ' [full]')
+    if self.dG_gap:
+        print('dG (kcal/mol) =',self.dG_gap + self.dG, ' [input structure]' )
+        print('dG (kcal/mol) =',self.dG_gap, ' [free energy gap]' )
     print()
     if self.deriv_params:
         show_derivs( self.deriv_params, self.log_derivs )
     if self.bpp and not self.suppress_bpp_output:
         output_bpp_matrix( self )
         output_bpp_plot( self )
+
+def write_result( tag, variable, ligated, fid ):
+    if variable == None: return
+    if isinstance( variable, list ):
+        for struct in variable: write_result( tag, struct, ligated, fid )
+        return
+    write_string_with_spaces( variable, ligated, fid )
+    fid.write(' %s\n' % tag )
 
 def write_string_with_spaces( sequence, ligated, fid ):
     for i in range( len( sequence) ):
