@@ -83,7 +83,7 @@ class Partition:
         self.dG      = None
         self.bpp     = None
         self.bps_MFE = []
-        self.struct_MFE = ''
+        self.struct_MFE = None
         self.struct_stochastic = []
         self.struct_enumerate  = []
         self.log_derivs = []
@@ -293,9 +293,7 @@ def _calc_mfe( self ):
     # there are actually numerous ways to calculate MFE if we did all N^2 elements -- let's check.
     n_test = N if self.calc_all_elements else 1
     if not self.suppress_all_output:
-        print()
-        print('Doing backtrack to get minimum free energy structure:')
-        print(self.sequence)
+        print('Doing backtrack to get minimum free energy structure...')
 
     all_bps_MFE = set()
     for i in range( n_test ):
@@ -309,9 +307,6 @@ def _calc_mfe( self ):
         # actually this doesn't always hold -- in some parameter sets and sequences there are literally ties.
         # assert( bps_MFE[i] == bps_MFE[0] )
 
-    if not self.suppress_all_output:
-        print( secstruct_from_bps(bps_MFE[0],N), "   ", p_MFE[0], "[MFE]")
-        print()
     self.bps_MFE = bps_MFE[0]
     self.struct_MFE = secstruct_from_bps( bps_MFE[0], N)
 
@@ -320,15 +315,10 @@ def _stochastic_backtrack( self, N_backtrack ):
     #
     # Get stochastic, Boltzmann-weighted structural samples from partition function
     #
-    print()
-    print('Doing',N_backtrack,'stochastic backtracks to get Boltzmann-weighted ensemble')
-    print(self.sequence)
+    print('Doing',N_backtrack,'stochastic backtracks to get Boltzmann-weighted ensemble...')
     for i in range( N_backtrack ):
         bps, p = boltzmann_sample( self, self.Z_final.get_contribs(self,0) )
-        print(secstruct_from_bps(bps,self.N), "   ", p, "[stochastic]")
         self.struct_stochastic.append( secstruct_from_bps(bps,self.N) )
-    print()
-
     return
 
 ##################################################################################################
@@ -336,12 +326,9 @@ def _enumerative_backtrack( self ):
     #
     # Enumerate all structures, and track their probabilities
     #
-    print()
     print('Doing complete enumeration of Boltzmann-weighted ensemble...')
-    print(self.sequence)
     p_bps = enumerative_backtrack( self )
     for (p,bps) in p_bps:
-        print(secstruct_from_bps(bps,self.N), "   ", p, "[enumerative]")
         self.struct_enumerate.append( secstruct_from_bps(bps,self.N) )
     p_tot = sum( p_bp[0] for p_bp in p_bps )
     print('p_tot = ',p_tot)

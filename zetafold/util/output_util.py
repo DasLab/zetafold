@@ -2,17 +2,26 @@ from __future__ import print_function
 import math
 from .constants import KT_IN_KCAL
 from .assert_equal import assert_equal
+import sys
 
 def _show_results( self ):
-    print('sequence =', self.sequence)
+    fid = sys.stdout
+    write_string_with_spaces( self.sequence, self.ligated, fid )
+    fid.write(' sequence\n')
     if self.structure != None:
-        print('structure=',self.structure)
-    cutpoint = ''
-    for i in range( self.N ):
-        if not self.ligated[ i ]: cutpoint += 'X'
-        else: cutpoint += '-'
-    print('cutpoint =', cutpoint)
-    print('circle   = ', self.circle)
+        write_string_with_spaces( self.structure, self.ligated, fid )
+        fid.write(' input structure\n')
+    if self.struct_MFE != None:
+        write_string_with_spaces( self.struct_MFE, self.ligated, fid )
+        fid.write(' (pseudo)MFE\n')
+    if len( self.struct_stochastic ) > 0:
+        for struct in self.struct_stochastic:
+            write_string_with_spaces( struct, self.ligated, fid )
+            fid.write(' stochastic\n')
+    if len( self.struct_enumerate ) > 0:
+        for struct in self.struct_enumerate:
+            write_string_with_spaces( struct, self.ligated, fid )
+            fid.write(' enumerate\n')
     print('Z =',self.Z)
     print('dG =',-KT_IN_KCAL * math.log( self.Z ))
     print()
@@ -21,6 +30,16 @@ def _show_results( self ):
     if self.bpp and not self.suppress_bpp_output:
         output_bpp_matrix( self )
         output_bpp_plot( self )
+
+def write_string_with_spaces( sequence, ligated, fid ):
+    for i in range( len( sequence) ):
+        fid.write( sequence[i] )
+        if not ligated[i]: fid.write( ' ' )
+    # to denote circularized
+    if ligated[ len(sequence)-1 ]:
+        fid.write( '*' )
+        fid.write( ' [circularized]' )
+
 
 def output_bpp_matrix( self ):
     bpp_file = 'bpp.txt'
