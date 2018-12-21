@@ -94,6 +94,7 @@ def get_bpp_tot_for_base_pair_type( self, base_pair_type ):
         for j in range( N ):
             if self.Z_BPq[base_pair_type].val(i,j) == 0: continue
             bpp += self.Z_BPq[base_pair_type].val(i,j) * self.Z_BPq[base_pair_type.flipped].val(j,i) * base_pair_type.Kd / self.Z_final.val(0)
+    if base_pair_type == base_pair_type.flipped: bpp /= 2.0
     return bpp
 
 def get_bpp_tot( self ):
