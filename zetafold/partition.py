@@ -1,13 +1,15 @@
 from __future__ import print_function
-from .backtrack  import mfe, boltzmann_sample, enumerative_backtrack
-from .parameters import get_params
-from .util.wrapped_array  import WrappedArray, initialize_matrix
-from .util.secstruct_util import *
-from .util.output_util    import _show_results, _show_matrices
-from .util.sequence_util  import initialize_sequence_and_ligated, initialize_all_ligated, get_num_strand_connections
-from .util.constants import KT_IN_KCAL
-from .util.assert_equal import assert_equal
-from .derivatives import _get_log_derivs
+import sys,os
+if __package__ == None: sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from zetafold.backtrack  import mfe, boltzmann_sample, enumerative_backtrack
+from zetafold.parameters import get_params
+from zetafold.util.wrapped_array  import WrappedArray, initialize_matrix
+from zetafold.util.secstruct_util import *
+from zetafold.util.output_util    import _show_results, _show_matrices
+from zetafold.util.sequence_util  import initialize_sequence_and_ligated, initialize_all_ligated, get_num_strand_connections
+from zetafold.util.constants import KT_IN_KCAL
+from zetafold.util.assert_equal import assert_equal
+from zetafold.derivatives import _get_log_derivs
 import score_structure
 from math import log, exp
 
@@ -178,11 +180,11 @@ def initialize_dynamic_programming_matrices( self ):
       determine the actual order of updates during dynamic programmming at each (i,j).
     '''
 
-    from .recursions.explicit_recursions import update_Z_BPq, update_Z_BP, update_Z_cut, update_Z_coax, update_C_eff_basic, update_C_eff_no_BP_singlet, update_C_eff_no_coax_singlet, update_C_eff, update_Z_final, update_Z_linear
-    from .recursions.explicit_dynamic_programming import DynamicProgrammingMatrix, DynamicProgrammingList
+    from zetafold.recursions.explicit_recursions import update_Z_BPq, update_Z_BP, update_Z_cut, update_Z_coax, update_C_eff_basic, update_C_eff_no_BP_singlet, update_C_eff_no_coax_singlet, update_C_eff, update_Z_final, update_Z_linear
+    from zetafold.recursions.explicit_dynamic_programming import DynamicProgrammingMatrix, DynamicProgrammingList
     if self.use_simple_recursions: # over-ride with simpler recursions that are easier for user to input.
-        from .recursions.recursions import update_Z_BPq, update_Z_BP, update_Z_cut, update_Z_coax, update_C_eff_basic, update_C_eff_no_BP_singlet, update_C_eff_no_coax_singlet, update_C_eff, update_Z_final, update_Z_linear
-        from .recursions.dynamic_programming import DynamicProgrammingMatrix, DynamicProgrammingList
+        from zetafold.recursions.recursions import update_Z_BPq, update_Z_BP, update_Z_cut, update_Z_coax, update_C_eff_basic, update_C_eff_no_BP_singlet, update_C_eff_no_coax_singlet, update_C_eff, update_Z_final, update_Z_linear
+        from zetafold.recursions.dynamic_programming import DynamicProgrammingMatrix, DynamicProgrammingList
 
     N = self.N
 

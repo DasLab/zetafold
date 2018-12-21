@@ -6,14 +6,14 @@ import sys
 import os
 if __package__ == None: sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import partition
-from .parameters import get_params
-from .util import sequence_util
-from .util import secstruct_util
-from .util.assert_equal import assert_equal
-from .util.constants import KT_IN_KCAL
-from .util.output_util import show_derivs
+from zetafold.parameters import get_params
+from zetafold.util import sequence_util
+from zetafold.util import secstruct_util
+from zetafold.util.assert_equal import assert_equal
+from zetafold.util.constants import KT_IN_KCAL
+from zetafold.util.output_util import show_derivs
 
-def score_structure( sequences, structure, circle = False, params = None, test_mode = False, deriv_params = None, allow_extra_base_pairs = False ):
+def score_structure( sequences, structure, circle = False, params = None, test_mode = False, allow_extra_base_pairs = False, deriv_params = None, deriv_check = False ):
 
     # What we get if we parse out motifs
     structure = secstruct_util.get_structure_string( structure )
@@ -23,10 +23,11 @@ def score_structure( sequences, structure, circle = False, params = None, test_m
     params = get_params( params, suppress_all_output = True )
     Kd_ref = params.base_pair_types[0].Kd # Kd[G-C], a la Turner rule convention
     C_std  = params.C_std
+    log_derivs = None
+    if deriv_check and deriv_params == None: deriv_params = params.parameter_tags
 
     # Now go through each motif parsed out of the target structure
     Z = 1.0
-    log_derivs = None
     for motif in motifs:
         motif_res = []
         motif_sequences = []
@@ -82,6 +83,7 @@ def score_structure( sequences, structure, circle = False, params = None, test_m
     # Compute cost of connecting the strands into a complex
     Z_connect = ( C_std / Kd_ref ) ** sequence_util.get_num_strand_connections( sequences, circle )
     Z *= Z_connect
+    dG = -KT_IN_KCAL * log( Z )
 
     if deriv_params and log_derivs == None: log_derivs = [0.0]*len( deriv_params )
 
@@ -101,7 +103,33 @@ def score_structure( sequences, structure, circle = False, params = None, test_m
             print( 'LOG-DERIVS FROM FULL PARTITION' )
             show_derivs( deriv_params, p.log_derivs )
 
-    dG = -KT_IN_KCAL * log( Z )
+    if deriv_check:
+        print('\nCHECKING LOG DERIVS:')
+        params = get_params( args.parameters, suppress_all_output = True )
+        logZ_val  = -dG/KT_IN_KCAL
+        dG_rpt = score_structure( sequences, structure, circle = circle, params = params )
+        print( 'Check logZ value upon recomputation: ',logZ_val, 'vs', -dG_rpt/KT_IN_KCAL )
+        assert_equal( logZ_val, -dG_rpt/KT_IN_KCAL )
+        analytic_grad_val = log_derivs
+        epsilon = 1.0e-7
+        numerical_grad_val = []
+        for n,param in enumerate( deriv_params ):
+            save_val = params.get_parameter_value( param )
+            if save_val == 0.0:
+                numerical_grad_val.append( 0.0 )
+                continue
+            params.set_parameter( param,  exp( log(save_val) + epsilon ) )
+            dG_shift = score_structure( sequences, structure, circle = circle, params = params )
+            numerical_grad_val.append( ( -dG_shift/KT_IN_KCAL - logZ_val ) / epsilon )
+            params.set_parameter( param, save_val )
+        print()
+        print( '%20s %25s %25s' % ('','','d(logZ)/d(log parameter)' ) )
+        print( '%20s %25s %25s %25s' % ('parameter','analytic','numerical', 'diff' ) )
+        for i,parameter in enumerate(deriv_params):
+               print( '%20s %25.12f %25.12f %25.12f' % (parameter, analytic_grad_val[i], numerical_grad_val[i], analytic_grad_val[i] - numerical_grad_val[i] ) )
+        for val1,val2 in zip(analytic_grad_val,numerical_grad_val): assert_equal( val1, val2 )
+        print()
+
     if deriv_params: return (dG,log_derivs)
     return dG
 
@@ -120,34 +148,8 @@ if __name__=='__main__':
     args     = parser.parse_args()
     if args.calc_deriv and args.deriv_params == None: args.deriv_params = []
 
-    dG = score_structure( args.sequences, args.structure, circle = args.circle, params = args.parameters, test_mode = args.test_mode, deriv_params = args.deriv_params, allow_extra_base_pairs = args.allow_extra_base_pairs, )
-    if args.deriv_params: (dG,log_derivs) = dG
+    dG = score_structure( args.sequences, args.structure, circle = args.circle, params = args.parameters, test_mode = args.test_mode, allow_extra_base_pairs = args.allow_extra_base_pairs, deriv_params = args.deriv_params, deriv_check = args.deriv_check )
+    if args.deriv_params or args.deriv_check: (dG,log_derivs) = dG
     print('dG = ',dG)
 
-    if args.deriv_check:
-        print('\nCHECKING LOG DERIVS:')
-        params = get_params( args.parameters, suppress_all_output = True )
-        logZ_val  = -dG/KT_IN_KCAL
-        dG_rpt = score_structure( args.sequences, args.structure, circle = args.circle, params = params )
-        print( 'Check logZ value upon recomputation: ',logZ_val, 'vs', -dG_rpt/KT_IN_KCAL )
-        assert_equal( logZ_val, -dG_rpt/KT_IN_KCAL )
-        analytic_grad_val = log_derivs
-        epsilon = 1.0e-7
-        numerical_grad_val = []
-        for n,param in enumerate( args.deriv_params ):
-            save_val = params.get_parameter_value( param )
-            if save_val == 0.0:
-                numerical_grad_val.append( 0.0 )
-                continue
-            params.set_parameter( param,  exp( log(save_val) + epsilon ) )
-            dG_shift = score_structure( args.sequences, args.structure, circle = args.circle, params = params )
-            numerical_grad_val.append( ( -dG_shift/KT_IN_KCAL - logZ_val ) / epsilon )
-            params.set_parameter( param, save_val )
-        print()
-        print( '%20s %25s %25s' % ('','','d(logZ)/d(log parameter)' ) )
-        print( '%20s %25s %25s %25s' % ('parameter','analytic','numerical', 'diff' ) )
-        for i,parameter in enumerate(args.deriv_params):
-               print( '%20s %25.12f %25.12f %25.12f' % (parameter, analytic_grad_val[i], numerical_grad_val[i], analytic_grad_val[i] - numerical_grad_val[i] ) )
-        for val1,val2 in zip(analytic_grad_val,numerical_grad_val): assert_equal( val1, val2 )
-        print()
 
