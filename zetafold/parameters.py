@@ -208,7 +208,12 @@ def setup_motif_type_by_tag( params, motif_type_tag, val ):
     # startbpGC_strandGU_bpUAwh_strandAGC_bpCG
     #
     # TODO: later generalize to handle:
+    #
     # startbpWC_strandNU_bpUAwh_strandANN_bpWC
+    #
+    #   or actually it would be simpler to handle:
+    #
+    # NU_wh_ANN_ww
     #
     strands = []
     base_pair_types = []
@@ -247,7 +252,7 @@ def setup_motif_type_by_tag( params, motif_type_tag, val ):
         assert( motif_type1.get_tag() == motif_type_tag )
 
         # set up permutations
-        motif_type2 = MotifType( base_pair_types[1].flipped, strands[1:]+[strands[0]], base_pair_types[1:]+[base_pair_types[0]], val )
+        motif_type2 = MotifType( base_pair_types[0].flipped, strands[1:]+[strands[0]], base_pair_types[1:]+[base_pair_types[0]], val )
         params.motif_types.append( motif_type2 )
 
         motif_type1.permuted = motif_type2
