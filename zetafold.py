@@ -25,7 +25,7 @@ if __name__ =='__main__':
     parser.add_argument("--deriv_check", action='store_true', default=False, help='Run numerical vs. analytical deriv check')
     args     = parser.parse_args()
 
-    if ( args.calc_deriv or args.deriv_check ) and args.deriv_params == None: args.deriv_params = []
+    if args.calc_deriv and args.deriv_params == None: args.deriv_params = []
 
     if args.sequences != None: # run tests
         p = partition( args.sequences, circle = args.circle, params = args.parameters, verbose = args.verbose, mfe = args.mfe, calc_bpp = args.bpp, n_stochastic = int(args.stochastic), do_enumeration = args.enumerate, structure = args.structure, allow_extra_base_pairs = args.allow_extra_base_pairs, calc_gap_structure = args.calc_gap_structure, deriv_params = args.deriv_params, no_coax = args.no_coax, use_simple_recursions = args.simple, deriv_check = args.deriv_check )

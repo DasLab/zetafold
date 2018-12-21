@@ -34,15 +34,16 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
     if no_coax:                params.K_coax = 0.0
 
     p = Partition( sequences, params )
-    p.calc_all_elements = calc_bpp or (deriv_params != None)
     p.use_simple_recursions = use_simple_recursions
     p.circle    = circle
-    p.options.calc_deriv_DP = calc_Kd_deriv_DP
     p.structure = get_structure_string( structure )
     p.allow_extra_base_pairs = allow_extra_base_pairs
     p.calc_gap_structure = get_structure_string( calc_gap_structure )
     p.suppress_all_output = suppress_all_output
     p.suppress_bpp_output = suppress_bpp_output
+    p.options.calc_deriv_DP = calc_Kd_deriv_DP
+    if deriv_check and deriv_params == None: deriv_params = []
+    p.calc_all_elements = calc_bpp or (deriv_params != None)
     p.deriv_params = deriv_params
     p.deriv_check  = deriv_check
     p.run()

@@ -238,6 +238,18 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     print("Check also double-sequence and double structure get 2*Z", dG_new, 2*dG)
     assert_equal( dG_new, 2*dG )
 
+    print()
+    print( 'Do deriv-check on small but complex case' )
+    sequence = 'GCUCAGUGAGAGC'
+    print("Testing score_structure on short sequence, full parameters: ", sequence, structure)
+    dG = partition( sequence, deriv_check=True  ) # deriv_check runs asserts
+
+    params = get_params()
+    params.set_parameter( 'Kd_AA', 1000 )
+    params.set_parameter( 'C_eff_stack_CG_AA', 100000 )
+    dG = partition( sequence, deriv_check=True, params = params  ) # deriv_check runs asserts
+
+
 if __name__=='__main__':
     parser = argparse.ArgumentParser( description = "Test nearest neighbor model partitition function for RNA sequence" )
     parser.add_argument("-v","--verbose", action='store_true', default=False, help='output dynamic programming matrices')
