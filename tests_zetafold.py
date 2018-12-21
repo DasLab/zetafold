@@ -88,8 +88,8 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     log_deriv_l = 2 * (l**2 * l_BP**2 * C_init/Kd ) / (2 + (l**2 * l_BP**2 *C_init/Kd) + cross_C_eff_stacked_pair/Kd )
     log_deriv_C_eff_stacked_pair = (cross_C_eff_stacked_pair/Kd) / (2 + (l**2 * l_BP**2 *C_init/Kd) + cross_C_eff_stacked_pair/Kd )
     log_deriv_C_init = l**2 * l_BP**2 *C_init/Kd /  (2 + (l**2 * l_BP**2 *C_init/Kd) + cross_C_eff_stacked_pair/Kd )
-    deriv_parameters = ('C_init','l','l_BP','C_eff_stack_GC_GC','C_eff_stack_CG_CG','C_eff_stack_CG_GC','C_eff_stack_GC_CG','C_eff_stack_GC_matchlowercase','C_eff_stack_matchlowercase_GC')
-    log_derivs_ref =  [ log_deriv_C_init,log_deriv_l, log_deriv_l, 0,0,0,0, log_deriv_C_eff_stacked_pair, 0]
+    deriv_parameters = ('C_init','l','l_BP','C_eff_stack_GC_GC','C_eff_stack_CG_CG','C_eff_stack_CG_GC','C_eff_stack_GC_CG','C_eff_stack_GC_matchlowercase','C_eff_stack_matchlowercase_GC','Kd_CG','Kd_matchlowercase')
+    log_derivs_ref =  [ log_deriv_C_init,log_deriv_l, log_deriv_l, 0,0,0,0, log_deriv_C_eff_stacked_pair, 0, -bpp_ref, -bpp_ref ]
     output_test( p, Z_ref, [0,3], bpp_ref, deriv_parameters, log_derivs_ref )
 
     sequence = 'CNGGC'
