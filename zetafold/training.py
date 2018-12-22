@@ -93,15 +93,15 @@ def get_bounds( train_parameters ):
     bounds = []
     for tag in train_parameters:
         if len( tag )>=2 and tag[:2] == 'Kd':
-            bounds.append( (np.log(10), np.log(100000.0) ) )
+            bounds.append( (np.log(100.0), np.log(10000.0) ) )
         elif len( tag )>=5 and tag[:5] == 'C_eff':
-            bounds.append( (np.log(1), np.log(100000.0) ) )
+            bounds.append( (np.log(100.0), np.log(10000.0) ) )
         elif tag == 'C_init':
-            bounds.append( (np.log(0.1), np.log(100000.0) ) )
+            bounds.append( (np.log(0.1), np.log(100.0) ) )
         elif len(tag)>0 and tag[:1] == 'l':
-            bounds.append( (np.log(0.1), np.log(1000.0) ) )
+            bounds.append( (np.log(0.1), np.log(10.0) ) )
         elif tag == 'K_coax':
-            bounds.append( (np.log(0.001), np.log(1000.0) ) )
+            bounds.append( (np.log(0.1), np.log(100.0) ) )
         else:
             print( 'Unrecognized tag!!', tag )
             exit()
