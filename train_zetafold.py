@@ -8,6 +8,7 @@ import numpy as np
 from multiprocessing import Pool
 import math
 import argparse
+import __builtin__
 
 parser = argparse.ArgumentParser( description = "Test nearest neighbor model partitition function for RNA sequence" )
 parser.add_argument("-params","--parameters", type=str, help='Parameter file to use [default: use latest zetafold version]')
@@ -23,6 +24,7 @@ parser.add_argument("--init_log_params",help="Initial values for log parameters 
 parser.add_argument("--no_coax", action='store_true', default=False, help='Turn off coaxial stacking')
 parser.add_argument("--deriv_check", action='store_true', default=False, help='Run numerical vs. analytical deriv check')
 parser.add_argument("--allow_extra_base_pairs",action='store_true',default=False, help='allow extra base pairs compatible with --structure')
+parser.add_argument("--bounds",type=int, help='force log parameters to go between supplied min and max.',nargs=2)
 parser.add_argument("--method",type=str,default='BFGS',help="Minimization routine")
 args     = parser.parse_args()
 
@@ -39,9 +41,11 @@ training_examples = [ all_training_examples[ tag ] for tag in training_sets[ arg
 
 train_parameters = args.train_params
 if train_parameters == None:
+    if args.no_coax:
+        if args.train_params_exclude == None: args.train_params_exclude = []
+        args.train_params_exclude += [ 'K_coax', 'l_coax' ]
     if args.train_params_exclude:
         train_parameters = []
-        if args.no_coax: args.train_params_exclude += [ 'K_coax', 'l_coax' ]
         for param_exclude in args.train_params_exclude:  assert( param_exclude in params.parameter_tags )
         for param in params.parameter_tags:
             if not param in args.train_params_exclude: train_parameters.append( param )
@@ -59,19 +63,23 @@ else:
     x0 = np.zeros( len(train_parameters) )
     for n,param_tag in enumerate(train_parameters):
         val = params.get_parameter_value( param_tag )
-        if val == 0.0:  x0[ n ] = -5.0
+        if val == 0.0:  x0[ n ] = -np.Inf # to achieve 0
         else: x0[ n ] = np.log( val )
 
-pool = Pool( args.jobs )
+pool = __builtin__
+if args.jobs > 1: pool = Pool( args.jobs )
 
 loss = lambda x:free_energy_gap(      x,params,train_parameters,training_examples,args.allow_extra_base_pairs,pool,args.outfile)
 grad = lambda x:free_energy_gap_deriv(x,params,train_parameters,training_examples,args.allow_extra_base_pairs,pool)
 jac = grad if args.use_derivs else None
-
+bounds = None
+if args.bounds:
+    bounds = []
+    for i in range( len( train_parameters ) ): bounds.append( tuple( args.bounds ) )
 if args.deriv_check: train_deriv_check( x0, loss, grad, train_parameters )
 
 create_outfile( args.outfile, params, train_parameters )
-result = minimize( loss, x0, method = args.method, jac = jac )
+result = minimize( loss, x0, method = args.method, jac = jac, bounds = bounds )
 final_loss = loss( result.x )
 
 print(result)
