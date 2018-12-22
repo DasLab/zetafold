@@ -31,11 +31,19 @@ def _get_log_derivs( self, deriv_parameters = [] ):
         elif parameter == 'C_init':
             num_loops = 0.0
             # first count up loops closed by base pairs (i,j), i < j
+            ( C_eff_for_coax, C_eff_for_BP ) = (self.C_eff, self.C_eff ) if self.params.allow_strained_3WJ else (self.C_eff_no_BP_singlet, self.C_eff_no_coax_singlet )
             for i in range( N ):
                 for j in range( i+2, N ):
                     if not self.ligated[i]: continue
                     if not self.ligated[j-1]: continue
-                    num_loops += self.params.l**2 * self.params.l_BP * self.C_eff.val(i+1,j-1) * self.Z_BP.val(j,i) / self.Z_final.val(0)
+                    num_loops += self.params.l**2 * self.params.l_BP * C_eff_for_BP.val(i+1,j-1) * self.Z_BP.val(j,i) / self.Z_final.val(0)
+                    if self.params.K_coax > 0.0:
+                        offset = j - i
+                        for k in range( i+2, i+offset-1 ):
+                            if self.ligated[k]  : num_loops += self.Z_BP.val(i+1,k) * C_eff_for_coax.val(k+1,j-1) * self.params.l**2 * self.params.l_coax * self.params.K_coax * self.Z_BP.val(j,i) / self.Z_final.val(0)
+                        for k in range( i+2, i+offset-1 ):
+                            if self.ligated[k-1]: num_loops += C_eff_for_coax.val(i+1,k-1) * self.Z_BP.val(k,j-1) * self.params.l**2 * self.params.l_coax * self.params.K_coax * self.Z_BP.val(j,i) / self.Z_final.val(0)
+
             # one more loop if RNA is a circle.
             if self.ligated[ N-1 ]: num_loops += 1
             derivs[ n ] = num_loops
