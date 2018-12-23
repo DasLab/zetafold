@@ -58,11 +58,10 @@ def free_energy_gap_deriv( x, params, train_parameters, training_examples, allow
 def eval_priors( x_list, bounds_list ):
     '''
     A prior for the log parameters that is zero within two bounds, but then rises
-    quadratically outside those bounds, with
-     length scale delta.
+    quadratically outside those bounds, with log-parameter scale delta.
     '''
     val = 0
-    delta = 0.1
+    delta = 0.1 # can lead to overflow -- might be better (and softer) to set at 1.0
     deriv = np.zeros( len( x_list ) )
     for i,(x,bounds) in enumerate(zip( x_list, bounds_list )):
         if x < bounds[0]:
