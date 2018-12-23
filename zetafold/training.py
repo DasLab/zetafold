@@ -61,7 +61,7 @@ def eval_priors( x_list, bounds_list ):
     quadratically outside those bounds, with log-parameter scale delta.
     '''
     val = 0
-    delta = 0.1 # can lead to overflow -- might be better (and softer) to set at 1.0
+    delta = 1.0 # tighter deltas (e.g., 0.1) lead to overflow
     deriv = np.zeros( len( x_list ) )
     for i,(x,bounds) in enumerate(zip( x_list, bounds_list )):
         if x < bounds[0]:
