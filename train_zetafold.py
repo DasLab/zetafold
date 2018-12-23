@@ -24,7 +24,8 @@ parser.add_argument("--init_log_params",help="Initial values for log parameters 
 parser.add_argument("--no_coax", action='store_true', default=False, help='Turn off coaxial stacking')
 parser.add_argument("--deriv_check", action='store_true', default=False, help='Run numerical vs. analytical deriv check')
 parser.add_argument("--allow_extra_base_pairs",action='store_true',default=False, help='allow extra base pairs compatible with --structure')
-parser.add_argument("--use_bounds",action='store_true', help='force log parameters to stay in reasonable bounds.')
+parser.add_argument("--use_priors",action='store_true', help='add priors to force log parameters to stay in reasonable bounds.')
+parser.add_argument("--use_bounds",action='store_true', help='force log parameters to stay in reasonable bounds; not applied to BFGS')
 parser.add_argument("--method",type=str,default='BFGS',help="Minimization routine")
 args     = parser.parse_args()
 
@@ -69,8 +70,9 @@ else:
 pool = __builtin__
 if args.jobs > 1: pool = Pool( args.jobs )
 
-loss = lambda x:free_energy_gap(      x,params,train_parameters,training_examples,args.allow_extra_base_pairs,pool,args.outfile)
-grad = lambda x:free_energy_gap_deriv(x,params,train_parameters,training_examples,args.allow_extra_base_pairs,pool)
+priors = get_priors( train_parameters) if args.use_priors else None
+loss = lambda x:free_energy_gap(      x,params,train_parameters,training_examples,args.allow_extra_base_pairs,priors,pool,args.outfile)
+grad = lambda x:free_energy_gap_deriv(x,params,train_parameters,training_examples,args.allow_extra_base_pairs,priors,pool)
 jac = grad if args.use_derivs else None
 bounds = None
 if args.use_bounds: bounds = get_bounds( train_parameters )

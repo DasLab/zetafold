@@ -37,19 +37,45 @@ def pack_variables( x, params, train_parameters, training_examples = None, allow
         training_example.train_parameters = train_parameters
         training_example.allow_extra_base_pairs = allow_extra_base_pairs
 
-def free_energy_gap( x, params, train_parameters, training_examples, allow_extra_base_pairs, pool, outfile ):
+def free_energy_gap( x, params, train_parameters, training_examples, allow_extra_base_pairs, priors, pool, outfile ):
     pack_variables( x, params, train_parameters, training_examples, allow_extra_base_pairs )
     params.output_to_file( 'current.params' )
     print('\n',np.exp(x))
     all_dG_gap = pool.map( calc_dG_gap, training_examples )
     sum_dG_gap = sum( all_dG_gap )
     output_info( outfile, x, sum_dG_gap )
-    return sum_dG_gap
+    loss = sum_dG_gap
+    if priors: loss += priors(x)[0]
+    return loss
 
-def free_energy_gap_deriv( x, params, train_parameters, training_examples, allow_extra_base_pairs, pool ):
+def free_energy_gap_deriv( x, params, train_parameters, training_examples, allow_extra_base_pairs, priors, pool ):
     pack_variables( x, params, train_parameters, training_examples, allow_extra_base_pairs )
     all_dG_gap_deriv = pool.map( calc_dG_gap_deriv, training_examples )
-    return sum( all_dG_gap_deriv )
+    deriv = sum( all_dG_gap_deriv )
+    if priors: deriv += priors(x)[1]
+    return deriv
+
+def eval_priors( x_list, bounds_list ):
+    '''
+    A prior for the log parameters that is zero within two bounds, but then rises
+    quadratically outside those bounds, with
+     length scale delta.
+    '''
+    val = 0
+    delta = 0.1
+    deriv = np.zeros( len( x_list ) )
+    for i,(x,bounds) in enumerate(zip( x_list, bounds_list )):
+        if x < bounds[0]:
+            val += ( abs(x - bounds[0]) / delta )**2
+            deriv[ i ] +=  2 * ( x - bounds[0] )/delta**2
+        if x > bounds[1]:
+            val += ( abs(x - bounds[1]) / delta )**2
+            deriv[ i ] +=  2 * ( x - bounds[1] )/delta**2
+    return (val,deriv)
+
+def get_priors( train_parameters ):
+    bounds = get_bounds( train_parameters )
+    return lambda x: eval_priors( x, bounds )
 
 def output_info( outfile, x, sum_dG_gap ):
     if outfile == None: return
@@ -64,7 +90,6 @@ def create_outfile( outfile, params, training_params ):
     fid.write( '%12s' % 'Loss' )
     for param_tag in training_params: fid.write( '%25s' % param_tag )
     fid.write( '\n' )
-
 
 def train_deriv_check( x0, loss, grad, train_parameters ):
     # Not enough output from scipy.check_grad, so I wrote my own deriv_check
@@ -88,14 +113,14 @@ def train_deriv_check( x0, loss, grad, train_parameters ):
 
 def get_bounds( train_parameters ):
     '''
-    Based on tag, set 'reasonable' bounds.
+    Based on tag, set 'reasonable' bounds -- pretty arbitrarily set for now.
     '''
     bounds = []
     for tag in train_parameters:
         if len( tag )>=2 and tag[:2] == 'Kd':
-            bounds.append( (np.log(100.0), np.log(10000.0) ) )
+            bounds.append( (np.log(100.0), np.log(100000.0) ) )
         elif len( tag )>=5 and tag[:5] == 'C_eff':
-            bounds.append( (np.log(100.0), np.log(10000.0) ) )
+            bounds.append( (np.log(100.0), np.log(100000.0) ) )
         elif tag == 'C_init':
             bounds.append( (np.log(0.1), np.log(100.0) ) )
         elif len(tag)>0 and tag[:1] == 'l':
