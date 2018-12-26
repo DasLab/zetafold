@@ -202,12 +202,13 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     params = get_params_from_file( 'minimal' )
     params.set_parameter( 'K_coax', 0.0 )
     C_eff_motif = 10.0
-    params.set_parameter( 'C_eff_motif_startbpCG_strandCG_bpGC_strandCAG_bpGC', C_eff_motif )
+    params.set_parameter( 'C_eff_CG_CAG', C_eff_motif )
 
     sequences = ['CG','CAG']
     p = partition( sequences, params = params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = (C_std/Kd)*(2 + l**3 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
     bpp_ref = (1 + l**3 * l_BP**2 * C_init/Kd + C_eff_motif/Kd )/(2 + l**3 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
+    #TODO -- fill in derivs!
     #log_deriv_C_init = (l**2 * l_BP**2 * C_init/Kd ) / (2 + (l**2 * l_BP**2 *C_init/Kd) + C_eff_stacked_pair/Kd )
     #log_deriv_l = 2 *  log_deriv_C_init
     #log_deriv_C_eff_stacked_pair = (C_eff_stacked_pair/Kd) / (2 + (l**2 * l_BP**2 *C_init/Kd) + C_eff_stacked_pair/Kd )

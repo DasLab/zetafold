@@ -1,11 +1,11 @@
 class MotifType:
-    def __init__( self, start_base_pair_type, strands, base_pair_types, C_eff ):
+    def __init__( self, strands, base_pair_types, C_eff ):
         '''
-        MotifType stores information on specially stable motifs, including
+        MotifType stores information on specially stable motifs, including eventually
          UA-handles, symmetric internal loops
         Currently only handling 2-way junctions
         '''
-        self.start_base_pair_type = start_base_pair_type
+        self.start_base_pair_type = base_pair_types[-1].flipped
         self.strands = strands
         self.base_pair_types = base_pair_types
         self.C_eff = C_eff
@@ -37,11 +37,8 @@ class MotifType:
     def get_other_base_pair( self, i, j ):
         return ( self.base_pair_types[0], i+len(self.strands[0])-1, j-len(self.strands[-1])+1 )
 
-
     def get_tag( self ):
-        return 'startbp'+self.start_base_pair_type.get_tag() + \
-            '_strand'+self.strands[0]+'_bp'+self.base_pair_types[0].get_tag() + \
-            '_strand'+self.strands[1]+'_bp'+self.base_pair_types[1].get_tag()
+        return self.strands[0]+'_'+self.strands[1]
 
 def get_motif_type_for_tag( params, tag ):
     for motif_type in params.motif_types:

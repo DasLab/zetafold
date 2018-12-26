@@ -152,8 +152,8 @@ def _set_parameter( self, tag, val ):
                     self.C_eff_stack[ bpt1 ][ bpt2 ] = float(val)
                     self.C_eff_stack[ bpt2.flipped ][ bpt1.flipped ] = float(val)
         float_parameter = True
-    elif len( tag )>=11 and tag[:11] == 'C_eff_motif':
-        motif_type_tag = tag[12:]
+    elif len( tag )>=5 and tag[:5] == 'C_eff':
+        motif_type_tag = tag[6:]
         setup_motif_type_by_tag( self, motif_type_tag, float(val) )
         float_parameter = True
     else:
@@ -204,41 +204,36 @@ def setup_base_pair_type_by_tag( params, Kd_tag, val ):
     assert( get_base_pair_type_for_tag( params, tag ) )
 
 def setup_motif_type_by_tag( params, motif_type_tag, val ):
-    # e.g.,
-    # startbpGC_strandGU_bpUAwh_strandAGC_bpCG
+    # Give strands from 5'-to-3':
     #
-    # TODO: later generalize to handle:
+    #  CC_GG
     #
-    # startbpWC_strandNU_bpUAwh_strandANN_bpWC
+    # TODO: Can also use N as wildcard, and base pair tags between strands. For example,
     #
-    #   or actually it would be simpler to handle:
+    #  NN_WC_NN_WC
     #
-    # NU_wh_ANN_ww
+    # corresponds to all base-pair-steps involving strict canonical pairs:
+    #
+    #  CC_GG
+    #  CG_CG
+    #  etc.
+    #
     #
     strands = []
+    bp_tags = []
     base_pair_types = []
-    cols = motif_type_tag.split( '_' )
-    # for now, just do two-way junctions, TODO: later generalize to N-way
-    assert( len( cols ) == 5 )
+    tags = motif_type_tag.split( '_' )
+    for tag in tags:
+        if tag == 'WC':
+            bp_tags[-1] = 'WC'
+            continue
+        strands.append( tag )
+        bp_tags.append( None )
 
-    assert( cols[0][:7] == 'startbp') # deprecate?
-    base_pair_type_tag = cols[0][7:]
-    start_base_pair_type = get_base_pair_type_for_tag( params, base_pair_type_tag )
-
-    assert( cols[1][:6] == 'strand' )
-    strands.append( cols[1][6:] )
-
-    assert( cols[2][:2] == 'bp' )
-    base_pair_type_tag =  cols[2][2:]
-    base_pair_types.append( get_base_pair_type_for_tag( params, base_pair_type_tag ) )
-
-    assert( cols[3][:6] == 'strand' )
-    strands.append( cols[3][6:] )
-
-    assert( cols[4][:2] == 'bp' )
-    base_pair_type_tag =  cols[4][2:]
-    base_pair_types.append( get_base_pair_type_for_tag( params, base_pair_type_tag ) )
-    assert( base_pair_types[-1] == start_base_pair_type.flipped )
+    N = len( strands )
+    for i in range( N ):
+        if bp_tags[i] == None: bp_tags[i] = strands[i][-1] + strands[ (i+1)%N ][0]
+        base_pair_types.append( get_base_pair_type_for_tag( params, bp_tags[i] ) )
 
     motif_type = get_motif_type_for_tag( params, motif_type_tag )
     if motif_type:
@@ -246,16 +241,19 @@ def setup_motif_type_by_tag( params, motif_type_tag, val ):
         # actually should generalize to all 'permutations' of N-way junction
         motif_type.permuted.Kd = val
     else:
-        motif_type1 = MotifType( start_base_pair_type, strands, base_pair_types, val )
+        motif_type1 = MotifType( strands, base_pair_types, val )
         params.motif_types.append( motif_type1 )
         # for now this will work -- will *not* work when we allow tags like WC that represent multiple base pairs
         assert( motif_type1.get_tag() == motif_type_tag )
 
         # set up permutations
-        motif_type2 = MotifType( base_pair_types[0].flipped, strands[1:]+[strands[0]], base_pair_types[1:]+[base_pair_types[0]], val )
-        params.motif_types.append( motif_type2 )
-
-        motif_type1.permuted = motif_type2
-        motif_type2.permuted = motif_type1
+        motif_type2 = MotifType( strands[1:]+[strands[0]], base_pair_types[1:]+[base_pair_types[0]], val )
+        if motif_type1.get_tag() == motif_type2.get_tag():
+            motif_type1.permuted = motif_type2
+        else:
+            assert( get_motif_type_for_tag( params, motif_type2.get_tag() ) == None )
+            params.motif_types.append( motif_type2 )
+            motif_type1.permuted = motif_type2
+            motif_type2.permuted = motif_type1
 
 
