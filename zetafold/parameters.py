@@ -12,6 +12,7 @@ class AlphaFoldParams:
     '''
     def __init__( self ):
         self.C_std  = 1.0      # 1 M. drops out in end (up to overall scale factor).
+        self.K_coax = self.l_coax = 0.0
         self.base_pair_types = []
         self.motif_types = []
         self.parameter_tags   = [] # K_CG, etc.
