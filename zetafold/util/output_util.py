@@ -79,7 +79,7 @@ def _show_matrices( self ):
     #output_DP( "dC_eff", self.dC_eff, self.dZ_final )
     output_DP( "Z_coax", self.Z_coax )
     output_DP( "Z_linear", self.Z_linear )
-    output_square( "BPP", self.bpp );
+    if self.bpp: output_square( "BPP", self.bpp );
 
 def output_DP( tag, X, X_final = []):
     N = len( X )
@@ -89,7 +89,7 @@ def output_DP( tag, X, X_final = []):
         for q in range( i ): print('          ', end='')# padding to line up)
         for j in range( N ):
             print(' %9.3f' % X.val(i,i+j), end='')
-        if len( X_final ) > 0: print('==> %9.3f' % X_final.val(i), end='')
+        if len( X_final ) > 0: print('==> %12.8f' % X_final.val(i), end='')
         print()
 
 def output_square( tag, X ):
