@@ -23,6 +23,7 @@ parser.add_argument("--init_params",help="Initial values for parameters (default
 parser.add_argument("--init_log_params",help="Initial values for log parameters (alternative to init_params)",nargs='*')
 parser.add_argument("--no_coax", action='store_true', default=False, help='Turn off coaxial stacking')
 parser.add_argument("--deriv_check", action='store_true', default=False, help='Run numerical vs. analytical deriv check')
+parser.add_argument("-eval","--evaluate", action='store_true', default=False, help='Just evaluate at starting parameter values')
 parser.add_argument("--allow_extra_base_pairs",action='store_true',default=False, help='allow extra base pairs compatible with --structure')
 parser.add_argument("--use_priors",action='store_true', help='add priors to force log parameters to stay in reasonable bounds.')
 parser.add_argument("--use_bounds",action='store_true', help='force log parameters to stay in reasonable bounds; not applied to BFGS')
@@ -38,7 +39,7 @@ params = get_params( args.parameters, suppress_all_output = True )
 if args.no_coax: params.set_parameter( 'K_coax', 0.0 )
 
 # set up training examples
-training_examples = initialize_training_examples( all_training_examples, training_sets, args.train_data )
+training_examples = initialize_training_examples( all_training_examples, training_sets, training_set_names, args.train_data )
 train_parameters  = initialize_train_parameters( params, args.train_params, args.train_params_exclude, args.no_coax )
 x0                = initialize_parameter_values( params, train_parameters, args.init_params, args.init_log_params, (args.use_bounds or args.use_priors) )
 bounds = get_bounds( train_parameters ) if args.use_bounds else None
@@ -49,10 +50,13 @@ grad = lambda x:free_energy_gap_deriv(x,params,train_parameters,training_example
 jac = grad if args.use_derivs else None
 
 if args.deriv_check: train_deriv_check( x0, loss, grad, train_parameters )
+if args.evaluate:
+    loss( x0 )
+    exit(0)
 
 create_outfile( args.outfile, params, train_parameters )
 result = minimize( loss, x0, method = args.method, jac = jac, bounds = bounds )
-final_loss = loss( result.x )
+final_loss = result.fun
 
 print(result)
 print('Final parameters:', result.x, 'Loss:',final_loss )

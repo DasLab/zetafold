@@ -167,7 +167,7 @@ def get_priors( train_parameters ):
     bounds = get_bounds( train_parameters )
     return lambda x: eval_priors( x, bounds )
 
-def initialize_training_examples( all_training_examples, training_sets, train_data ):
+def initialize_training_examples( all_training_examples, training_sets, training_set_names, train_data ):
     '''
     Generate list of training examples (sequences and target structures) based on database of training examples and sets
 
@@ -203,12 +203,10 @@ def initialize_train_parameters( params, train_params = None, train_params_exclu
             for param_exclude in train_params_exclude:  assert( param_exclude in params.parameter_tags )
             for param in params.parameter_tags:
                 if not param in train_params_exclude: train_parameters.append( param )
-        elif deriv_check:
-            train_parameters = params.parameter_tags
         else:
-            print( '\nMust specify which parameters to optimize with --train_params or --train_params_exclude' )
+            train_parameters = params.parameter_tags
+            print( '\nWill train on *all* parameters' )
             params.show_parameters()
-            exit()
     return train_parameters
 
 def initialize_parameter_values( params, train_parameters, init_params = None, init_log_params = None, use_bounds = False ):
