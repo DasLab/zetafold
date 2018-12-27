@@ -81,6 +81,9 @@ class MotifType:
             if not (( j - i) % N) == len( self.strands[0] )-1: return None
 
         if M == 2:
+            # uh this is kind of explicit. must be a more general way to treat M = 1, 2, ...
+            if (( j - i) % N) < len( self.strands[0] ) + len( self.strands[1] ) - 1: return None
+
             matches = []
             for base_pair_type in self.base_pair_type_sets[ 0 ]:
                 i_next, j_next = (i+len(self.strands[0])-1)%N, (j-len(self.strands[-1])+1)%N
@@ -104,7 +107,6 @@ class MotifType:
             if base_pair_type.is_match( sequence[j%N], sequence[i%N] ): matches.append( (base_pair_type,j,i) )
         if len( matches ) == 0: return None
         match_base_pair_type_sets.append( matches )
-
 
         return match_base_pair_type_sets
 

@@ -159,15 +159,31 @@ def get_motif_prob( self, motif_type ):
                 match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( self.sequence, self.ligated, i, j )
                 if match_base_pair_type_sets:
                     if len(match_base_pair_type_sets) == 1: # hairpins (1-way junctions)
+                        # base pair closes a hairpin
+                        #            -----
+                        #           |     |
+                        #           i ... j
+                        #          5' bpt  3'
+                        #             -->
                         motif_prob += motif_type.C_eff * self.Z_BPq[ base_pair_type.flipped ].val(j,i) / self.Z
                         pass
                     elif len(match_base_pair_type_sets) == 2: # internal loops (2-way junctions)
+                        # base pair forms a motif with previous pair
+                        #
+                        # Example of 1x1 loop:
+                        #             bpt0
+                        #       i_next... j_next
+                        #           |     |
+                        #  strand0 i+1   j-1 strand1
+                        #           |     |
+                        #           i ... j
+                        #          5' bpt  3'
+                        #             -->
                         for (base_pair_type_next, i_next, j_next) in match_base_pair_type_sets[0]:
                             Z_BPq_next = self.Z_BPq[base_pair_type_next]
                             val = motif_type.C_eff * Z_BPq_next.val(i_next,j_next) * self.Z_BPq[ base_pair_type.flipped ].val(j,i) / self.Z
                             # symmetry correction:
-                            if base_pair_type.flipped == base_pair_type_next and motif_type.strands[0] == motif_type.strands[1]:
-                                assert( base_pair_type_next.flipped == base_pair_type )
+                            if motif_type.get_match_base_pair_type_sets( self.sequence, self.ligated, j_next, i_next ):
                                 val /= 2.0
                             motif_prob += val
     return motif_prob
