@@ -230,24 +230,19 @@ def setup_motif_type_by_tag( params, motif_type_tag, val ):
         strands.append( tag )
         bp_tags.append( None )
 
-    N = len( strands )
-    for i in range( N ):
-        if bp_tags[i] == None: bp_tags[i] = strands[i][-1] + strands[ (i+1)%N ][0]
-        base_pair_types.append( get_base_pair_type_for_tag( params, bp_tags[i] ) )
-
     motif_type = get_motif_type_for_tag( params, motif_type_tag )
     if motif_type:
         motif_type.Kd = val
         # actually should generalize to all 'permutations' of N-way junction
         motif_type.permuted.Kd = val
     else:
-        motif_type1 = MotifType( strands, base_pair_types, val )
+        motif_type1 = MotifType( strands, bp_tags, val, params )
         params.motif_types.append( motif_type1 )
-        # for now this will work -- will *not* work when we allow tags like WC that represent multiple base pairs
         assert( motif_type1.get_tag() == motif_type_tag )
 
         # set up permutations
-        motif_type2 = MotifType( strands[1:]+[strands[0]], base_pair_types[1:]+[base_pair_types[0]], val )
+        # TODO: generalize to N-way junctions
+        motif_type2 = MotifType( strands[1:]+[strands[0]], bp_tags[1:]+[bp_tags[0]], val, params )
         if motif_type1.get_tag() == motif_type2.get_tag():
             motif_type1.permuted = motif_type2
         else:

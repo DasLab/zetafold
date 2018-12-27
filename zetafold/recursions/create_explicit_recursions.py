@@ -1,12 +1,14 @@
 #!/usr/bin/python
-with open('recursions.py') as f:
-    lines = f.readlines()
+'''
+This is a pretty awful 'compiler' script to convert recursions.py to explicit_recursions.py
+'''
 
-
-not_data_objects = ['self.Z_BPq','sequence','self.params.C_eff_stack', 'motif_type.strands' ]
-not_2D_dynamic_programming_objects = ['all_ligated','ligated','self.Z_BPq','sequence','self.allow_base_pair','self.in_forced_base_pair','self.params.C_eff_stack','motif_type.strands']
+# a bunch of unfortunate edge cases!
+not_data_objects = ['self.Z_BPq','sequence','self.params.C_eff_stack', 'motif_type.strands','match_base_pair_type_sets','motif_type.base_pair_type_sets']
+not_2D_dynamic_programming_objects = ['all_ligated','ligated','self.Z_BPq','sequence','self.allow_base_pair','self.in_forced_base_pair','self.params.C_eff_stack','motif_type.strands','match_base_pair_type_sets','motif_type.base_pair_type_sets' ]
 dynamic_programming_lists = ['Z_final']
 dynamic_programming_data = ['Z_seg1','Z_seg2']
+
 
 def find_substring(substring, string):
     """
@@ -30,6 +32,8 @@ lines_new = []
 lines_deriv = []
 lines_contrib = []
 in_comment_block = False
+
+with open('recursions.py') as f:  lines = f.readlines()
 
 for line in lines:
     line_new = ''
@@ -72,7 +76,8 @@ for line in lines:
     for char in line:
         if (char == ' ' or char == '\n') and not in_bracket:
             if at_beginning: num_indent += 1
-            if word in dynamic_programming_data: line_new += '.Q'
+            if word in dynamic_programming_data:
+                line_new += '.Q'
             line_new += char
             if len( word ) > 0:
                 words.append( word )
