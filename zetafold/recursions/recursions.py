@@ -62,33 +62,38 @@ def update_Z_BPq( self, i, j, base_pair_type ):
         #    |     |
         #    i ... j
         #
+        # Note that base pair stacks (C_eff_stack) could also be handled by this MotifType object, but
+        #      it turns out that the get_match_base_pair_type_sets() function below is just too damn slow.
         for base_pair_type2 in self.params.base_pair_types:
             if base_pair_type2.is_match( sequence[(i+1)%N], sequence[(j-1)%N] ):
                 Z_BPq2 = self.Z_BPq[base_pair_type2]
                 Z_BPq[i][j]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2[i+1][j-1]
-
-    # base pair forms a motif with previous pair
-    #
-    # Example of 1x1 loop:
-    #             bpt0
-    #       i_next... j_next
-    #           |     |
-    #  strand0 i+1   j-1 strand1
-    #           |     |
-    #           i ... j
-    #          5' bpt1  3'
-    #
-    # Note that base pair stacks (C_eff_stack) could also be handled by this MotifType object, but
-    #      it turns out that the get_match_base_pair_type_sets() function below is just too damn slow.
 
     for motif_type in self.params.motif_types:
         if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
         match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, i, j )
         if match_base_pair_type_sets:
             if len(match_base_pair_type_sets) == 1: # hairpins (1-way junctions)
+                # base pair closes a hairpin
+                #            -----
+                #           |     |
+                #           i ... j
+                #          5' bpt  3'
+                #
                 Z_BPq[i][j].Q += (1.0/Kdq ) * motif_type.C_eff
                 pass
             elif len(match_base_pair_type_sets) == 2: # internal loops (2-way junctions)
+                # base pair forms a motif with previous pair
+                #
+                # Example of 1x1 loop:
+                #             bpt0
+                #       i_next... j_next
+                #           |     |
+                #  strand0 i+1   j-1 strand1
+                #           |     |
+                #           i ... j
+                #          5' bpt1 3'
+                #
                 for (base_pair_type_next, i_next, j_next) in match_base_pair_type_sets[0]:
                     Z_BPq_next = self.Z_BPq[base_pair_type_next]
                     Z_BPq[i][j] += (1.0/Kdq ) * motif_type.C_eff * Z_BPq_next[i_next][j_next]
@@ -370,12 +375,12 @@ def update_Z_final( self, i ):
         for j in range( i+1, (i + N - 1) ):
             # base pair forms a stacked pair with previous pair
             #
-            #        <--3'
-            #   - j+1 - j -
-            #      :    :
-            #      :    :
-            #   - i-1 - i -
-            #         * 5'-->
+            #              <--3'
+            #         - j+1 - j -
+            #  bpt2 |    :    :    ^ bpt1
+            #       V    :    :    |
+            #         - i-1 - i -
+            #               * 5'-->
             #
             if ligated[j]:
                 if Z_BP.val(i,j) > 0.0 and Z_BP.val(j+1,i-1) > 0.0:
@@ -388,16 +393,16 @@ def update_Z_final( self, i ):
                             # could also use self.params.C_eff_stack[base_pair_type.flipped][base_pair_type2]  -- should be the same as below.
                             Z_final[i] += self.params.C_eff_stack[base_pair_type2.flipped][base_pair_type] * Z_BPq2[j+1][i-1] * Z_BPq1[i][j]
 
-            # ligation allows a motif to form across i-1 to i
+            # ligation allows an internal loop motif to form across i-1 to i
             #
             #           <--
-            #   - j_next - j -
-            # bpt0 :       : bpt1
-            #      :       :
-            #   - k_next - k -
-            #         *  -->
+            #        - j_next ----------- j -
+            # bpt0 |      :                 :   ^ bpt1
+            #      v      :                 :   |
+            #        - k_next - i-1 - i - k -
+            #                       *  -->
             #
-            #   where k = i, i-1, ... (i + strand_length-2),
+            #   where k = i, i+1, ... (i + strand_length-2),
             #      i.e., ligation is inside last strand of motif
             #
             for motif_type in self.params.motif_types:
@@ -416,8 +421,16 @@ def update_Z_final( self, i ):
                             Z_final[i]  += motif_type.C_eff * Z_BPq0[j_next][k_next] * Z_BPq1[k][j]
 
 
-        # hairpin motifs
-        # TODO: need ASCII art
+        # ligation allows an internal loop motif to form across i-1 to i
+        #
+        #        <--3'
+        #       ------- j -
+        #      |        :  ^ bpt1
+        #      |        :  |
+        #     i-1 - i - k -
+        #         * 5'-->
+        #   where k = i, i+1, ... (i + strand_length-2),
+        #      i.e., ligation is inside hairpin loop
         for motif_type in self.params.motif_types:
             if len( motif_type.strands) != 1: continue
             L = len( motif_type.strands[0] ) # for a tetraloop this is 1+4+1 = 6
