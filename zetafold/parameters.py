@@ -228,26 +228,30 @@ def setup_motif_type_by_tag( params, motif_type_tag, val ):
             continue
         strands.append( tag )
         bp_tags.append( None )
+    N = len( strands ) # N-way junction
 
     motif_type = get_motif_type_for_tag( params, motif_type_tag )
     if motif_type:
-        motif_type.Kd = val
-        # actually should generalize to all 'permutations' of N-way junction
-        motif_type.permuted.Kd = val
+        for permuted_motif_type in motif_type.permuted_motif_types: permuted_motif_type.Kd = val
     else:
-        motif_type1 = MotifType( strands, bp_tags, val, params )
-        params.motif_types.append( motif_type1 )
-        assert( motif_type1.get_tag() == motif_type_tag )
+        new_motif_types = []
+
+        motif_type = MotifType( strands, bp_tags, val, params )
+        params.motif_types.append( motif_type )
+        assert( motif_type.get_tag() == motif_type_tag )
+        new_motif_types.append( motif_type )
 
         # set up permutations
-        # TODO: generalize to N-way junctions
-        motif_type2 = MotifType( strands[1:]+[strands[0]], bp_tags[1:]+[bp_tags[0]], val, params )
-        if motif_type1.get_tag() == motif_type2.get_tag():
-            motif_type1.permuted = motif_type2
-        else:
-            assert( get_motif_type_for_tag( params, motif_type2.get_tag() ) == None )
-            params.motif_types.append( motif_type2 )
-            motif_type1.permuted = motif_type2
-            motif_type2.permuted = motif_type1
+        for n in range( N-1 ):
+            strands = strands[1:]+[strands[0]]
+            bp_tags = bp_tags[1:]+[bp_tags[0]]
+            permuted_motif_type = MotifType( strands, bp_tags, val, params )
+            if not motif_type.get_tag() == permuted_motif_type.get_tag():
+                assert( get_motif_type_for_tag( params, permuted_motif_type.get_tag() ) == None )
+                params.motif_types.append( permuted_motif_type )
+                new_motif_types.append( permuted_motif_type )
 
-
+        for motif_type in new_motif_types:
+            # may need to be smart about symmetry.
+            # TODO: revisit when we do derivatives!
+            motif_type.permuted_motif_types = new_motif_types
