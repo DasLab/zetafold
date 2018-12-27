@@ -401,24 +401,36 @@ def update_Z_final( self, i ):
             #      i.e., ligation is inside last strand of motif
             #
             for motif_type in self.params.motif_types:
+                if len( motif_type.strands) != 2: continue
                 for k in range( i, i+len( motif_type.strands[-1] )-1 ):
                     match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, j, k )
-                    if match_base_pair_type_sets:
-                        if len(match_base_pair_type_sets) == 1:
-                            for (base_pair_type,k_match,j_match) in match_base_pair_type_sets[0]:
-                                assert( (j - j_match)%N == 0 )
-                                assert( (k - k_match)%N == 0 )
-                                Z_BPq1 = self.Z_BPq[base_pair_type]
-                                Z_final[i]  += motif_type.C_eff * Z_BPq1[k][j]
-                        elif len(match_base_pair_type_sets) == 2:
-                            (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
-                            for (base_pair_type1,k_match,j_match) in match_base_pair_type_sets1:
-                                assert( (j - j_match)%N == 0 )
-                                assert( (k - k_match)%N == 0 )
-                                for (base_pair_type0,j_next,k_next) in match_base_pair_type_sets0:
-                                    Z_BPq0 = self.Z_BPq[base_pair_type0]
-                                    Z_BPq1 = self.Z_BPq[base_pair_type1]
-                                    Z_final[i]  += motif_type.C_eff * Z_BPq0[j_next][k_next] * Z_BPq1[k][j]
+                    if match_base_pair_type_sets == None: continue
+                    assert( len(match_base_pair_type_sets) == 2 )
+                    (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
+                    for (base_pair_type1,k_match,j_match) in match_base_pair_type_sets1:
+                        assert( (j - j_match)%N == 0 )
+                        assert( (k - k_match)%N == 0 )
+                        for (base_pair_type0,j_next,k_next) in match_base_pair_type_sets0:
+                            Z_BPq0 = self.Z_BPq[base_pair_type0]
+                            Z_BPq1 = self.Z_BPq[base_pair_type1]
+                            Z_final[i]  += motif_type.C_eff * Z_BPq0[j_next][k_next] * Z_BPq1[k][j]
+
+
+        # hairpin motifs
+        # TODO: need ASCII art
+        for motif_type in self.params.motif_types:
+            if len( motif_type.strands) != 1: continue
+            L = len( motif_type.strands[0] ) # for a tetraloop this is 1+4+1 = 6
+            for k in range( i, i+L-1 ):
+                j = ( k - L + 1 ) % N
+                match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, j, k )
+                if match_base_pair_type_sets == None: continue
+                assert( len(match_base_pair_type_sets) == 1 )
+                for (base_pair_type,k_match,j_match) in match_base_pair_type_sets[0]:
+                    assert( (j - j_match)%N == 0 )
+                    assert( (k - k_match)%N == 0 )
+                    Z_BPq1 = self.Z_BPq[base_pair_type]
+                    Z_final[i]  += motif_type.C_eff * Z_BPq1[k][j]
 
 
         if K_coax > 0:

@@ -77,7 +77,7 @@ class MotifType:
 
         if M == 1:
             # uh this is kind of explicit. must be a more general way to treat M = 1, 2, ...
-            if not ( j - i + 1) % N == len( self.strands[0] ): return None
+            if not (( j - i) % N) == len( self.strands[0] )-1: return None
 
         if M == 2:
             matches = []
