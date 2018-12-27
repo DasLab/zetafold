@@ -47,6 +47,8 @@ def get_base_pair_types_for_tag( params, tag ):
             if (base_pair_type.nt1,base_pair_type.nt2) in WC_nts:
                 base_pair_types.append( base_pair_type )
         return base_pair_types
+    elif tag == 'NN':
+        return params.base_pair_types
     else:
         return [ get_base_pair_type_for_tag( params, tag ) ]
     return None
