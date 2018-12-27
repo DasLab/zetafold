@@ -107,13 +107,16 @@ class MotifType:
 
         return match_base_pair_type_sets
 
-    def get_tag( self ):
-        tag = ''
-        for i in range( len( self.strands ) ):
-            if i > 0: tag += '_'
-            tag += self.strands[i]
-            if self.bp_tags[i]: tag += '_'+self.bp_tags[i]
-        return tag
+    def get_tag( self ): return get_motif_tag( self.strands, self.bp_tags )
+
+def get_motif_tag( strands, bp_tags ):
+    tag = ''
+    for i in range( len( strands ) ):
+        if i > 0: tag += '_'
+        tag += strands[i]
+        if bp_tags[i]: tag += '_'+bp_tags[i]
+    return tag
+
 
 def get_motif_type_for_tag( params, tag ):
     for motif_type in params.motif_types:

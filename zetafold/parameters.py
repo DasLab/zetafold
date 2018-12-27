@@ -2,7 +2,7 @@ from __future__ import print_function
 import math
 from .base_pair_types import BasePairType, setup_base_pair_type, get_base_pair_types_for_tag, get_base_pair_type_for_tag
 from .util.constants import KT_IN_KCAL
-from .motif_types import MotifType, get_motif_type_for_tag
+from .motif_types import MotifType, get_motif_type_for_tag, get_motif_tag
 import glob
 import os.path
 
@@ -231,17 +231,11 @@ def setup_motif_type_by_tag( params, motif_type_tag, val ):
     N = len( strands ) # N-way junction
 
     motif_type = get_motif_type_for_tag( params, motif_type_tag )
-    if motif_type:
-        for permuted_motif_type in motif_type.permuted_motif_types: permuted_motif_type.Kd = val
-    else:
-        new_motif_types = []
-
+    if motif_type == None:
         motif_type = MotifType( strands, bp_tags, val, params )
         params.motif_types.append( motif_type )
         assert( motif_type.get_tag() == motif_type_tag )
-        new_motif_types.append( motif_type )
 
-        # set up permutations
         for n in range( N-1 ):
             strands = strands[1:]+[strands[0]]
             bp_tags = bp_tags[1:]+[bp_tags[0]]
@@ -249,9 +243,14 @@ def setup_motif_type_by_tag( params, motif_type_tag, val ):
             if not motif_type.get_tag() == permuted_motif_type.get_tag():
                 assert( get_motif_type_for_tag( params, permuted_motif_type.get_tag() ) == None )
                 params.motif_types.append( permuted_motif_type )
-                new_motif_types.append( permuted_motif_type )
+        return
 
-        for motif_type in new_motif_types:
-            # may need to be smart about symmetry.
-            # TODO: revisit when we do derivatives!
-            motif_type.permuted_motif_types = new_motif_types
+    motif_type = get_motif_type_for_tag( params, motif_type_tag )
+    motif_type.C_eff = val
+    for n in range( N-1 ):
+        strands = strands[1:]+[strands[0]]
+        bp_tags = bp_tags[1:]+[bp_tags[0]]
+        motif_type = get_motif_type_for_tag( params, get_motif_tag(strands, bp_tags) )
+        assert( motif_type != None )
+        motif_type.C_eff = val
+

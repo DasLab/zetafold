@@ -1,5 +1,5 @@
 from .base_pair_types import get_base_pair_type_for_tag, get_base_pair_types_for_tag
-
+from .motif_types import get_motif_type_for_tag
 def _get_log_derivs( self, deriv_parameters = [] ):
     '''
     Output
@@ -17,7 +17,7 @@ def _get_log_derivs( self, deriv_parameters = [] ):
 
     # Derivatives with respect to each Kd
     N = self.N
-    Z = self.Z_final.val( 0 )
+    Z = self.Z
     for n,parameter in enumerate(deriv_parameters):
         if parameter == 'l':
             # Derivatives with respect to loop closure parameters
@@ -36,13 +36,13 @@ def _get_log_derivs( self, deriv_parameters = [] ):
                 for j in range( i+2, N ):
                     if not self.ligated[i]: continue
                     if not self.ligated[j-1]: continue
-                    num_loops += self.params.l**2 * self.params.l_BP * C_eff_for_BP.val(i+1,j-1) * self.Z_BP.val(j,i) / self.Z_final.val(0)
+                    num_loops += self.params.l**2 * self.params.l_BP * C_eff_for_BP.val(i+1,j-1) * self.Z_BP.val(j,i) / self.Z
                     if self.params.K_coax > 0.0:
                         offset = j - i
                         for k in range( i+2, i+offset-1 ):
-                            if self.ligated[k]  : num_loops += self.Z_BP.val(i+1,k) * C_eff_for_coax.val(k+1,j-1) * self.params.l**2 * self.params.l_coax * self.params.K_coax * self.Z_BP.val(j,i) / self.Z_final.val(0)
+                            if self.ligated[k]  : num_loops += self.Z_BP.val(i+1,k) * C_eff_for_coax.val(k+1,j-1) * self.params.l**2 * self.params.l_coax * self.params.K_coax * self.Z_BP.val(j,i) / self.Z
                         for k in range( i+2, i+offset-1 ):
-                            if self.ligated[k-1]: num_loops += C_eff_for_coax.val(i+1,k-1) * self.Z_BP.val(k,j-1) * self.params.l**2 * self.params.l_coax * self.params.K_coax * self.Z_BP.val(j,i) / self.Z_final.val(0)
+                            if self.ligated[k-1]: num_loops += C_eff_for_coax.val(i+1,k-1) * self.Z_BP.val(k,j-1) * self.params.l**2 * self.params.l_coax * self.params.K_coax * self.Z_BP.val(j,i) / self.Z
 
             # one more loop if RNA is a circle.
             if self.ligated[ N-1 ]: num_loops += 1
@@ -67,13 +67,19 @@ def _get_log_derivs( self, deriv_parameters = [] ):
                 bpts1 = get_base_pair_types_for_tag( self.params, tags[0] )
                 bpts2 = get_base_pair_types_for_tag( self.params, tags[1] )
             derivs[ n ] = 0.0
-            motif_types_computed = []
+            stack_types_computed = []
             for bpt1 in bpts1:
                 for bpt2 in bpts2:
-                    if (bpt1, bpt2) in motif_types_computed: continue
-                    derivs[ n ] += get_motif_prob( self, bpt1, bpt2 )
-                    motif_types_computed.append( (bpt1, bpt2 ) )
-                    motif_types_computed.append( (bpt2.flipped, bpt1.flipped ) ) # prevents overcounting
+                    if (bpt1, bpt2) in stack_types_computed: continue
+                    derivs[ n ] += get_stack_prob( self, bpt1, bpt2 )
+                    stack_types_computed.append( (bpt1, bpt2 ) )
+                    stack_types_computed.append( (bpt2.flipped, bpt1.flipped ) ) # prevents overcounting
+        elif len(parameter)>=11 and parameter[:11] == 'C_eff_motif':
+            assert( len(parameter) > 11 )
+            tag = parameter[12:]
+            motif_type = get_motif_type_for_tag( self.params, tag )
+            assert( motif_type != None )
+            derivs[ n ] = get_motif_prob( self, motif_type )
         elif parameter == 'K_coax':
             coax_prob = get_coax_prob( self )
             derivs[ n ] = coax_prob
@@ -101,7 +107,7 @@ def get_bpp_tot_for_base_pair_type( self, base_pair_type ):
     for i in range( N ):
         for j in range( N ):
             if self.Z_BPq[base_pair_type].val(i,j) == 0: continue
-            bpp += self.Z_BPq[base_pair_type].val(i,j) * self.Z_BPq[base_pair_type.flipped].val(j,i) * base_pair_type.Kd / self.Z_final.val(0)
+            bpp += self.Z_BPq[base_pair_type].val(i,j) * self.Z_BPq[base_pair_type.flipped].val(j,i) * base_pair_type.Kd / self.Z
     if base_pair_type == base_pair_type.flipped: bpp /= 2.0
     return bpp
 
@@ -111,7 +117,7 @@ def get_bpp_tot( self ):
     return sum( bpp_tot ) / 2.0
 
 def get_num_base_pairs_closed_by_loops( self ):
-    # base pair forms a stacked pair with previous pair
+    # base pair forms a closed loop
     #
     #     ~~~~~
     #  i+1     j-1
@@ -119,6 +125,7 @@ def get_num_base_pairs_closed_by_loops( self ):
     #    i ... j
     #      bp1
     #
+    # loops on both sides count!
     num_base_pairs_closed_by_loops = 0.0
     N = self.N
     # this is slightly different than num_closed_loops for C_init -- each base pair is counted
@@ -128,10 +135,10 @@ def get_num_base_pairs_closed_by_loops( self ):
             if ( j - i ) % N < 2: continue
             if not self.ligated[i]: continue
             if not self.ligated[(j-1)%N]: continue
-            num_base_pairs_closed_by_loops += self.params.l**2 * self.params.l_BP * self.C_eff.val(i+1,j-1) * self.Z_BP.val(j,i) / self.Z_final.val(0)
+            num_base_pairs_closed_by_loops += self.params.l**2 * self.params.l_BP * self.C_eff.val(i+1,j-1) * self.Z_BP.val(j,i) / self.Z
     return num_base_pairs_closed_by_loops
 
-def get_motif_prob( self, base_pair_type, base_pair_type2 ):
+def get_stack_prob( self, base_pair_type, base_pair_type2 ):
     # base pair forms a stacked pair with previous pair
     #
     #      bp2
@@ -140,7 +147,7 @@ def get_motif_prob( self, base_pair_type, base_pair_type2 ):
     #    i ... j
     #      bp1
     #
-    motif_prob = 0.0
+    stack_prob = 0.0
     Z_BPq1 = self.Z_BPq[base_pair_type.flipped]
     Z_BPq2 = self.Z_BPq[base_pair_type2]
     N = self.N
@@ -151,8 +158,31 @@ def get_motif_prob( self, base_pair_type, base_pair_type2 ):
             if not self.ligated[(j-1)%N]: continue
             if not base_pair_type.flipped.is_match( self.sequence[j],self.sequence[i] ): continue
             if not base_pair_type2       .is_match( self.sequence[(i+1)%N],self.sequence[(j-1)%N] ): continue
-            motif_prob += self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq1.val(j,i) * Z_BPq2.val(i+1,j-1) / self.Z_final.val(0)
-    if base_pair_type == base_pair_type2.flipped: motif_prob /= 2.0 # symmetry correction
+            stack_prob += self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq1.val(j,i) * Z_BPq2.val(i+1,j-1) / self.Z
+    if base_pair_type == base_pair_type2.flipped: stack_prob /= 2.0 # symmetry correction
+    return stack_prob
+
+def get_motif_prob( self, motif_type ):
+    motif_prob = 0.0
+    N = self.N
+    for i in range( N ):
+        for j in range( N ):
+            for base_pair_type in self.params.base_pair_types:
+                if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
+                match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( self.sequence, self.ligated, i, j )
+                if match_base_pair_type_sets:
+                    if len(match_base_pair_type_sets) == 1: # hairpins (1-way junctions)
+                        motif_prob += motif_type.C_eff * self.Z_BPq[ base_pair_type.flipped ].val(j,i) / self.Z
+                        pass
+                    elif len(match_base_pair_type_sets) == 2: # internal loops (2-way junctions)
+                        for (base_pair_type_next, i_next, j_next) in match_base_pair_type_sets[0]:
+                            Z_BPq_next = self.Z_BPq[base_pair_type_next]
+                            val = motif_type.C_eff * Z_BPq_next.val(i_next,j_next) * self.Z_BPq[ base_pair_type.flipped ].val(j,i) / self.Z
+                            # symmetry correction:
+                            if base_pair_type.flipped == base_pair_type_next and motif_type.strands[0] == motif_type.strands[1]:
+                                assert( base_pair_type_next.flipped == base_pair_type )
+                                val /= 2.0
+                            motif_prob += val
     return motif_prob
 
 def get_loop_closed_coax_prob( self ):
@@ -172,7 +202,7 @@ def get_loop_closed_coax_prob( self ):
             if ( i - j ) % N < 2: continue
             if not self.ligated[ i-1 ]: continue
             if not self.ligated[ j ]: continue
-            coax_prob += self.Z_coax.val(i,j) * self.params.l_coax * self.params.l**2 * C_eff_for_coax.val(j+1,i-1) / self.Z_final.val(0)
+            coax_prob += self.Z_coax.val(i,j) * self.params.l_coax * self.params.l**2 * C_eff_for_coax.val(j+1,i-1) / self.Z
     return coax_prob
 
 def get_loop_open_coax_prob( self ):
@@ -188,7 +218,7 @@ def get_loop_open_coax_prob( self ):
     N = self.N
     for i in range( N ):
         for j in range( N ):
-            coax_prob += self.Z_coax.val(i,j) * self.Z_cut.val(j,i) / self.Z_final.val(0)
+            coax_prob += self.Z_coax.val(i,j) * self.Z_cut.val(j,i) / self.Z
     return coax_prob
 
 def get_coax_prob( self ):
