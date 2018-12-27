@@ -1,5 +1,5 @@
 from .base_pair_types import get_base_pair_type_for_tag, get_base_pair_types_for_tag
-from .motif_types import get_motif_type_for_tag
+from .motif_types import get_motif_type_for_tag, check_equivalent_C_eff_stack_for_motif_type
 def _get_log_derivs( self, deriv_parameters = [] ):
     '''
     Output
@@ -56,30 +56,17 @@ def _get_log_derivs( self, deriv_parameters = [] ):
                 Kd_tag = parameter[3:]
                 derivs[ n ] = - get_bpp_tot_for_base_pair_type( self, get_base_pair_type_for_tag( self.params, Kd_tag ) )
         elif len(parameter)>=11 and parameter[:11] == 'C_eff_stack':
-            # Derivatives with respect to motifs (stacked pairs first)
-            if parameter == 'C_eff_stacked_pair':
-                bpts1 = self.params.base_pair_types
-                bpts2 = self.params.base_pair_types
-            else:
-                assert( len(parameter) > 11 )
-                tags = parameter[12:].split('_')
-                assert( len( tags ) == 2 )
-                bpts1 = get_base_pair_types_for_tag( self.params, tags[0] )
-                bpts2 = get_base_pair_types_for_tag( self.params, tags[1] )
-            derivs[ n ] = 0.0
-            stack_types_computed = []
-            for bpt1 in bpts1:
-                for bpt2 in bpts2:
-                    if (bpt1, bpt2) in stack_types_computed: continue
-                    derivs[ n ] += get_stack_prob( self, bpt1, bpt2 )
-                    stack_types_computed.append( (bpt1, bpt2 ) )
-                    stack_types_computed.append( (bpt2.flipped, bpt1.flipped ) ) # prevents overcounting
+            derivs[ n ] = get_C_eff_stack_deriv( self, parameter )
         elif len(parameter)>=11 and parameter[:11] == 'C_eff_motif':
             assert( len(parameter) > 11 )
             tag = parameter[12:]
-            motif_type = get_motif_type_for_tag( self.params, tag )
-            assert( motif_type != None )
-            derivs[ n ] = get_motif_prob( self, motif_type )
+            C_eff_stack_tag = check_equivalent_C_eff_stack_for_motif_type( tag )
+            if C_eff_stack_tag:
+                derivs[ n ] = get_C_eff_stack_deriv( self, C_eff_stack_tag )
+            else:
+                motif_type = get_motif_type_for_tag( self.params, tag )
+                assert( motif_type != None )
+                derivs[ n ] = get_motif_prob( self, motif_type )
         elif parameter == 'K_coax':
             coax_prob = get_coax_prob( self )
             derivs[ n ] = coax_prob
@@ -224,3 +211,23 @@ def get_loop_open_coax_prob( self ):
 def get_coax_prob( self ):
     return get_loop_closed_coax_prob( self ) + get_loop_open_coax_prob( self )
 
+def get_C_eff_stack_deriv( self, parameter ):
+    # Derivatives with respect to motifs (stacked pairs first)
+    if parameter == 'C_eff_stacked_pair':
+        bpts1 = self.params.base_pair_types
+        bpts2 = self.params.base_pair_types
+    else:
+        assert( len(parameter) > 11 )
+        tags = parameter[12:].split('_')
+        assert( len( tags ) == 2 )
+        bpts1 = get_base_pair_types_for_tag( self.params, tags[0] )
+        bpts2 = get_base_pair_types_for_tag( self.params, tags[1] )
+    deriv = 0.0
+    stack_types_computed = []
+    for bpt1 in bpts1:
+        for bpt2 in bpts2:
+            if (bpt1, bpt2) in stack_types_computed: continue
+            deriv += get_stack_prob( self, bpt1, bpt2 )
+            stack_types_computed.append( (bpt1, bpt2 ) )
+            stack_types_computed.append( (bpt2.flipped, bpt1.flipped ) ) # prevents overcounting
+    return deriv

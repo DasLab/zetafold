@@ -2,7 +2,7 @@ from __future__ import print_function
 import math
 from .base_pair_types import BasePairType, setup_base_pair_type, get_base_pair_types_for_tag, get_base_pair_type_for_tag
 from .util.constants import KT_IN_KCAL
-from .motif_types import MotifType, get_motif_type_for_tag, get_motif_tag
+from .motif_types import MotifType, get_motif_type_for_tag, make_motif_type_tag, parse_motif_type_tag, check_equivalent_C_eff_stack_for_motif_type
 import glob
 import os.path
 
@@ -143,14 +143,7 @@ def _set_parameter( self, tag, val ):
                     self.C_eff_stack[bpt1][bpt2] = float(val)
         else:
             assert( len(tag) > 11 )
-            tags = tag[12:].split('_')
-            assert( len( tags ) == 2 )
-            bpts1 = get_base_pair_types_for_tag( self, tags[0] )
-            bpts2 = get_base_pair_types_for_tag( self, tags[1] )
-            for bpt1 in bpts1:
-                for bpt2 in bpts2:
-                    self.C_eff_stack[ bpt1 ][ bpt2 ] = float(val)
-                    self.C_eff_stack[ bpt2.flipped ][ bpt1.flipped ] = float(val)
+            set_C_eff_stack( self, tag[12:], val )
         float_parameter = True
     elif len( tag )>=11 and tag[:11] == 'C_eff_motif':
         motif_type_tag = tag[12:]
@@ -190,6 +183,25 @@ def _check_C_eff_stack( params ):
                     bpt2.flipped.nt1, bpt2.flipped.nt2, " to ", bpt1.flipped.nt1, bpt1.flipped.nt2, params.C_eff_stack[ bpt2.flipped ][ bpt1.flipped ] )
             assert( params.C_eff_stack[ bpt1 ][ bpt2 ] == params.C_eff_stack[ bpt2.flipped ][ bpt1.flipped ] )
 
+def set_C_eff_stack( self, tag, val ):
+    '''
+    tag of CG_CG corresponds to
+
+    5'-CC-3'
+       ::
+    3'-GG-5'
+
+    i.e. each subtag is a base pair.
+    '''
+    tags = tag.split('_')
+    assert( len( tags ) == 2 )
+    bpts1 = get_base_pair_types_for_tag( self, tags[0] )
+    bpts2 = get_base_pair_types_for_tag( self, tags[1] )
+    for bpt1 in bpts1:
+        for bpt2 in bpts2:
+            self.C_eff_stack[ bpt1 ][ bpt2 ] = float(val)
+            self.C_eff_stack[ bpt2.flipped ][ bpt1.flipped ] = float(val)
+
 def setup_base_pair_type_by_tag( params, Kd_tag, val ):
     tag = Kd_tag[3:]
     base_pair_type = get_base_pair_type_for_tag( params, tag )
@@ -206,29 +218,29 @@ def setup_base_pair_type_by_tag( params, Kd_tag, val ):
 def setup_motif_type_by_tag( params, motif_type_tag, val ):
     # Give strands from 5'-to-3':
     #
-    #  CC_GG
+    #  CAC_GG
     #
-    # TODO: Can also use N as wildcard, and base pair tags between strands. For example,
+    # Can also use N as wildcard:
     #
-    #  NN_WC_NN_WC
+    #  NAN_WC_NN_WC
     #
-    # corresponds to all base-pair-steps involving strict canonical pairs:
+    # corresponds to all base-pair-steps with bulged A involving strict canonical pairs:
     #
-    #  CC_GG
-    #  CG_CG
+    #  CAC_GG
+    #  CAG_CG
     #  etc.
     #
     #
-    strands = []
-    bp_tags = []
-    tags = motif_type_tag.split( '_' )
-    for tag in tags:
-        if tag == 'WC':
-            bp_tags[-1] = 'WC'
-            continue
-        strands.append( tag )
-        bp_tags.append( None )
+    (strands,bp_tags) = parse_motif_type_tag( motif_type_tag )
     N = len( strands ) # N-way junction
+
+    # The (older) C_eff_stack parametrization is computationally more efficient
+    #  then this motif framework, at the expense of being hard-coded.
+    C_eff_stack_tag = check_equivalent_C_eff_stack_for_motif_type( strands, bp_tags )
+    if C_eff_stack_tag:
+        if C_eff_stack_tag in params.parameter_tags: print( 'Hey!!! Using C_eff_motif_%s value to replace %s. Might see funny behavior in training and/or derivatives!' % (motif_type_tag, C_eff_stack_tag) )
+        set_C_eff_stack( params, C_eff_stack_tag[12:], val )
+        return
 
     motif_type = get_motif_type_for_tag( params, motif_type_tag )
     if motif_type == None:
@@ -250,7 +262,7 @@ def setup_motif_type_by_tag( params, motif_type_tag, val ):
     for n in range( N-1 ):
         strands = strands[1:]+[strands[0]]
         bp_tags = bp_tags[1:]+[bp_tags[0]]
-        motif_type = get_motif_type_for_tag( params, get_motif_tag(strands, bp_tags) )
+        motif_type = get_motif_type_for_tag( params, make_motif_type_tag(strands, bp_tags) )
         assert( motif_type != None )
         motif_type.C_eff = val
 

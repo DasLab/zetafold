@@ -24,7 +24,7 @@ class MotifType:
         has a, b, c, d going in a circle. These are recorded in order.
 
           strands = ['CAC', 'GG']   (a, c)
-          bp_tags = ['CG', 'GC']   (b, d)
+          bp_tags = [None,  None]   (b, d)
 
         and internally this will become:
 
@@ -35,13 +35,14 @@ class MotifType:
 
         Example 2:
         ----------
-             a
-          5'-NG-3'
-    WC--> d  :: b
-          3'-NU-5'
-             c
+              a
+          5'-NAG-3'
+    WC--> d  : : b
+          3'-N-U-5'
+              c
 
-          strands = ['NG', 'UN']   (a, c)
+          strands = ['NAG', 'UN']   (a, c)
+          bp_tags = [None, 'WC']   (b, d)
           base_pair_type_sets = [ [BasePairType('GU')], [BasePairType('CG'),BasePairType('GC'),BasePairType('AU'),BasePairType('UA')] ]
                                        since WC is interpreted as (strict) Watson-Crick pair
 
@@ -107,9 +108,9 @@ class MotifType:
 
         return match_base_pair_type_sets
 
-    def get_tag( self ): return get_motif_tag( self.strands, self.bp_tags )
+    def get_tag( self ): return make_motif_type_tag( self.strands, self.bp_tags )
 
-def get_motif_tag( strands, bp_tags ):
+def make_motif_type_tag( strands, bp_tags ):
     tag = ''
     for i in range( len( strands ) ):
         if i > 0: tag += '_'
@@ -124,4 +125,47 @@ def get_motif_type_for_tag( params, tag ):
             return motif_type
     return None
 
+def parse_motif_type_tag( motif_type_tag ):
+    '''
 
+        Example
+        ----------
+
+        NAG_NU_WC
+
+              a
+          5'-NAG-3'
+    WC--> d  : : b
+          3'-N-U-5'
+              c
+
+       becomes:
+
+          strands = ['NAG', 'UN']   (a, c)
+          bp_tags = [None, 'WC']   (b, d)
+
+    '''
+    strands = []
+    bp_tags = []
+    tags = motif_type_tag.split( '_' )
+    for tag in tags:
+        if tag == 'WC':
+            bp_tags[-1] = 'WC'
+            continue
+        strands.append( tag )
+        bp_tags.append( None )
+    return (strands, bp_tags)
+
+def check_equivalent_C_eff_stack_for_motif_type( strands, bp_tags = None):
+    '''
+    Will convert CC_GG    to C_eff_stack_CG_CG  (bp1_bp2)
+    Will convert CN_WC_NG to C_eff_stack_CG_WC  (bp1_bp2)
+    '''
+    if isinstance( strands, str ) and bp_tags == None:
+        (strands,bp_tags) = parse_motif_type_tag( strands )
+
+    if len(strands) == 2 and len( strands[0] ) == 2 and len( strands[1] ) == 2:
+        tag1 = bp_tags[0] if bp_tags[0] != None else strands[0][0]+strands[1][1]
+        tag2 = bp_tags[1] if bp_tags[1] != None else strands[0][1]+strands[1][0]
+        return 'C_eff_stack_%s_%s' % (tag1, tag2)
+    return None
