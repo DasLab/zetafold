@@ -115,6 +115,7 @@ class Partition:
                 for Z in self.Z_all: Z.update( self, i, j )
 
         for i in range( self.N): self.Z_final.update( self, i )
+        self.Z  = self.Z_final.val(0)
 
         self.log_derivs = self.get_log_derivs( self.deriv_params )
         fill_in_outputs( self )
@@ -133,7 +134,6 @@ class Partition:
 
 ##################################################################################################
 def fill_in_outputs( self ):
-    self.Z  = self.Z_final.val(0)
     if self.Z > 0.0: self.dG = -KT_IN_KCAL * log( self.Z )
     self.dZ_dKd_DP = self.Z_final.deriv(0)
     self.derivs = []
