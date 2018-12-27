@@ -68,10 +68,12 @@ def update_Z_BPq( self, i, j, base_pair_type ):
                 Z_BPq[i][j]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2[i+1][j-1]
 
     # base pair forms a motif with previous pair
-    #
+    # Example of 1x1 loop:
     #             bpt0
-    #           i'... j'
-    #  strand0  |     | strand1
+    #       i_next... j_next
+    #           |     |
+    #  strand0 i+1   j-1 strand1
+    #           |     |
     #           i ... j
     #          5' bpt1  3
     #'
@@ -79,9 +81,9 @@ def update_Z_BPq( self, i, j, base_pair_type ):
         if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
         match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, i, j )
         if match_base_pair_type_sets and len(match_base_pair_type_sets) == 2:
-            for (base_pair_type2, i_next, j_next) in match_base_pair_type_sets[0]:
-                Z_BPq2 = self.Z_BPq[base_pair_type2]
-                Z_BPq[i][j]  += (1.0/Kdq ) * motif_type.C_eff * Z_BPq2[i_next][j_next]
+            for (base_pair_type_next, i_next, j_next) in match_base_pair_type_sets[0]:
+                Z_BPq_next = self.Z_BPq[base_pair_type_next]
+                Z_BPq[i][j]  += (1.0/Kdq ) * motif_type.C_eff * Z_BPq_next[i_next][j_next]
 
     # base pair brings together two strands that were previously disconnected
     #
@@ -380,7 +382,7 @@ def update_Z_final( self, i ):
             #
             #           <--
             #   - j_next - j -
-            #      :       :
+            # bpt0 :       : bpt1
             #      :       :
             #   - k_next - k -
             #         *  -->
@@ -392,12 +394,12 @@ def update_Z_final( self, i ):
                 for k in range( i, i+len( motif_type.strands[-1] )-1 ):
                     match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, j, k )
                     if match_base_pair_type_sets and len(match_base_pair_type_sets) == 2:
-                        (match_base_pair_type_sets2, match_base_pair_type_sets1) = match_base_pair_type_sets # awkward
+                        (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
                         for (base_pair_type1,j_match,k_match) in match_base_pair_type_sets1:
-                            for (base_pair_type2,j_next,k_next) in match_base_pair_type_sets2:
+                            for (base_pair_type0,j_next,k_next) in match_base_pair_type_sets0:
+                                Z_BPq0 = self.Z_BPq[base_pair_type0]
                                 Z_BPq1 = self.Z_BPq[base_pair_type1]
-                                Z_BPq2 = self.Z_BPq[base_pair_type2]
-                                Z_final[i]  += motif_type.C_eff * Z_BPq2[j_next][k_next] * Z_BPq1[k][j]
+                                Z_final[i]  += motif_type.C_eff * Z_BPq0[j_next][k_next] * Z_BPq1[k][j]
 
 
         if K_coax > 0:

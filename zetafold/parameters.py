@@ -221,7 +221,6 @@ def setup_motif_type_by_tag( params, motif_type_tag, val ):
     #
     strands = []
     bp_tags = []
-    base_pair_types = []
     tags = motif_type_tag.split( '_' )
     for tag in tags:
         if tag == 'WC':
