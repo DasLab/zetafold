@@ -20,12 +20,12 @@ l                  1.0     # math.exp( dG_multiloop_unpaired / KT_IN_KCAL ), wit
 l_BP               1.913629197723873  # math.exp( dG_multiloop_stems/KT_IN_KCAL ) / params.l, with dG_multiloop_stems = 0.40 # in kcal/mol
 
 # Effective molarity for forming stacked pair (units of M)
-C_eff_stack_WC_WC  158489.3192461114 # about 10^5.2, in M, similar to math.exp( -dG_CG_CG / KT_IN_KCAL ) * Kd_CG, with dG_CG_CG = -3.30, as in Turner 1999 5'-CC-3'/5'-GG-3', kcal/mol
-C_eff_stack_WC_GU  12589.254117941662
-C_eff_stack_WC_UG  398107.1705534969
-C_eff_stack_GU_GU  79432.82347242821
-C_eff_stack_UG_GU  10000.0
-C_eff_stack_GU_UG  10000.0
+C_eff_motif_NN_WC_NN_WC  158489.3192461114 # about 10^5.2, in M, similar to math.exp( -dG_CG_CG / KT_IN_KCAL ) * Kd_CG, with dG_CG_CG = -3.30, as in Turner 1999 5'-CC-3'/5'-GG-3', kcal/mol
+C_eff_motif_NG_UN_WC  12589.254117941662
+C_eff_motif_NU_GN_WC  398107.1705534969
+C_eff_motif_GG_UU  79432.82347242821
+C_eff_motif_UG_UG  10000.0
+C_eff_motif_GU_GU  10000.0
 
 # coax bonus for contiguous helices (dimensionless). Set to 0 to turn off coax (dimensionless)
 K_coax             2.6302679918953817 # 10.0**0.42
