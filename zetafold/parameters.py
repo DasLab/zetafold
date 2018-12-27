@@ -152,8 +152,8 @@ def _set_parameter( self, tag, val ):
                     self.C_eff_stack[ bpt1 ][ bpt2 ] = float(val)
                     self.C_eff_stack[ bpt2.flipped ][ bpt1.flipped ] = float(val)
         float_parameter = True
-    elif len( tag )>=5 and tag[:5] == 'C_eff':
-        motif_type_tag = tag[6:]
+    elif len( tag )>=11 and tag[:11] == 'C_eff_motif':
+        motif_type_tag = tag[12:]
         setup_motif_type_by_tag( self, motif_type_tag, float(val) )
         float_parameter = True
     else:

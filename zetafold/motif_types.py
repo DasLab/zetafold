@@ -8,16 +8,16 @@ class MotifType:
         Currently only handling 2-way junctions.
 
         Example 1:
-
+        ----------
              a
-          5'-CC-3'
-          d  :: b
-          3'-GG-5'
+          5'-CAC-3'
+          d  : : b
+          3'-G-G-5'
              c
 
         has a, b, c, d going in a circle. These are recorded in order.
 
-          strands = ['CC', 'GG']   (a, c)
+          strands = ['CAC', 'GG']   (a, c)
           bp_tags = ['CG', 'GC']   (b, d)
 
         and internally this will become:
@@ -26,7 +26,9 @@ class MotifType:
 
         Perhaps a little confusing because the last base pair type set has d (the 'start base pair', flipped)
 
+
         Example 2:
+        ----------
              a
           5'-NG-3'
     WC--> d  :: b
