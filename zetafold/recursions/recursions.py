@@ -68,6 +68,7 @@ def update_Z_BPq( self, i, j, base_pair_type ):
                 Z_BPq[i][j]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2[i+1][j-1]
 
     # base pair forms a motif with previous pair
+    #
     # Example of 1x1 loop:
     #             bpt0
     #       i_next... j_next
@@ -75,15 +76,24 @@ def update_Z_BPq( self, i, j, base_pair_type ):
     #  strand0 i+1   j-1 strand1
     #           |     |
     #           i ... j
-    #          5' bpt1  3
-    #'
+    #          5' bpt1  3'
+    #
+    # Note that base pair stacks (C_eff_stack) could also be handled by this MotifType object, but
+    #      it turns out that the get_match_base_pair_type_sets() function below is just too damn slow.
+
     for motif_type in self.params.motif_types:
         if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
         match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, i, j )
-        if match_base_pair_type_sets and len(match_base_pair_type_sets) == 2:
-            for (base_pair_type_next, i_next, j_next) in match_base_pair_type_sets[0]:
-                Z_BPq_next = self.Z_BPq[base_pair_type_next]
-                Z_BPq[i][j]  += (1.0/Kdq ) * motif_type.C_eff * Z_BPq_next[i_next][j_next]
+        if match_base_pair_type_sets:
+            if len(match_base_pair_type_sets) == 1: # hairpins (1-way junctions)
+                Z_BPq[i][j].Q += (1.0/Kdq ) * motif_type.C_eff
+                pass
+            elif len(match_base_pair_type_sets) == 2: # internal loops (2-way junctions)
+                for (base_pair_type_next, i_next, j_next) in match_base_pair_type_sets[0]:
+                    Z_BPq_next = self.Z_BPq[base_pair_type_next]
+                    Z_BPq[i][j] += (1.0/Kdq ) * motif_type.C_eff * Z_BPq_next[i_next][j_next]
+            # could certainly handle 3WJ in O(N^3) time as well
+            # but how about 4WJ? anyway to do without an O(N^4) cost?
 
     # base pair brings together two strands that were previously disconnected
     #
@@ -393,13 +403,22 @@ def update_Z_final( self, i ):
             for motif_type in self.params.motif_types:
                 for k in range( i, i+len( motif_type.strands[-1] )-1 ):
                     match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, j, k )
-                    if match_base_pair_type_sets and len(match_base_pair_type_sets) == 2:
-                        (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
-                        for (base_pair_type1,j_match,k_match) in match_base_pair_type_sets1:
-                            for (base_pair_type0,j_next,k_next) in match_base_pair_type_sets0:
-                                Z_BPq0 = self.Z_BPq[base_pair_type0]
-                                Z_BPq1 = self.Z_BPq[base_pair_type1]
-                                Z_final[i]  += motif_type.C_eff * Z_BPq0[j_next][k_next] * Z_BPq1[k][j]
+                    if match_base_pair_type_sets:
+                        if len(match_base_pair_type_sets) == 1:
+                            for (base_pair_type,k_match,j_match) in match_base_pair_type_sets[0]:
+                                assert( (j - j_match)%N == 0 )
+                                assert( (k - k_match)%N == 0 )
+                                Z_BPq1 = self.Z_BPq[base_pair_type]
+                                Z_final[i]  += motif_type.C_eff * Z_BPq1[k][j]
+                        elif len(match_base_pair_type_sets) == 2:
+                            (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
+                            for (base_pair_type1,k_match,j_match) in match_base_pair_type_sets1:
+                                assert( (j - j_match)%N == 0 )
+                                assert( (k - k_match)%N == 0 )
+                                for (base_pair_type0,j_next,k_next) in match_base_pair_type_sets0:
+                                    Z_BPq0 = self.Z_BPq[base_pair_type0]
+                                    Z_BPq1 = self.Z_BPq[base_pair_type1]
+                                    Z_final[i]  += motif_type.C_eff * Z_BPq0[j_next][k_next] * Z_BPq1[k][j]
 
 
         if K_coax > 0:

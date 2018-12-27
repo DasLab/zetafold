@@ -5,7 +5,13 @@ class MotifType:
         '''
         MotifType stores information on specially stable motifs, including eventually
          UA-handles, symmetric internal loops
+
         Currently only handling 2-way junctions.
+
+        Note that base pair stacks (C_eff_stack) could also be handled by this MotifType object, but
+          it turns out that the get_match_base_pair_type_sets() function below is just too damn slow.
+
+        For speed, its better to handle base-pair-step 'motifs' separately.
 
         Example 1:
         ----------
@@ -44,12 +50,12 @@ class MotifType:
         '''
         self.strands = strands
         self.bp_tags = bp_tags
-        N = len( self.strands )
-        assert( len(bp_tags) == N)
+        M = len( self.strands )
+        assert( len(bp_tags) == M)
 
         self.base_pair_type_sets = []
         for i,bp_tag in enumerate(bp_tags):
-            if bp_tag == None: bp_tag = strands[i][-1] + strands[ (i+1)%N ][0]
+            if bp_tag == None: bp_tag = strands[i][-1] + strands[ (i+1)%M ][0]
             self.base_pair_type_sets.append( get_base_pair_types_for_tag( params, bp_tag ) )
 
         self.C_eff = C_eff
@@ -60,24 +66,36 @@ class MotifType:
         TODO: generalize to N-way junction
         '''
         N = len( sequence )
+        M = len( self.strands )
         match_base_pair_type_sets = []
 
+        # works for hairpins and internal loops both:
         for q in range( len( self.strands[0] ) ):
             if self.strands[0][q] != 'N' and sequence[(i+q)%N] != self.strands[0][q]: return None
         for q in range( len( self.strands[0] )-1 ):
             if not ligated[(i+q)%N]: return None
 
-        matches = []
-        for base_pair_type in self.base_pair_type_sets[ 0 ]:
-            i_next, j_next = (i+len(self.strands[0])-1)%N, (j-len(self.strands[-1])+1)%N
-            if base_pair_type.is_match( sequence[i_next],sequence[j_next] ): matches.append( (base_pair_type,i_next,j_next) )
-        if len( matches ) == 0: return None
-        match_base_pair_type_sets.append( matches )
+        if M == 1:
+            # uh this is kind of explicit. must be a more general way to treat M = 1, 2, ...
+            if not ( j - i + 1) % N == len( self.strands[0] ): return None
 
-        for q in range( len( self.strands[-1] ) ):
-            if self.strands[-1][q] != 'N' and sequence[(j-len(self.strands[-1])+1+q)%N] != self.strands[-1][q]: return None
-        for q in range( len( self.strands[-1] )-1 ):
-            if not ligated[ (j-len(self.strands[-1])+1+q)%N ]: return None
+        if M == 2:
+            matches = []
+            for base_pair_type in self.base_pair_type_sets[ 0 ]:
+                i_next, j_next = (i+len(self.strands[0])-1)%N, (j-len(self.strands[-1])+1)%N
+                if base_pair_type.is_match( sequence[i_next],sequence[j_next] ): matches.append( (base_pair_type,i_next,j_next) )
+                if len( matches ) == 0: return None
+                match_base_pair_type_sets.append( matches )
+
+                # for the second strand of the internal loop
+            for q in range( len( self.strands[-1] ) ):
+                if self.strands[-1][q] != 'N' and sequence[(j-len(self.strands[-1])+1+q)%N] != self.strands[-1][q]: return None
+            for q in range( len( self.strands[-1] )-1 ):
+                if not ligated[ (j-len(self.strands[-1])+1+q)%N ]: return None
+
+        if M > 2:
+            print 'Cannot handle 3WJ or 4WJ motifs yet!'
+            exit()
 
         # redundant with start_base_pair_type -- using as cross check
         matches = []
@@ -85,6 +103,7 @@ class MotifType:
             if base_pair_type.is_match( sequence[j%N], sequence[i%N] ): matches.append( (base_pair_type,j,i) )
         if len( matches ) == 0: return None
         match_base_pair_type_sets.append( matches )
+
 
         return match_base_pair_type_sets
 
