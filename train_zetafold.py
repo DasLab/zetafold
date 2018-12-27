@@ -64,6 +64,9 @@ else:
     x0 = np.zeros( len(train_parameters) )
     for n,param_tag in enumerate(train_parameters):
         val = params.get_parameter_value( param_tag )
+        if val == None:
+            print( 'Did not recognize parameter: ', param_tag )
+            exit()
         if val == 0.0:  x0[ n ] = -np.Inf # to achieve 0
         else: x0[ n ] = np.log( val )
 
