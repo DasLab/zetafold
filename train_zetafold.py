@@ -29,56 +29,25 @@ parser.add_argument("--use_bounds",action='store_true', help='force log paramete
 parser.add_argument("--method",type=str,default='BFGS',help="Minimization routine")
 args     = parser.parse_args()
 
+# pool of CPU's to use. for testing on local machines, specify -j1 to get builtin CPU -- allows ctrl-c to cancel.
+pool = __builtin__
+if args.jobs > 1: pool = Pool( args.jobs )
+
 # set up parameter file
 params = get_params( args.parameters, suppress_all_output = True )
 if args.no_coax: params.set_parameter( 'K_coax', 0.0 )
 
 # set up training examples
-if args.train_data == None or not args.train_data in training_sets.keys():
-    print( '\nMust specify --train_data. Options are:' )
-    for set_name in training_set_names:  print( '%30s (%s)' % (set_name,len(training_sets[set_name]) ) )
-    exit()
-training_examples = [ all_training_examples[ tag ] for tag in training_sets[ args.train_data ] ]
+training_examples = initialize_training_examples( all_training_examples, training_sets, args.train_data )
+train_parameters  = initialize_train_parameters( params, args.train_params, args.train_params_exclude, args.no_coax )
+x0                = initialize_parameter_values( params, train_parameters, args.init_params, args.init_log_params, (args.use_bounds or args.use_priors) )
+bounds = get_bounds( train_parameters ) if args.use_bounds else None
+priors = get_priors( train_parameters ) if args.use_priors else None
 
-train_parameters = args.train_params
-if train_parameters == None:
-    if args.no_coax:
-        if args.train_params_exclude == None: args.train_params_exclude = []
-        args.train_params_exclude += [ 'K_coax', 'l_coax' ]
-    if args.train_params_exclude:
-        train_parameters = []
-        for param_exclude in args.train_params_exclude:  assert( param_exclude in params.parameter_tags )
-        for param in params.parameter_tags:
-            if not param in args.train_params_exclude: train_parameters.append( param )
-    elif args.deriv_check:
-        train_parameters = params.parameter_tags
-    else:
-        print( '\nMust specify which parameters to optimize with --train_params or --train_params_exclude' )
-        params.show_parameters()
-        exit()
-
-x0 = None
-if args.init_log_params: x0 = [float(log_param) for log_param in args.init_log_params ]
-elif args.init_params:   x0 = [ np.log(float(param)) for param in  args.init_params]
-else:
-    x0 = np.zeros( len(train_parameters) )
-    for n,param_tag in enumerate(train_parameters):
-        val = params.get_parameter_value( param_tag )
-        if val == None:
-            print( 'Did not recognize parameter: ', param_tag )
-            exit()
-        if val == 0.0:  x0[ n ] = -np.Inf # to achieve 0
-        else: x0[ n ] = np.log( val )
-
-pool = __builtin__
-if args.jobs > 1: pool = Pool( args.jobs )
-
-priors = get_priors( train_parameters) if args.use_priors else None
 loss = lambda x:free_energy_gap(      x,params,train_parameters,training_examples,args.allow_extra_base_pairs,priors,pool,args.outfile)
 grad = lambda x:free_energy_gap_deriv(x,params,train_parameters,training_examples,args.allow_extra_base_pairs,priors,pool)
 jac = grad if args.use_derivs else None
-bounds = None
-if args.use_bounds: bounds = get_bounds( train_parameters )
+
 if args.deriv_check: train_deriv_check( x0, loss, grad, train_parameters )
 
 create_outfile( args.outfile, params, train_parameters )
