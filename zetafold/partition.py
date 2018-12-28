@@ -20,7 +20,7 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
                no_coax = False,
                verbose = False,  suppress_all_output = False, suppress_bpp_output = False,
                deriv_params = None,
-               calc_Kd_deriv_DP = False, use_simple_recursions = False, deriv_check = False  ):
+               calc_Kd_deriv_DP = False, use_simple_recursions = False, deriv_check = False, bpp_file = None ):
     '''
     Wrapper function into Partition() class
     Returns Partition object p which holds results like:
@@ -43,18 +43,19 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
     p.calc_gap_structure = get_structure_string( calc_gap_structure )
     p.suppress_all_output = suppress_all_output
     p.suppress_bpp_output = suppress_bpp_output
+    p.bpp_file = bpp_file
     p.options.calc_deriv_DP = calc_Kd_deriv_DP
     if deriv_check and deriv_params == None: deriv_params = []
     p.calc_all_elements = calc_bpp or (deriv_params != None)
     p.deriv_params = deriv_params
     p.deriv_check  = deriv_check
     p.run()
-    if calc_bpp:         p.get_bpp_matrix()
-    if mfe:              p.calc_mfe()
-    if n_stochastic > 0: p.stochastic_backtrack( n_stochastic )
-    if do_enumeration:   p.enumerative_backtrack()
-    if verbose:          p.show_matrices()
-    if calc_gap_structure:   p.calculate_energy_gap()
+    if calc_bpp or bpp_file:    p.get_bpp_matrix()
+    if mfe:                     p.calc_mfe()
+    if n_stochastic > 0:        p.stochastic_backtrack( n_stochastic )
+    if do_enumeration:          p.enumerative_backtrack()
+    if verbose:                 p.show_matrices()
+    if calc_gap_structure:      p.calculate_energy_gap()
     if not suppress_all_output: p.show_results()
     p.run_cross_checks()
 

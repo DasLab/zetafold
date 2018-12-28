@@ -22,7 +22,7 @@ def _show_results( self ):
         show_derivs( self.deriv_params, self.log_derivs )
     if self.bpp and not self.suppress_bpp_output:
         output_bpp_matrix( self )
-        output_bpp_plot( self )
+        if not bpp_file: output_bpp_plot( self )
 
 def write_result( tag, variable, ligated, fid ):
     if variable == None: return
@@ -41,9 +41,9 @@ def write_string_with_spaces( sequence, ligated, fid ):
         fid.write( '*' )
         fid.write( ' [circularized]' )
 
-
 def output_bpp_matrix( self ):
     bpp_file = 'bpp.txt'
+    if self.bpp_file: bpp_file = self.bpp_file
     fid = open( bpp_file, 'w' )
     for i in range( self.N ):
         for j in range( self.N ):
