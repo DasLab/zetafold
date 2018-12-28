@@ -208,42 +208,42 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     p = partition( sequences, params = params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = (C_std/Kd)*(2 + l**3 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
     bpp_ref = (1 + l**3 * l_BP**2 * C_init/Kd + C_eff_motif/Kd )/(2 + l**3 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
-    #TODO -- fill in derivs!
-    #log_deriv_C_init = (l**2 * l_BP**2 * C_init/Kd ) / (2 + (l**2 * l_BP**2 *C_init/Kd) + C_eff_stacked_pair/Kd )
-    #log_deriv_l = 2 *  log_deriv_C_init
-    #log_deriv_C_eff_stacked_pair = (C_eff_stacked_pair/Kd) / (2 + (l**2 * l_BP**2 *C_init/Kd) + C_eff_stacked_pair/Kd )
-    #deriv_parameters = ('C_init','l','l_BP','C_eff_stacked_pair','C_eff_stack_GC_GC','C_eff_stack_CG_CG','C_eff_stack_CG_GC','C_eff_stack_GC_CG')
-    #log_derivs_ref =  [ log_deriv_C_init, log_deriv_l, log_deriv_l, log_deriv_C_eff_stacked_pair, 0,0,0, log_deriv_C_eff_stacked_pair ]
-    output_test( p, Z_ref, [0,4], bpp_ref )
+    log_deriv_C_init = (l**3 * l_BP**2 * C_init/Kd) / (2 + l**3 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
+    log_deriv_l = 3 *  log_deriv_C_init
+    log_deriv_C_eff_stacked_pair = 0
+    log_deriv_C_eff_motif = (C_eff_motif/Kd) / (2 + l**3 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
+    deriv_parameters = ('C_init','l','C_eff_stacked_pair','C_eff_motif_CG_CAG' )
+    log_derivs_ref =  [ log_deriv_C_init, log_deriv_l, log_deriv_C_eff_stacked_pair, log_deriv_C_eff_motif ]
+    output_test( p, Z_ref, [0,4], bpp_ref, deriv_parameters, log_derivs_ref )
 
     # Try adding symmetric motif
     sequences = ['CAG','CAG']
     params.set_parameter( 'C_eff_motif_NNN_NNN', C_eff_motif )
-    p = partition( sequences, params = params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequences, params = params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, do_enumeration = True )
     Z_ref = (C_std/Kd)*(2 + l**4 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
     bpp_ref = (1 + l**4 * l_BP**2 * C_init/Kd + C_eff_motif/Kd )/(2 + l**4 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
-    #TODO -- fill in derivs!
-    #log_deriv_C_init = (l**2 * l_BP**2 * C_init/Kd ) / (2 + (l**2 * l_BP**2 *C_init/Kd) + C_eff_stacked_pair/Kd )
-    #log_deriv_l = 2 *  log_deriv_C_init
-    #log_deriv_C_eff_stacked_pair = (C_eff_stacked_pair/Kd) / (2 + (l**2 * l_BP**2 *C_init/Kd) + C_eff_stacked_pair/Kd )
-    #deriv_parameters = ('C_init','l','l_BP','C_eff_stacked_pair','C_eff_stack_GC_GC','C_eff_stack_CG_CG','C_eff_stack_CG_GC','C_eff_stack_GC_CG')
-    #log_derivs_ref =  [ log_deriv_C_init, log_deriv_l, log_deriv_l, log_deriv_C_eff_stacked_pair, 0,0,0, log_deriv_C_eff_stacked_pair ]
-    output_test( p, Z_ref, [0,5], bpp_ref )
+    log_deriv_C_init = (l**4 * l_BP**2 * C_init/Kd) /(2 + l**4 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
+    log_deriv_l = 4 * log_deriv_C_init
+    log_deriv_C_eff_stacked_pair = 0
+    log_deriv_C_eff_motif = (C_eff_motif/Kd) /(2 + l**4 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
+    deriv_parameters = ('C_init','l','C_eff_stacked_pair','C_eff_motif_NNN_NNN' )
+    log_derivs_ref =  [ log_deriv_C_init, log_deriv_l, log_deriv_C_eff_stacked_pair, log_deriv_C_eff_motif ]
+    output_test( p, Z_ref, [0,5], bpp_ref, deriv_parameters, log_derivs_ref )
 
     print( 'Testing motif (tetraloop hairpin)' )
     C_eff_motif = 10.0
     params.set_parameter( 'C_eff_motif_CAAAAG', C_eff_motif )
     sequence = 'CAAAAG'
     p = partition( sequence, params = params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, do_enumeration = True )
-    Z_ref = 1 + (C_std/Kd)*l**5 * l_BP  +  C_eff_motif/Kd
-    bpp_ref = ((C_std/Kd)*l**5 * l_BP  +  C_eff_motif/Kd) / Z_ref
-    #TODO -- fill in derivs!
-    #log_deriv_C_init = (l**2 * l_BP**2 * C_init/Kd ) / (2 + (l**2 * l_BP**2 *C_init/Kd) + C_eff_stacked_pair/Kd )
-    #log_deriv_l = 2 *  log_deriv_C_init
-    #log_deriv_C_eff_stacked_pair = (C_eff_stacked_pair/Kd) / (2 + (l**2 * l_BP**2 *C_init/Kd) + C_eff_stacked_pair/Kd )
-    #deriv_parameters = ('C_init','l','l_BP','C_eff_stacked_pair','C_eff_stack_GC_GC','C_eff_stack_CG_CG','C_eff_stack_CG_GC','C_eff_stack_GC_CG')
-    #log_derivs_ref =  [ log_deriv_C_init, log_deriv_l, log_deriv_l, log_deriv_C_eff_stacked_pair, 0,0,0, log_deriv_C_eff_stacked_pair ]
-    output_test( p, Z_ref, [0,5], bpp_ref )
+    Z_ref = 1 + (C_init/Kd)*l**5 * l_BP  +  C_eff_motif/Kd
+    bpp_ref = ((C_init/Kd)*l**5 * l_BP  +  C_eff_motif/Kd) / Z_ref
+    log_deriv_C_init = (C_init/Kd)*l**5 * l_BP / Z_ref
+    log_deriv_l = 5 * log_deriv_C_init
+    log_deriv_C_eff_stacked_pair = 0
+    log_deriv_C_eff_motif = (C_eff_motif/Kd) / Z_ref
+    deriv_parameters = ('C_init','l','C_eff_stacked_pair','C_eff_motif_NNN_NNN','C_eff_motif_CAAAAG' )
+    log_derivs_ref =  [ log_deriv_C_init, log_deriv_l, log_deriv_C_eff_stacked_pair, 0, log_deriv_C_eff_motif ]
+    output_test( p, Z_ref, [0,5], bpp_ref, deriv_parameters, log_derivs_ref )
 
     # test secstruct
     assert( secstruct_from_bps( [(0,5),(1,4)],7 ) == '((..)).' )
