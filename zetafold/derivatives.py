@@ -183,8 +183,12 @@ def get_motif_prob( self, motif_type ):
                             Z_BPq_next = self.Z_BPq[base_pair_type_next]
                             val = motif_type.C_eff * Z_BPq_next.val(i_next,j_next) * self.Z_BPq[ base_pair_type.flipped ].val(j,i) / self.Z
                             # symmetry correction:
-                            if motif_type.get_match_base_pair_type_sets( self.sequence, self.ligated, j_next, i_next ):
-                                val /= 2.0
+                            match_base_pair_type_sets_reverse =  motif_type.get_match_base_pair_type_sets( self.sequence, self.ligated, j_next, i_next )
+                            if match_base_pair_type_sets_reverse:
+                                for (base_pair_reverse,j_reverse,i_reverse) in match_base_pair_type_sets_reverse[0]:
+                                    if (base_pair_reverse,j_reverse,i_reverse) == (base_pair_type.flipped,j,i):
+                                        val /= 2.0
+                                        break
                             motif_prob += val
     return motif_prob
 
