@@ -216,6 +216,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     log_derivs_ref =  [ log_deriv_C_init, log_deriv_l, log_deriv_C_eff_stacked_pair, log_deriv_C_eff_motif ]
     output_test( p, Z_ref, [0,4], bpp_ref, deriv_parameters, log_derivs_ref )
 
+
     # Try adding symmetric motif
     sequences = ['CAG','CAG']
     params.set_parameter( 'C_eff_motif_NNN_NNN', C_eff_motif )
@@ -244,6 +245,10 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     deriv_parameters = ('C_init','l','C_eff_stacked_pair','C_eff_motif_NNN_NNN','C_eff_motif_CAAAAG' )
     log_derivs_ref =  [ log_deriv_C_init, log_deriv_l, log_deriv_C_eff_stacked_pair, 0, log_deriv_C_eff_motif ]
     output_test( p, Z_ref, [0,5], bpp_ref, deriv_parameters, log_derivs_ref )
+
+    params = get_params( 'v0.20' )
+    params.set_parameter( 'C_eff_motif_NN_NNN', C_eff_motif )
+    p = partition( 'GCGACGUUG',deriv_check=True, params=params, structure = '.(.(...))' )
 
     # test secstruct
     assert( secstruct_from_bps( [(0,5),(1,4)],7 ) == '((..)).' )
