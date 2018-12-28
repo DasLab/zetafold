@@ -78,10 +78,10 @@ def get_params_from_file( params_file_tag ):
     '''
     params = AlphaFoldParams()
     params_file = params_file_tag
-    if not os.path.exists( params_file ): params_file = params_file_tag +'.params'
-    if not os.path.exists( params_file ): params_file = os.path.dirname( os.path.abspath(__file__) ) + '/parameters/'+params_file_tag +'.params'
-    if not os.path.exists( params_file ): params_file = os.path.dirname( os.path.abspath(__file__) ) + '/parameters/zetafold_'+params_file_tag +'.params'
-    if not os.path.exists( params_file ):
+    if not os.path.isfile( params_file ): params_file = params_file_tag +'.params'
+    if not os.path.isfile( params_file ): params_file = os.path.dirname( os.path.abspath(__file__) ) + '/parameters/'+params_file_tag +'.params'
+    if not os.path.isfile( params_file ): params_file = os.path.dirname( os.path.abspath(__file__) ) + '/parameters/zetafold_'+params_file_tag +'.params'
+    if not os.path.isfile( params_file ):
         print()
         print( 'Could not find requested parameters:', params_file_tag )
         print( 'Options are: ' )
