@@ -37,7 +37,7 @@ def run_package( example ):
     else:
         cmdline = 'zetafold.py -s %s -params %s --bpp --stochastic 100 --mfe --calc_gap_structure "%s" --bpp_file  %s/bpp.txt.gz > %s/zetafold.out 2> %s/zetafold.err' % (example.sequence,package,example.structure,subdirname,subdirname,subdirname)
         outfile = '%s/zetafold.out' % subdirname
-        if not args.force and os.path.exists( '%s/bpp.txt' % subdirname ): return
+        if not args.force and os.path.exists( '%s/bpp.txt.gz' % subdirname ): return
 
     print cmdline
     os.system( cmdline )
@@ -53,6 +53,11 @@ for package in args.packages:
         os.mkdir( dirname )
 
     for example in examples: example.package = package
+
+    executable = 'contrafold' if package.count( 'contrafold' ) else 'zetafold.py'
+    if os.system( 'which '+executable+' > /dev/null' ) != 0:
+        print '\nHey you need the executable ',executable,'in your path!\n'
+        exit()
 
     pool.map( run_package, examples )
 

@@ -86,9 +86,11 @@ as "--packages" for
 run_packages.py  --data favorites --packages contrafold contrafold-nc
 ```
 
-You'll need to supply a `CONTRAFOLD` variable in your .bashrc like this:
+You'll need to make sure the contrafold exectuable directory (usually `contrafold/src/`) is in your path, i.e. there should be a line in your .bashrc like this:
 
-
+```
+PATH=$PATH:$HOME/src/contrafold/src/
+```
 
 TODO: Vienna, RNAstructure, RNAsoft, etc.
 
