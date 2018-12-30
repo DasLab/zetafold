@@ -15,7 +15,7 @@ parser.add_argument("-params","--parameters", type=str, help='Parameter file to 
 parser.add_argument("--train_data", type=str, help="Training data to use. Give none to get list.")
 parser.add_argument("--train_params", help="Parameters to optimize. Give none to get list.", nargs='*')
 parser.add_argument("--train_params_exclude", help="Parameters to optimize. Give none to get list.", nargs='*')
-parser.add_argument("--jobs","-j", type=int, default=4, help='Number of jobs to run in parallel')
+parser.add_argument("--jobs","-j", type=int, default=1, help='Number of jobs to run in parallel')
 parser.add_argument("--outfile","-out","-o", type=str, help='Outfile to save loss/variables during training')
 parser.add_argument("--final_params_file",type=str,default='final.params',help="Name of params file for outputting final",nargs='*')
 parser.add_argument("--use_derivs","-d", action='store_true', help='Use analytical derivatives during training')
