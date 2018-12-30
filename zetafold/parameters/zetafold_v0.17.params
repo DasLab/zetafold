@@ -1,3 +1,4 @@
+# Parameters after introducing separate C_eff_stack's for GU and strict canonicals; optimization on tRNA and P4-P6, further tweak K_coax by hand
 name     zetafold
 version  0.17
 

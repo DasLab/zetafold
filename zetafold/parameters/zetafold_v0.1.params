@@ -1,6 +1,6 @@
+# Starting parameters based purely on Turner measurements and a little guesswork.
 name     zetafold
 version  0.1
-
 # global settings
 # Disallow apical loops smaller than this size (integer)
 min_loop_length    3

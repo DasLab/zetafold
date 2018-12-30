@@ -1,4 +1,4 @@
-# derived from training on contrafold RFAM-splitB-under200
+# derived from training model with all AU/GC/GU stacks separately optimized on contrafold RFAM-splitB-under200
 name zetafold
 version 0.20
 min_loop_length 3

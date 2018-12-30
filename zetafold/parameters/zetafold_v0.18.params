@@ -1,3 +1,5 @@
+# Parameters after introducing separate C_eff_stack's for GU and strict canonicals
+# Derivative-based optimization on tRNA and P4-P6, K_coax optimizes to zero, so set it to zero.
 name     zetafold
 version  0.18
 
