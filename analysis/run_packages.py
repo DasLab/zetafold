@@ -5,22 +5,21 @@ from zetafold.training import *
 from multiprocessing import Pool
 import __builtin__
 
-parser = argparse.ArgumentParser( description = "Test nearest neighbor model partitition function for RNA sequence" )
-parser.add_argument("-params","--parameters", type=str, help='Parameter file to use [default: use latest zetafold version]')
+parser = argparse.ArgumentParser( description = "Run nearest neighbor modeling package to get base pairing probability matrix for RNA sequence" )
+parser.add_argument("-p","--packages", type=str, help='Packages to use -- could be zetafold .params files, or contrafold',nargs='*')
 parser.add_argument("--data", type=str, help="Data to use. Give none to get list.")
 parser.add_argument("-f","--force", action='store_true', help="Overwrite prior output.")
-parser.add_argument("--jobs","-j", type=int, default=4, help='Number of jobs to run in parallel')
+parser.add_argument("--jobs","-j", type=int, default=1, help='Number of jobs to run in parallel')
 args     = parser.parse_args()
 
 examples = initialize_training_examples( all_training_examples, training_sets, training_set_names, args.data )
 
-dirname = os.path.basename(args.parameters).replace( '.params', '' )
-if not os.path.exists(dirname):
-    print 'Creating directory: ', dirname
-    os.mkdir( dirname )
-
 def run_package( example ):
+    package = example.package
+    dirname = os.path.basename(package).replace( '.params', '' )
+    assert( os.path.exists( dirname ) )
     subdirname = dirname+'/'+example.name
+
     if not os.path.exists( subdirname ):
         print 'Creating directory: ', subdirname
         os.mkdir( subdirname )
@@ -36,7 +35,7 @@ def run_package( example ):
         outfile = '%s/contrafold.out' % subdirname
         if not args.force and os.path.exists( '%s/posteriors.txt' % subdirname ): return
     else:
-        cmdline = 'zetafold.py -s %s -params %s --bpp --stochastic 100 --mfe --calc_gap_structure "%s" --allow_extra_base_pairs --bpp_file  %s/bpp.txt > %s/zetafold.out 2> %s/zetafold.err' % (example.sequence,args.parameters,example.structure,subdirname,subdirname,subdirname)
+        cmdline = 'zetafold.py -s %s -params %s --bpp --stochastic 100 --mfe --calc_gap_structure "%s" --bpp_file  %s/bpp.txt.gz > %s/zetafold.out 2> %s/zetafold.err' % (example.sequence,package,example.structure,subdirname,subdirname,subdirname)
         outfile = '%s/zetafold.out' % subdirname
         if not args.force and os.path.exists( '%s/bpp.txt' % subdirname ): return
 
@@ -47,4 +46,13 @@ def run_package( example ):
 pool = __builtin__
 if args.jobs > 1: pool = Pool( args.jobs )
 
-pool.map( run_package, examples )
+for package in args.packages:
+    dirname = os.path.basename(package).replace( '.params', '' )
+    if not os.path.exists(dirname):
+        print 'Creating directory: ', dirname
+        os.mkdir( dirname )
+
+    for example in examples: example.package = package
+
+    pool.map( run_package, examples )
+

@@ -32,8 +32,8 @@ also in your `.bashrc`. Be sure to update the paths above to point to your actua
 To run packages and accumulate output in subdirectories:
 
 ```
-run_packages.py  --data favorites -params zetafold_v0.171 -j4
-run_packages.py  --data favorites -params zetafold_v0.18 -j4
+run_packages.py  --data favorites --packages zetafold_v0.171 -j4
+run_packages.py  --data favorites --packages zetafold_v0.18 -j4
 ```
 
 (the '-j4' means use 4 cores)
@@ -78,7 +78,15 @@ BPP defect
 
 ## Other packages
 
-Also can supply `contrafold` and `contrafold-nc` as "--parameters" for `run_packages.py`. You'll need to supply a `CONTRAFOLD` variable in your .bashrc like this:
+Also can supply `contrafold` and `contrafold-nc` (contrafold with noncomplementary parameter set, i.e. allowing noncanonicals) 
+as "--packages" for 
+`run_packages.py`, e.g.: 
+
+```
+run_packages.py  --data favorites --packages contrafold contrafold-nc
+```
+
+You'll need to supply a `CONTRAFOLD` variable in your .bashrc like this:
 
 
 

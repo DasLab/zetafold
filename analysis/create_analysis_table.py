@@ -4,6 +4,7 @@ from zetafold.data.training_examples import *
 from zetafold.training import *
 from zetafold.util.secstruct_util import *
 from multiprocessing import Pool
+import gzip
 import __builtin__
 
 parser = argparse.ArgumentParser( description = "Test nearest neighbor model partitition function for RNA sequence" )
@@ -15,7 +16,10 @@ examples = initialize_training_examples( all_training_examples, training_sets, t
 
 
 def read_bpp_file( bpp_file ):
-    lines = open(bpp_file).readlines()
+    if len( bpp_file ) > 3 and bpp_file[-3:] == '.gz':
+        lines = gzip.open( bpp_file ).readlines()
+    else:
+        lines = open(bpp_file).readlines()
     bpp = []
     for line in lines:
         bpp_line = [ float(val) for val in line[:-1].split() ]
@@ -46,12 +50,16 @@ for package in args.packages:
     bpp_defects[ package ] = {}
     for example in examples:
         subdirname = package+'/'+example.name
-        if os.path.isfile( subdirname + '/bpp.txt' ):
-            bpp = read_bpp_file( subdirname+'/bpp.txt' )
-        elif package == 'contrafold' or package == 'contrafold-nc':
-            assert( os.path.isfile( subdirname+'/posteriors.txt' ) )
-            bpp = read_posteriors_file( subdirname+'/posteriors.txt'  )
-        else:
+        bpp = None
+        for bpp_file in [subdirname + '/bpp.txt.gz', subdirname + '/bpp.txt']:
+            if os.path.isfile( bpp_file ):
+                bpp = read_bpp_file( bpp_file )
+                break
+        if bpp == None:
+            # package == 'contrafold' or package == 'contrafold-nc'
+            if os.path.isfile( subdirname+'/posteriors.txt' ):
+                bpp = read_posteriors_file( subdirname+'/posteriors.txt'  )
+        if bpp == None:
             print 'COULD NOT FIND bpp.txt for: ', example.name, ' with package ', package
             exit()
         bps = bps_from_secstruct( example.structure )

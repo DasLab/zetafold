@@ -3,6 +3,7 @@ import math
 from .constants import KT_IN_KCAL
 from .assert_equal import assert_equal
 import sys
+import gzip
 
 def _show_results( self ):
     fid = sys.stdout
@@ -44,7 +45,11 @@ def write_string_with_spaces( sequence, ligated, fid ):
 def output_bpp_matrix( self ):
     bpp_file = 'bpp.txt'
     if self.bpp_file: bpp_file = self.bpp_file
-    fid = open( bpp_file, 'w' )
+    if len(bpp_file)>3 and bpp_file[-3:] == '.gz':
+        fid = gzip.open( bpp_file, 'w' )
+    else:
+        fid = open( bpp_file, 'w' )
+
     for i in range( self.N ):
         for j in range( self.N ):
             fid.write(' %25.12f' % self.bpp[i][j] )
