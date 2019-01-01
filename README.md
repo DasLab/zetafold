@@ -22,6 +22,7 @@ This code brings together features pioneered in (but scattered across) prior pac
  * Enumerative backtracking to get all structures and their Boltzmann weights
  * Stochastic backtracking to get Boltzmann-sampled structures
  * Minimum free energy structures
+ * Rapid calculation of gradients to enable efficient learning from large data sets
  * Generalized base pairs (e.g., both Watson-Crick and Sugar/Hoogsteen G-A pairs) (_coming soon_)
  * 'Classic' Turner2004 & ContraFold parameters (_coming soon_)
  * Modeling of ligand/protein binding to RNA hairpins and internal loops (_coming soon_)
@@ -29,7 +30,6 @@ This code brings together features pioneered in (but scattered across) prior pac
  
 This code also presents entirely new features, based on recent theoretical insights from R. Das & laboratory:
  * Cross-checks based on computation of the partition function `N` different ways for each RNA.
- * Efficient learning from large data sets through stochastic gradient-based calculations
  * Loop penalties that rise like the logarithm of the number of loop nucleotides, still in `N^3` time (_coming soon_)
  * Parameters for chemically modified bases, and some modified backbones, based on Rosetta calculations (_coming soon_)
  * Linear motifs identified by Rosetta or by crystallography as having favorable energy bonuses (_coming soon_)
@@ -48,9 +48,14 @@ Clone this repository, and just type:
 ```
 to run tests on a bunch of example sequences.
 
-To run on tRNA(phe) from yeast:
+To run on tRNA(phe) from yeast and get a (pseudo)MFE structure:
 ```
-./zetafold.py -s GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA
+./zetafold.py -s GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA --mfe
+```
+
+To get base pair probabilities for tRNA(phe) from yeast (takes about 2x the computation):
+```
+./zetafold.py -s GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA --bpp
 ```
 
 To circularize:
@@ -64,7 +69,7 @@ To run on a multi-strand system, type:
 ./zetafold.py -s GCAACG CGAAGC
 ```
 
-To re-run tRNA in a totally weird way:
+To re-run tRNA as a totally weird circular permutation:
 ```
 ./zetafold.py -s UGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGAC --circle
 ```
