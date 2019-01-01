@@ -1,5 +1,5 @@
 # ZetaFold
-(C) R. Das, Stanford University 2018
+(C) R. Das & Das laboratory, Stanford University 2018-2019
 
 ## What this is
 A Python package for modeling the statistical physics of RNA folding at the secondary structure level. 
