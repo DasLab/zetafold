@@ -89,17 +89,17 @@ def max_contrib(contribs):
 
 def print_contrib( contrib ):
     sys.stdout.write('[')
-    print '%s:' % contrib[0],
+    print('%s:' % contrib[0])
     for n,backtrack_info in enumerate(contrib[1]):
         sys.stdout.write( '%s(%d,%d)' % (backtrack_info[0].name,backtrack_info[1],backtrack_info[2]) )
         if n < len( contrib[1] )-1: sys.stdout.write(',')
     sys.stdout.write(']')
 
 def print_contribs( contribs ):
-    print '[ ',
+    print('[ ')
     for contrib in contribs[:-1]:
         print_contrib( contrib )
-        print '; ',
+        print('; ')
     print_contrib( contribs[-1] )
-    print ' ]'
+    print('%s\n' % ' ]')
     return

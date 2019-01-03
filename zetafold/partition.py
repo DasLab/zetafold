@@ -10,7 +10,7 @@ from zetafold.util.sequence_util  import initialize_sequence_and_ligated, initia
 from zetafold.util.constants import KT_IN_KCAL
 from zetafold.util.assert_equal import assert_equal
 from zetafold.derivatives import _get_log_derivs
-import score_structure
+import zetafold.score_structure
 from math import log, exp
 
 ##################################################################################################

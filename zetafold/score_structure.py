@@ -5,7 +5,7 @@ from math import log,exp
 import sys
 import os
 if __package__ == None: sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import partition
+import zetafold.partition
 from zetafold.parameters import get_params
 from zetafold.util import sequence_util
 from zetafold.util import secstruct_util

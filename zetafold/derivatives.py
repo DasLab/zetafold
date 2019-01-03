@@ -82,7 +82,8 @@ def _get_log_derivs( self, deriv_parameters = [] ):
                     coax_prob += self.Z_coax.val(i,j) * self.params.l_coax * self.params.l**2 * C_eff_for_coax.val(j+1,i-1) / Z
             derivs[ n ] = coax_prob
         else:
-            print "Did not recognize parameter ", parameter
+            print("%s" % "Did not recognize parameter ")
+            print(parameter)
             pass
 
     return derivs
