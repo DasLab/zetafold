@@ -60,7 +60,7 @@ for package in args.packages:
             if os.path.isfile( subdirname+'/posteriors.txt' ):
                 bpp = read_posteriors_file( subdirname+'/posteriors.txt'  )
         if bpp == None:
-            print 'COULD NOT FIND bpp.txt for: ', example.name, ' with package ', package
+            print 'COULD NOT FIND bpp.txt, bpp.txt.gz, posteriors.txt for: ', example.name, ' with package ', package
             print ' Did you run run_packages.py --data ', args.data, ' --packages ', package, '?'
             exit()
         bps = bps_from_secstruct( example.structure )
