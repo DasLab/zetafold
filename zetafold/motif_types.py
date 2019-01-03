@@ -1,4 +1,4 @@
-from base_pair_types import get_base_pair_types_for_tag
+from zetafold.base_pair_types import get_base_pair_types_for_tag
 
 class MotifType:
     def __init__( self, strands, bp_tags, C_eff, params ):
@@ -98,7 +98,7 @@ class MotifType:
                 if not ligated[ (j-len(self.strands[-1])+1+q)%N ]: return None
 
         if M > 2:
-            print 'Cannot handle 3WJ or 4WJ motifs yet!'
+            print('%s\n' % 'Cannot handle 3WJ or 4WJ motifs yet!')
             exit()
 
         # redundant with start_base_pair_type -- using as cross check
