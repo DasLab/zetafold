@@ -23,7 +23,7 @@ def _show_results( self ):
         show_derivs( self.deriv_params, self.log_derivs )
     if self.bpp and not self.suppress_bpp_output:
         output_bpp_matrix( self )
-        if not bpp_file: output_bpp_plot( self )
+        if not self.bpp_file: output_bpp_plot( self )
 
 def write_result( tag, variable, ligated, fid ):
     if variable == None: return
