@@ -23,7 +23,7 @@ def _show_results( self ):
         show_derivs( self.deriv_params, self.log_derivs )
     if self.bpp and not self.suppress_bpp_output:
         output_bpp_matrix( self )
-        if not self.bpp_file: output_bpp_plot( self )
+        if not self.bpp_file: output_bpp_plot_pretty( self )
 
 def write_result( tag, variable, ligated, fid ):
     if variable == None: return
@@ -65,6 +65,45 @@ def output_bpp_plot( self ):
     bpp_fig_file = 'bpp.png'
     plt.savefig( bpp_fig_file )
     print( 'Outputted base pair probability heatmap to: ', bpp_fig_file )
+
+def output_bpp_plot_pretty( self, output_thresh = 0.2 ):
+    import matplotlib.pyplot as plt
+    import matplotlib
+    import numpy as np
+
+    n_colors = 100
+    tick_int = 16
+
+    # Make a color palette to match NUPACK bpp matrix coloring
+    # Spectrum is blue for low bpp probability, red for high
+    cmap =matplotlib.cm.get_cmap('jet')
+    normalize = matplotlib.colors.Normalize(vmin=0, vmax=1)
+    colors = [[cmap(normalize(j)) for j in i] for i in self.bpp]
+
+    # Make bpp plot
+    fig, ax = plt.subplots()
+    for i in range(self.N):
+        for j in range(self.N):
+            if (self.bpp[i][j] > output_thresh):
+                ax.scatter(i, self.N - j, alpha=0.70, color=colors[i][j])
+    
+    # Set reasonable tick interval and reverse y axis
+    tick_locs = np.arange(0,self.N+1,tick_int)
+    ax.set_xticks(tick_locs)
+    ax.set_xticklabels(tick_locs)
+    ticks_covered = tick_int*int(self.N/tick_int)
+    rev_tick_locs = np.arange(self.N - ticks_covered,self.N + 1,tick_int)
+    ax.set_yticks(rev_tick_locs)
+    ax.set_yticklabels(rev_tick_locs[::-1])
+
+    ax.set_title('BP Probabilities')
+
+    cax, _ = matplotlib.colorbar.make_axes(ax)
+    cbar = matplotlib.colorbar.ColorbarBase(cax, cmap=cmap, norm=normalize)
+    cbar.set_ticks([0,1])
+    cbar.set_ticklabels([0,1])
+    plt.axis('scaled')
+    plt.show()
 
 def show_derivs( deriv_params, log_derivs ):
     print( '%20s %25s' % ('parameter','d(logZ)/d(log parameter)' ) )
