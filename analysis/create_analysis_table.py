@@ -71,6 +71,35 @@ def read_ppairs_file( ppairs_file ):
     for p in p_tot: assert( abs(1.0-p)<1.0e-3 ) # Sanity Check
     return bpp
 
+def read_dp_ps_file( dp_ps_file ):
+    lines = open( dp_ps_file ).readlines()
+    sequence_line = False
+    sequence = ''
+    for line in lines:
+        if len( line ) < 2: continue
+        if len( line ) > 2 and line[:9] == '/sequence':
+            sequence_line = True
+            continue
+        if sequence_line:
+            sequence += line[:-2]
+            if line.count( '}' ):
+                sequence_line = False
+                N = len( sequence )
+                bpp = [None]*N
+                for i in range( N ): bpp[ i ] = [0.0]*N
+        if line[0] == '\%': continue
+        cols = line[:-1].split()
+        if len( cols ) != 4: continue
+        if cols[-1] != 'ubox': continue
+        i = int( cols[0] )
+        j = int( cols[1] )
+        val = float( cols[2] )**2
+        if i > N or j > N:
+            print 'HEY!!', dp_ps_file, i, j, N
+        bpp[i-1][j-1] = val
+        bpp[j-1][i-1] = val
+    return bpp
+
 ensemble_defects = {}
 bpp_defects = {}
 for package in args.packages:
@@ -83,14 +112,15 @@ for package in args.packages:
             if os.path.isfile( bpp_file ):
                 bpp = read_bpp_file( bpp_file )
                 break
-        if bpp == None:
-            # package == 'contrafold' or package == 'contrafold-nc'
+        if bpp == None: # contrafold
             if os.path.isfile( subdirname+'/posteriors.txt' ):
                 bpp = read_posteriors_file( subdirname+'/posteriors.txt'  )
-        if bpp == None:
-            # package == 'contrafold' or package == 'contrafold-nc'
+        if bpp == None: # nupack
             if os.path.isfile( subdirname+'/%s.ppairs' % example.name ):
                 bpp = read_ppairs_file( subdirname+'/%s.ppairs' % example.name  )
+        if bpp == None: # vienna
+            if os.path.isfile( subdirname+'/%s_dp.ps' % example.name ):
+                bpp = read_dp_ps_file( subdirname+'/%s_dp.ps' % example.name  )
         if bpp == None:
             print 'COULD NOT FIND bpp.txt, bpp.txt.gz, posteriors.txt for: ', example.name, ' with package ', package
             print ' Did you run run_packages.py --data ', args.data, ' --packages ', package, '?'

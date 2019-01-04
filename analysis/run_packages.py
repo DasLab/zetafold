@@ -38,6 +38,11 @@ def run_package( example ):
         cmdline = 'contrafold predict %s %s --parens %s/secstruct.txt --posteriors 0.00001 %s/posteriors.txt > %s/contrafold.out 2> %s/contrafold.err' % (fasta,noncomplementaryflag,subdirname,subdirname,subdirname,subdirname)
         outfile = '%s/contrafold.out' % subdirname
         if not args.force and os.path.exists( '%s/posteriors.txt' % subdirname ): return
+    elif dirname == 'vienna':
+        fasta = make_fasta_file( subdirname, example )
+        cmdline = 'RNAfold -p %s >  %s/vienna.out 2> %s/vienna.err; mv %s_dp.ps %s' % (fasta,subdirname,subdirname,example.name,subdirname)
+        outfile = '%s/vienna.out' % subdirname
+        if not args.force and os.path.exists( '%s/%s_dp.ps' % (subdirname,example.name) ): return
     elif dirname == 'nupack' or dirname == 'nupack95':
         infile = '%s/%s.in' % (subdirname,example.name)
         fid = open( infile, 'w' )
@@ -73,7 +78,10 @@ for package in args.packages:
 
     for example in examples: example.package = package
 
-    executable = 'contrafold' if package.count( 'contrafold' ) else 'zetafold.py'
+    executable = 'zetafold.py'
+    if package.count( 'contrafold' ): executable = 'contrafold'
+    if package.count( 'nupack' ): executable = 'pairs'
+    if package.count( 'vienna' ): executable = 'RNAfold'
     if os.system( 'which '+executable+' > /dev/null' ) != 0:
         print '\nHey you need the executable ',executable,'in your path!\n'
         exit()
