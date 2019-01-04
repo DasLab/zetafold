@@ -43,6 +43,34 @@ def read_posteriors_file( posteriors_file ):
             bpp[j-1][i-1] = val
     return bpp
 
+def read_ppairs_file( ppairs_file ):
+    lines = open( ppairs_file ).readlines()
+    in_data = False
+    for line in lines:
+        if len( line ) < 2: continue
+        if len( line ) > 2 and line[0] != '%' and not in_data:
+            in_data = True
+            N = int( line[:-1] )
+            p_unpaired = [0.0]*N
+            bpp = [None]*N
+            for i in range( N ): bpp[ i ] = [0.0]*N
+            continue
+        if not in_data: continue
+        cols = line[:-1].split()
+        i = int( cols[0] )
+        j = int( cols[1] )
+        val = float( cols[2] )
+        if ( j == N+1 ):
+            p_unpaired[i-1] = val
+        else:
+            assert( j <= N )
+            bpp[i-1][j-1] = val
+            bpp[j-1][i-1] = val
+    p_paired = [sum( x ) for x in bpp]
+    p_tot = [ x[0]+x[1] for x in zip( p_paired, p_unpaired ) ]
+    for p in p_tot: assert( abs(1.0-p)<1.0e-3 ) # Sanity Check
+    return bpp
+
 ensemble_defects = {}
 bpp_defects = {}
 for package in args.packages:
@@ -60,6 +88,10 @@ for package in args.packages:
             if os.path.isfile( subdirname+'/posteriors.txt' ):
                 bpp = read_posteriors_file( subdirname+'/posteriors.txt'  )
         if bpp == None:
+            # package == 'contrafold' or package == 'contrafold-nc'
+            if os.path.isfile( subdirname+'/%s.ppairs' % example.name ):
+                bpp = read_ppairs_file( subdirname+'/%s.ppairs' % example.name  )
+        if bpp == None:
             print 'COULD NOT FIND bpp.txt, bpp.txt.gz, posteriors.txt for: ', example.name, ' with package ', package
             print ' Did you run run_packages.py --data ', args.data, ' --packages ', package, '?'
             exit()
@@ -71,7 +103,7 @@ for package in args.packages:
         ensemble_defect = bpp_defect * 2.0
         N = 2* len(bps)
         bpp_sum = [sum(x) for x in bpp]
-        for s in bpp_sum: assert( s >= 0.0 and s <= 1.0 )
+        for s in bpp_sum: assert( s >= 0.0 and s <= 1.001 )
         for (i,char) in enumerate( example.structure ):
             if char == '.':
                 N += 1
