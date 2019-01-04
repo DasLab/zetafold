@@ -276,8 +276,17 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     print()
     print( 'Do deriv-check on small but complex case' )
     sequence = 'GCUCAGUGAGAGC'
-    print("Testing score_structure on short sequence, full parameters with AA added in for good measure: ", sequence, structure)
+    print("Testing partition on short sequence, full parameters with AA added in for good measure: ", sequence, structure)
     #params = get_params()
+    params.set_parameter( 'Kd_AA', 1000 )
+    params.set_parameter( 'C_eff_stack_CG_AA', 100000 )
+    dG = partition( sequence, deriv_check=True, params = params  ) # deriv_check runs asserts
+
+    print()
+    print( 'Do deriv-check on small but complex case' )
+    sequence = 'GCUCAGUGAGAGC'
+    print("Testing partition on short sequence, full parameters with AA added in for good measure, based of zetafold v0.18: ", sequence, structure)
+    params = get_params( 'v0.18' )
     params.set_parameter( 'Kd_AA', 1000 )
     params.set_parameter( 'C_eff_stack_CG_AA', 100000 )
     dG = partition( sequence, deriv_check=True, params = params  ) # deriv_check runs asserts
