@@ -64,7 +64,7 @@ def run_package( example ):
 
 if args.packages == None:
     print 'Specify --packages. Available packages: '
-    for package in ['nupack','nupack95','contrafold','contrafold-nc','zetafold_v0.18','Any zetafold parameter file']: print ' ',package
+    for package in ['nupack','nupack95','vienna','contrafold','contrafold-nc','zetafold_v0.18','Any zetafold parameter file']: print ' ',package
     exit()
 
 pool = __builtin__
