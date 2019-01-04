@@ -71,6 +71,7 @@ for package in args.packages:
         ensemble_defect = bpp_defect * 2.0
         N = 2* len(bps)
         bpp_sum = [sum(x) for x in bpp]
+        for s in bpp_sum: assert( s >= 0.0 and s <= 1.0 )
         for (i,char) in enumerate( example.structure ):
             if char == '.':
                 N += 1
