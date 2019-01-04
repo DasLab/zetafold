@@ -246,7 +246,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     log_derivs_ref =  [ log_deriv_C_init, log_deriv_l, log_deriv_C_eff_stacked_pair, 0, log_deriv_C_eff_motif ]
     output_test( p, Z_ref, [0,5], bpp_ref, deriv_parameters, log_derivs_ref )
 
-    params = get_params( 'v0.20' )
+    params = get_params( 'deprecated/zetafold_v0.20' )
     params.set_parameter( 'C_eff_motif_NN_NNN', C_eff_motif )
     p = partition( 'GCGACGUUG',deriv_check=True, params=params, structure = '.(.(...))' )
 
@@ -277,7 +277,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
     print( 'Do deriv-check on small but complex case' )
     sequence = 'GCUCAGUGAGAGC'
     print("Testing score_structure on short sequence, full parameters with AA added in for good measure: ", sequence, structure)
-    params = get_params()
+    #params = get_params()
     params.set_parameter( 'Kd_AA', 1000 )
     params.set_parameter( 'C_eff_stack_CG_AA', 100000 )
     dG = partition( sequence, deriv_check=True, params = params  ) # deriv_check runs asserts
