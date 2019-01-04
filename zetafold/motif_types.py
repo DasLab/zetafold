@@ -167,7 +167,7 @@ def check_equivalent_C_eff_stack_for_motif_type( strands, bp_tags = None):
         (strands,bp_tags) = parse_motif_type_tag( strands )
 
     if len(strands) == 2 and len( strands[0] ) == 2 and len( strands[1] ) == 2:
-        tag1 = bp_tags[0] if bp_tags[0] != None else strands[0][0]+strands[1][1]
-        tag2 = bp_tags[1] if bp_tags[1] != None else strands[0][1]+strands[1][0]
+        tag1 = bp_tags[1] if bp_tags[1] != None else strands[0][0]+strands[1][1]
+        tag2 = bp_tags[0] if bp_tags[0] != None else strands[0][1]+strands[1][0]
         return 'C_eff_stack_%s_%s' % (tag1, tag2)
     return None
