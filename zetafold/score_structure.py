@@ -53,7 +53,7 @@ def score_structure( sequences, structure, circle = False, params = None, test_m
             motif_bps_list.append( (motif_res.index(i), motif_res.index(j)) )
         motif_structure = secstruct_util.secstruct_from_bps( motif_bps_list, len( motif_res ) )
 
-        p = partition.partition( motif_sequences, circle = motif_circle, structure = motif_structure, params = params, suppress_all_output = True, deriv_params = deriv_params, allow_extra_base_pairs = allow_extra_base_pairs )
+        p = zetafold.partition.partition( motif_sequences, circle = motif_circle, structure = motif_structure, params = params, suppress_all_output = True, deriv_params = deriv_params, allow_extra_base_pairs = allow_extra_base_pairs )
         Z_motif = p.Z
         log_derivs_motif = p.log_derivs
 
@@ -93,7 +93,7 @@ def score_structure( sequences, structure, circle = False, params = None, test_m
 
     if test_mode:
         # Reference value from 'hacked' dynamic programming, which takes a while.
-        p = partition.partition( sequences, circle = circle, structure = structure, params = params, suppress_all_output = True, deriv_params = deriv_params, allow_extra_base_pairs = allow_extra_base_pairs )
+        p = zetafold.partition.partition( sequences, circle = circle, structure = structure, params = params, suppress_all_output = True, deriv_params = deriv_params, allow_extra_base_pairs = allow_extra_base_pairs )
         print('From dynamic programming:', p.Z)
         assert_equal( Z, p.Z )
         print()
