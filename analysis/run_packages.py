@@ -69,7 +69,9 @@ def run_package( example ):
         elif dirname == 'rnasoftBLFRstar': # THIS IS GIVING WACKY RESULTS
             if 'ANDRONESCU_DATA' not in os.environ:
                 print 'Need to defined ANDRONESCU DATA through a line like\nexport ANDRONESCU_DATA=$HOME/projects/RNA/zetafold_tests/other_packages/andronescu/Andronescu2007_results_data_script/data\n in your .bashrc'
-            parameter_file = os.environ[ 'ANDRONESCU_DATA' ] +'parameters_BLFRstar.txt'
+            parameter_file = os.environ[ 'ANDRONESCU_DATA' ] +'/parameters_BLFRstar.txt'
+        elif dirname == 'rnasoftBLstar':
+            parameter_file = os.environ[ 'ANDRONESCU_DATA' ] +'/parameters_BLstar.txt'
         else:
             print 'Need to specify rnasoft99, rnasoft77, rnasoftBLFRstar'
         parameter_flag = '-p %s' % parameter_file
