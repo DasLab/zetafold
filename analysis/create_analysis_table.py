@@ -94,8 +94,20 @@ def read_dp_ps_file( dp_ps_file ):
         i = int( cols[0] )
         j = int( cols[1] )
         val = float( cols[2] )**2
-        if i > N or j > N:
-            print 'HEY!!', dp_ps_file, i, j, N
+        bpp[i-1][j-1] = val
+        bpp[j-1][i-1] = val
+    return bpp
+
+def read_probability_plot_file( probability_plot_file ):
+    lines = open( probability_plot_file ).readlines()
+    N = int( lines[0][:-1] )
+    bpp = [None]*N
+    for i in range( N ): bpp[ i ] = [0.0]*N
+    for line in lines[2:]:
+        cols = line[:-1].split()
+        i = int( cols[0] )
+        j = int( cols[1] )
+        val = 10.0 ** (-float( cols[2] ))
         bpp[i-1][j-1] = val
         bpp[j-1][i-1] = val
     return bpp
@@ -108,21 +120,13 @@ for package in args.packages:
     for example in examples:
         subdirname = package+'/'+example.name
         bpp = None
-        for bpp_file in [subdirname + '/bpp.txt.gz', subdirname + '/bpp.txt']:
-            if os.path.isfile( bpp_file ):
-                bpp = read_bpp_file( bpp_file )
-                break
-        if bpp == None: # contrafold
-            if os.path.isfile( subdirname+'/posteriors.txt' ):
-                bpp = read_posteriors_file( subdirname+'/posteriors.txt'  )
-        if bpp == None: # nupack
-            if os.path.isfile( subdirname+'/%s.ppairs' % example.name ):
-                bpp = read_ppairs_file( subdirname+'/%s.ppairs' % example.name  )
-        if bpp == None: # vienna
-            if os.path.isfile( subdirname+'/%s_dp.ps' % example.name ):
-                bpp = read_dp_ps_file( subdirname+'/%s_dp.ps' % example.name  )
+        readin_func = { 'bpp.txt':read_bpp_file,'bpp.txt.gz':read_bpp_file,\
+                        'posteriors.txt':read_posteriors_file, '%s.ppairs' % example.name : read_ppairs_file,
+                        '%s_dp.ps' % example.name : read_dp_ps_file, 'probability_plot.txt': read_probability_plot_file }
+        for bpp_file in readin_func.keys():
+            if os.path.isfile( subdirname + '/' + bpp_file ):  bpp = readin_func[bpp_file]( subdirname + '/' + bpp_file )
         if bpp == None:
-            print 'COULD NOT FIND bpp.txt, bpp.txt.gz, posteriors.txt for: ', example.name, ' with package ', package
+            print 'COULD NOT FIND ',readin_func.keys(),' for: ', example.name, ' with package ', package
             print ' Did you run run_packages.py --data ', args.data, ' --packages ', package, '?'
             exit()
         bps = bps_from_secstruct( example.structure )

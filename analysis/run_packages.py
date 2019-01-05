@@ -53,6 +53,14 @@ def run_package( example ):
         cmdline = 'pairs %s/%s %s --cutoff 0.00001 > %s/nupack.out 2> %s/nupack.err' % (subdirname,example.name,params_flag,subdirname,subdirname)
         outfile = '%s/nupack.out' % subdirname
         if not args.force and os.path.exists( '%s/%s.ppairs' % (subdirname,example.name) ): return
+    elif dirname == 'rnastructure':
+        infile = '%s/%s.seq' % (subdirname,example.name)
+        fid = open( infile, 'w' )
+        fid.write( ';\n%s\n\n%s1\n' % (example.name,example.sequence) )
+        fid.close()
+        cmdline = 'partition %s/%s.seq %s/%s.pfs > %s/rnastructure.out 2> %s/rnastructure.err; ProbabilityPlot %s/%s.pfs -T %s/probability_plot.txt' % (subdirname,example.name,subdirname,example.name,subdirname,subdirname,subdirname,example.name,subdirname)
+        outfile = '%s/rnastructure.out' % subdirname
+        if not args.force and os.path.exists( '%s/probability_plot.txt' % (subdirname) ): return
     else:
         cmdline = 'zetafold.py -s %s -params %s --bpp --stochastic 100 --mfe --calc_gap_structure "%s" --bpp_file  %s/bpp.txt.gz > %s/zetafold.out 2> %s/zetafold.err' % (example.sequence,package,example.structure,subdirname,subdirname,subdirname)
         outfile = '%s/zetafold.out' % subdirname
@@ -64,7 +72,7 @@ def run_package( example ):
 
 if args.packages == None:
     print 'Specify --packages. Available packages: '
-    for package in ['nupack','nupack95','vienna','contrafold','contrafold-nc','zetafold_v0.18','Any zetafold parameter file']: print ' ',package
+    for package in ['nupack','nupack95','vienna','rnastructure','contrafold','contrafold-nc','zetafold_v0.18','Any zetafold parameter file']: print ' ',package
     exit()
 
 pool = __builtin__
@@ -82,8 +90,9 @@ for package in args.packages:
     if package.count( 'contrafold' ): executable = 'contrafold'
     if package.count( 'nupack' ): executable = 'pairs'
     if package.count( 'vienna' ): executable = 'RNAfold'
+    if package.count( 'rnastructure' ): executable = 'partition'
     if os.system( 'which '+executable+' > /dev/null' ) != 0:
-        print '\nHey you need the executable ',executable,'in your path!\n'
+        print '\nFor',package,', you need the executable ',executable,'in your path!\n'
         exit()
 
     pool.map( run_package, examples )
