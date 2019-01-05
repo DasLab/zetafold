@@ -14,7 +14,6 @@ args     = parser.parse_args()
 
 examples = initialize_training_examples( all_training_examples, training_sets, training_set_names, args.data )
 
-
 def read_bpp_file( bpp_file ):
     if len( bpp_file ) > 3 and bpp_file[-3:] == '.gz':
         lines = gzip.open( bpp_file ).readlines()
@@ -112,6 +111,23 @@ def read_probability_plot_file( probability_plot_file ):
         bpp[j-1][i-1] = val
     return bpp
 
+def read_simfold_file( simfold_file ):
+    if len( simfold_file ) > 3 and simfold_file[-3:] == '.gz':
+        lines = gzip.open( simfold_file ).readlines()
+    else:
+        lines = open( simfold_file ).readlines()
+    N = len( lines[0][:-1].split()[-1] )
+    bpp = [None]*N
+    for i in range( N ): bpp[ i ] = [0.0]*N
+    for line in lines[5:]:
+        cols = line[:-1].split()
+        i = int( cols[0] )
+        j = int( cols[1] )
+        val = float( cols[2] )
+        bpp[i][j] = val
+        bpp[j][i] = val
+    return bpp
+
 ensemble_defects = {}
 bpp_defects = {}
 for package in args.packages:
@@ -122,7 +138,8 @@ for package in args.packages:
         bpp = None
         readin_func = { 'bpp.txt':read_bpp_file,'bpp.txt.gz':read_bpp_file,\
                         'posteriors.txt':read_posteriors_file, '%s.ppairs' % example.name : read_ppairs_file,
-                        '%s_dp.ps' % example.name : read_dp_ps_file, 'probability_plot.txt': read_probability_plot_file }
+                        '%s_dp.ps' % example.name : read_dp_ps_file, 'probability_plot.txt': read_probability_plot_file,
+                        'simfold_pf.out' : read_simfold_file, 'simfold_pf.out.gz' : read_simfold_file }
         for bpp_file in readin_func.keys():
             if os.path.isfile( subdirname + '/' + bpp_file ):  bpp = readin_func[bpp_file]( subdirname + '/' + bpp_file )
         if bpp == None:

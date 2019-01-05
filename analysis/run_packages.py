@@ -40,7 +40,7 @@ def run_package( example ):
         if not args.force and os.path.exists( '%s/posteriors.txt' % subdirname ): return
     elif dirname == 'vienna':
         fasta = make_fasta_file( subdirname, example )
-        cmdline = 'RNAfold -p %s >  %s/vienna.out 2> %s/vienna.err; mv %s_dp.ps %s' % (fasta,subdirname,subdirname,example.name,subdirname)
+        cmdline = 'RNAfold -p %s >  %s/vienna.out 2> %s/vienna.err; mv %s_ss.ps %s_dp.ps %s' % (fasta,subdirname,subdirname,example.name,example.name,subdirname)
         outfile = '%s/vienna.out' % subdirname
         if not args.force and os.path.exists( '%s/%s_dp.ps' % (subdirname,example.name) ): return
     elif dirname == 'nupack' or dirname == 'nupack95':
@@ -61,6 +61,21 @@ def run_package( example ):
         cmdline = 'partition %s/%s.seq %s/%s.pfs > %s/rnastructure.out 2> %s/rnastructure.err; ProbabilityPlot %s/%s.pfs -T %s/probability_plot.txt' % (subdirname,example.name,subdirname,example.name,subdirname,subdirname,subdirname,example.name,subdirname)
         outfile = '%s/rnastructure.out' % subdirname
         if not args.force and os.path.exists( '%s/probability_plot.txt' % (subdirname) ): return
+    elif dirname.count( 'rnasoft' ) > 0:
+        exe = os.popen( 'which simfold_pf' ).readlines()[0]
+        print exe
+        if dirname == 'rnasoft99':          parameter_file = os.path.dirname( exe )+'/params/turner_parameters_fm363_constrdangles.txt'
+        elif dirname == 'rnasoft07':        parameter_file = os.path.dirname( exe )+'/params/CG_best_parameters_ISMB2007.txt'
+        elif dirname == 'rnasoftBLFRstar': # THIS IS GIVING WACKY RESULTS
+            if 'ANDRONESCU_DATA' not in os.environ:
+                print 'Need to defined ANDRONESCU DATA through a line like\nexport ANDRONESCU_DATA=$HOME/projects/RNA/zetafold_tests/other_packages/andronescu/Andronescu2007_results_data_script/data\n in your .bashrc'
+            parameter_file = os.environ[ 'ANDRONESCU_DATA' ] +'parameters_BLFRstar.txt'
+        else:
+            print 'Need to specify rnasoft99, rnasoft77, rnasoftBLFRstar'
+        parameter_flag = '-p %s' % parameter_file
+        cmdline = '`which simfold_pf` -s "%s" %s > %s/simfold_pf.out 2> %s/simfold_pf.err; gzip -f %s/simfold_pf.out' % (example.sequence,parameter_flag,subdirname,subdirname,subdirname)
+        outfile = '%s/simfold_pf.err' % subdirname
+        if not args.force and os.path.exists( '%s/simfold_pf.out.gz' ): return
     else:
         cmdline = 'zetafold.py -s %s -params %s --bpp --stochastic 100 --mfe --calc_gap_structure "%s" --bpp_file  %s/bpp.txt.gz > %s/zetafold.out 2> %s/zetafold.err' % (example.sequence,package,example.structure,subdirname,subdirname,subdirname)
         outfile = '%s/zetafold.out' % subdirname
@@ -91,8 +106,9 @@ for package in args.packages:
     if package.count( 'nupack' ): executable = 'pairs'
     if package.count( 'vienna' ): executable = 'RNAfold'
     if package.count( 'rnastructure' ): executable = 'partition'
+    if package.count( 'rnasoft' ): executable = 'simfold_pf'
     if os.system( 'which '+executable+' > /dev/null' ) != 0:
-        print '\nFor',package,', you need the executable ',executable,'in your path!\n'
+        print '\nFor %s, you need the executable %s in your path!\n' % (package,executable)
         exit()
 
     pool.map( run_package, examples )
