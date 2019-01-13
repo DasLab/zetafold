@@ -35,14 +35,6 @@ def update_Z_BPq( self, i, j, base_pair_type ):
 
     ( C_eff_for_coax, C_eff_for_BP ) = (C_eff, C_eff ) if allow_strained_3WJ else (C_eff_no_BP_singlet, C_eff_no_coax_singlet )
 
-    if self.allow_base_pair and not self.allow_base_pair[i][j]: return
-
-    # minimum loop length -- no other way to penalize short segments.
-    if ( all_ligated[i][j] and ( ((j-i-1) % N)) < min_loop_length ): return
-    if ( all_ligated[j][i] and ( ((i-j-1) % N)) < min_loop_length ): return
-
-    if not base_pair_type.is_match( sequence[i], sequence[j] ): return
-
     (Z_BPq, Kdq)  = ( self.Z_BPq[ base_pair_type ], base_pair_type.Kd )
 
     if ligated[i] and ligated[j-1]:
@@ -64,10 +56,9 @@ def update_Z_BPq( self, i, j, base_pair_type ):
         #
         # Note that base pair stacks (C_eff_stack) could also be handled by this MotifType object, but
         #      it turns out that the get_match_base_pair_type_sets() function below is just too damn slow.
-        for base_pair_type2 in self.params.base_pair_types:
-            if base_pair_type2.is_match( sequence[(i+1)%N], sequence[(j-1)%N] ):
-                Z_BPq2 = self.Z_BPq[base_pair_type2]
-                Z_BPq[i][j]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2[i+1][j-1]
+        for base_pair_type2 in self.possible_base_pair_types[i+1][j-1]:
+            Z_BPq2 = self.Z_BPq[base_pair_type2]
+            Z_BPq[i][j]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2[i+1][j-1]
 
     for motif_type in self.params.motif_types:
         if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
@@ -165,8 +156,9 @@ def update_Z_BP( self, i, j ):
     (C_init, l, l_BP,  K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ, N, \
      sequence, ligated, all_ligated, Z_BP, C_eff_basic, C_eff_no_BP_singlet, C_eff_no_coax_singlet, C_eff, Z_linear, Z_cut, Z_coax ) = unpack_variables( self )
 
-    for base_pair_type in self.base_pair_types:
+    for base_pair_type in self.possible_base_pair_types[i][j]:
         Z_BPq = self.Z_BPq[base_pair_type]
+        Z_BPq.update( self, i, j )
         Z_BP[i][j]  += Z_BPq[i][j]
 
 ##################################################################################################

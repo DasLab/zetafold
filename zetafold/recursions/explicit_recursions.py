@@ -59,14 +59,6 @@ def update_Z_BPq( self, i, j, base_pair_type ):
 
     ( C_eff_for_coax, C_eff_for_BP ) = (C_eff, C_eff ) if allow_strained_3WJ else (C_eff_no_BP_singlet, C_eff_no_coax_singlet )
 
-    if self.allow_base_pair and not self.allow_base_pair[i%N][j%N]: return
-
-    # minimum loop length -- no other way to penalize short segments.
-    if ( all_ligated[i%N][j%N] and ( ((j-i-1) % N)) < min_loop_length ): return
-    if ( all_ligated[j%N][i%N] and ( ((i-j-1) % N)) < min_loop_length ): return
-
-    if not base_pair_type.is_match( sequence[i], sequence[j] ): return
-
     (Z_BPq, Kdq)  = ( self.Z_BPq[ base_pair_type ], base_pair_type.Kd )
 
     if ligated[i%N] and ligated[(j-1)%N]:
@@ -88,10 +80,9 @@ def update_Z_BPq( self, i, j, base_pair_type ):
         #
         # Note that base pair stacks (C_eff_stack) could also be handled by this MotifType object, but
         #      it turns out that the get_match_base_pair_type_sets() function below is just too damn slow.
-        for base_pair_type2 in self.params.base_pair_types:
-            if base_pair_type2.is_match( sequence[(i+1)%N], sequence[(j-1)%N] ):
-                Z_BPq2 = self.Z_BPq[base_pair_type2]
-                Z_BPq.Q[i%N][j%N]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N]
+        for base_pair_type2 in self.possible_base_pair_types[(i+1)%N][(j-1)%N]:
+            Z_BPq2 = self.Z_BPq[base_pair_type2]
+            Z_BPq.Q[i%N][j%N]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N]
 
     for motif_type in self.params.motif_types:
         if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
@@ -184,17 +175,12 @@ def update_Z_BPq( self, i, j, base_pair_type ):
          sequence, ligated, all_ligated, Z_BP, C_eff_basic, C_eff_no_BP_singlet, C_eff_no_coax_singlet, C_eff, Z_linear, Z_cut, Z_coax ) = unpack_variables( self )
         offset = ( j - i ) % N
         ( C_eff_for_coax, C_eff_for_BP ) = (C_eff, C_eff ) if allow_strained_3WJ else (C_eff_no_BP_singlet, C_eff_no_coax_singlet )
-        if self.allow_base_pair and not self.allow_base_pair[i%N][j%N]: return
-        if ( all_ligated[i%N][j%N] and ( ((j-i-1) % N)) < min_loop_length ): return
-        if ( all_ligated[j%N][i%N] and ( ((i-j-1) % N)) < min_loop_length ): return
-        if not base_pair_type.is_match( sequence[i], sequence[j] ): return
         (Z_BPq, Kdq)  = ( self.Z_BPq[ base_pair_type ], base_pair_type.Kd )
         if ligated[i%N] and ligated[(j-1)%N]:
             Z_BPq.dQ[i%N][j%N]  += (1.0/Kdq ) * ( C_eff_for_BP.dQ[(i+1)%N][(j-1)%N] * l * l * l_BP)
-            for base_pair_type2 in self.params.base_pair_types:
-                if base_pair_type2.is_match( sequence[(i+1)%N], sequence[(j-1)%N] ):
-                    Z_BPq2 = self.Z_BPq[base_pair_type2]
-                    Z_BPq.dQ[i%N][j%N]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.dQ[(i+1)%N][(j-1)%N]
+            for base_pair_type2 in self.possible_base_pair_types[(i+1)%N][(j-1)%N]:
+                Z_BPq2 = self.Z_BPq[base_pair_type2]
+                Z_BPq.dQ[i%N][j%N]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.dQ[(i+1)%N][(j-1)%N]
         for motif_type in self.params.motif_types:
             if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
             match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, i, j )
@@ -228,19 +214,14 @@ def update_Z_BPq( self, i, j, base_pair_type ):
          sequence, ligated, all_ligated, Z_BP, C_eff_basic, C_eff_no_BP_singlet, C_eff_no_coax_singlet, C_eff, Z_linear, Z_cut, Z_coax ) = unpack_variables( self )
         offset = ( j - i ) % N
         ( C_eff_for_coax, C_eff_for_BP ) = (C_eff, C_eff ) if allow_strained_3WJ else (C_eff_no_BP_singlet, C_eff_no_coax_singlet )
-        if self.allow_base_pair and not self.allow_base_pair[i%N][j%N]: return
-        if ( all_ligated[i%N][j%N] and ( ((j-i-1) % N)) < min_loop_length ): return
-        if ( all_ligated[j%N][i%N] and ( ((i-j-1) % N)) < min_loop_length ): return
-        if not base_pair_type.is_match( sequence[i], sequence[j] ): return
         (Z_BPq, Kdq)  = ( self.Z_BPq[ base_pair_type ], base_pair_type.Kd )
         if ligated[i%N] and ligated[(j-1)%N]:
             if (1.0/Kdq ) * ( C_eff_for_BP.Q[(i+1)%N][(j-1)%N] * l * l * l_BP) > 0:
                 Z_BPq.contribs[i%N][j%N]  +=  [ ((1.0/Kdq ) * ( C_eff_for_BP.Q[(i+1)%N][(j-1)%N] * l * l * l_BP), [(C_eff_for_BP,(i+1)%N,(j-1)%N)] ) ]
-            for base_pair_type2 in self.params.base_pair_types:
-                if base_pair_type2.is_match( sequence[(i+1)%N], sequence[(j-1)%N] ):
-                    Z_BPq2 = self.Z_BPq[base_pair_type2]
-                    if (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N] > 0:
-                        Z_BPq.contribs[i%N][j%N]  +=  [ ((1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N], [(Z_BPq2,(i+1)%N,(j-1)%N)] ) ]
+            for base_pair_type2 in self.possible_base_pair_types[(i+1)%N][(j-1)%N]:
+                Z_BPq2 = self.Z_BPq[base_pair_type2]
+                if (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N] > 0:
+                    Z_BPq.contribs[i%N][j%N]  +=  [ ((1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N], [(Z_BPq2,(i+1)%N,(j-1)%N)] ) ]
         for motif_type in self.params.motif_types:
             if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
             match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, i, j )
@@ -281,22 +262,25 @@ def update_Z_BP( self, i, j ):
     (C_init, l, l_BP,  K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ, N, \
      sequence, ligated, all_ligated, Z_BP, C_eff_basic, C_eff_no_BP_singlet, C_eff_no_coax_singlet, C_eff, Z_linear, Z_cut, Z_coax ) = unpack_variables( self )
 
-    for base_pair_type in self.base_pair_types:
+    for base_pair_type in self.possible_base_pair_types[i%N][j%N]:
         Z_BPq = self.Z_BPq[base_pair_type]
+        Z_BPq.update( self, i, j )
         Z_BP.Q[i%N][j%N]  += Z_BPq.Q[i%N][j%N]
 
     if self.options.calc_deriv_DP: # AUTOGENERATED DERIV BLOCK
         (C_init, l, l_BP,  K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ, N, \
          sequence, ligated, all_ligated, Z_BP, C_eff_basic, C_eff_no_BP_singlet, C_eff_no_coax_singlet, C_eff, Z_linear, Z_cut, Z_coax ) = unpack_variables( self )
-        for base_pair_type in self.base_pair_types:
+        for base_pair_type in self.possible_base_pair_types[i%N][j%N]:
             Z_BPq = self.Z_BPq[base_pair_type]
+            Z_BPq.update( self, i, j )
             Z_BP.dQ[i%N][j%N]  += Z_BPq.dQ[i%N][j%N]
 
     if self.options.calc_contrib: # AUTOGENERATED CONTRIBS BLOCK
         (C_init, l, l_BP,  K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ, N, \
          sequence, ligated, all_ligated, Z_BP, C_eff_basic, C_eff_no_BP_singlet, C_eff_no_coax_singlet, C_eff, Z_linear, Z_cut, Z_coax ) = unpack_variables( self )
-        for base_pair_type in self.base_pair_types:
+        for base_pair_type in self.possible_base_pair_types[i%N][j%N]:
             Z_BPq = self.Z_BPq[base_pair_type]
+            Z_BPq.update( self, i, j )
             if Z_BPq.Q[i%N][j%N] > 0:
                 Z_BP.contribs[i%N][j%N]  +=  [ (Z_BPq.Q[i%N][j%N], [(Z_BPq,i%N,j%N)] ) ]
 
