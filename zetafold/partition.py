@@ -107,6 +107,7 @@ class Partition:
         initialize_sequence_information( self ) # N, sequence, ligated, all_ligated
         initialize_dynamic_programming_matrices( self ) # ( Z_BP, C_eff, Z_linear, Z_cut, Z_coax, etc. )
         initialize_force_base_pair( self )
+        initialize_possible_base_pair_types( self )
 
         # do the dynamic programming
         for offset in range( 1, self.N ): #length of subfragment
@@ -201,8 +202,8 @@ def initialize_dynamic_programming_matrices( self ):
     for base_pair_type in self.base_pair_types:
         # the bpt = base_pair_type holds the base_pair_type info in the lambda (Python FAQ)
         update_func = lambda partition,i,j,bpt=base_pair_type: update_Z_BPq(partition,i,j,bpt)
-        self.Z_BPq[ base_pair_type ] = DynamicProgrammingMatrix( N, DPlist = Z_all,
-                                                                 update_func = update_func, options = self.options, name = 'Z_BPq_%s' % base_pair_type.get_tag() )
+        self.Z_BPq[ base_pair_type ] = DynamicProgrammingMatrix( N, update_func = update_func, options = self.options, name = 'Z_BPq_%s' % base_pair_type.get_tag() )
+
     self.Z_BP     = DynamicProgrammingMatrix( N, DPlist = Z_all, update_func = update_Z_BP, options = self.options, name = 'Z_BP' );
     self.Z_coax   = DynamicProgrammingMatrix( N, DPlist = Z_all, update_func = update_Z_coax, options = self.options, name = 'Z_coax' );
 
@@ -266,6 +267,26 @@ def initialize_force_base_pair( self ):
                 if m != i:
                     self.allow_base_pair[ j ][ m ] = False
                     self.allow_base_pair[ m ][ j ] = False
+
+##################################################################################################
+def initialize_possible_base_pair_types( self ):
+    N = self.N
+    sequence = self.sequence
+    self.possible_base_pair_types = initialize_matrix( N, None )
+    for i in range( N ):
+        for j in range( N ):
+            self.possible_base_pair_types[i][j] = []
+
+            # note that following could be conditions on base_pair_type pretty easily
+            if self.allow_base_pair and not self.allow_base_pair[i][j]: continue
+
+            # minimum loop length -- no other way to penalize short segments.
+            if ( self.all_ligated[i][j] and ( ((j-i-1) % N)) < self.params.min_loop_length ): continue
+            if ( self.all_ligated[j][i] and ( ((i-j-1) % N)) < self.params.min_loop_length ): continue
+
+            for base_pair_type in self.base_pair_types:
+                if not base_pair_type.is_match( sequence[i], sequence[j] ): continue
+                self.possible_base_pair_types[ i ][ j ].append( base_pair_type )
 
 ##################################################################################################
 def _get_bpp_matrix( self ):
