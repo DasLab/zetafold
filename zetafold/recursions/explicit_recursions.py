@@ -80,10 +80,9 @@ def update_Z_BPq( self, i, j, base_pair_type ):
         #
         # Note that base pair stacks (C_eff_stack) could also be handled by this MotifType object, but
         #      it turns out that the get_match_base_pair_type_sets() function below is just too damn slow.
-        for base_pair_type2 in self.params.base_pair_types:
-            if base_pair_type2.is_match( sequence[(i+1)%N], sequence[(j-1)%N] ):
-                Z_BPq2 = self.Z_BPq[base_pair_type2]
-                Z_BPq.Q[i%N][j%N]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N]
+        for base_pair_type2 in self.possible_base_pair_types[(i+1)%N][(j-1)%N]:
+            Z_BPq2 = self.Z_BPq[base_pair_type2]
+            Z_BPq.Q[i%N][j%N]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N]
 
     for motif_type in self.params.motif_types:
         if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
@@ -179,10 +178,9 @@ def update_Z_BPq( self, i, j, base_pair_type ):
         (Z_BPq, Kdq)  = ( self.Z_BPq[ base_pair_type ], base_pair_type.Kd )
         if ligated[i%N] and ligated[(j-1)%N]:
             Z_BPq.dQ[i%N][j%N]  += (1.0/Kdq ) * ( C_eff_for_BP.dQ[(i+1)%N][(j-1)%N] * l * l * l_BP)
-            for base_pair_type2 in self.params.base_pair_types:
-                if base_pair_type2.is_match( sequence[(i+1)%N], sequence[(j-1)%N] ):
-                    Z_BPq2 = self.Z_BPq[base_pair_type2]
-                    Z_BPq.dQ[i%N][j%N]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.dQ[(i+1)%N][(j-1)%N]
+            for base_pair_type2 in self.possible_base_pair_types[(i+1)%N][(j-1)%N]:
+                Z_BPq2 = self.Z_BPq[base_pair_type2]
+                Z_BPq.dQ[i%N][j%N]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.dQ[(i+1)%N][(j-1)%N]
         for motif_type in self.params.motif_types:
             if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
             match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, i, j )
@@ -220,11 +218,10 @@ def update_Z_BPq( self, i, j, base_pair_type ):
         if ligated[i%N] and ligated[(j-1)%N]:
             if (1.0/Kdq ) * ( C_eff_for_BP.Q[(i+1)%N][(j-1)%N] * l * l * l_BP) > 0:
                 Z_BPq.contribs[i%N][j%N]  +=  [ ((1.0/Kdq ) * ( C_eff_for_BP.Q[(i+1)%N][(j-1)%N] * l * l * l_BP), [(C_eff_for_BP,(i+1)%N,(j-1)%N)] ) ]
-            for base_pair_type2 in self.params.base_pair_types:
-                if base_pair_type2.is_match( sequence[(i+1)%N], sequence[(j-1)%N] ):
-                    Z_BPq2 = self.Z_BPq[base_pair_type2]
-                    if (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N] > 0:
-                        Z_BPq.contribs[i%N][j%N]  +=  [ ((1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N], [(Z_BPq2,(i+1)%N,(j-1)%N)] ) ]
+            for base_pair_type2 in self.possible_base_pair_types[(i+1)%N][(j-1)%N]:
+                Z_BPq2 = self.Z_BPq[base_pair_type2]
+                if (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N] > 0:
+                    Z_BPq.contribs[i%N][j%N]  +=  [ ((1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N], [(Z_BPq2,(i+1)%N,(j-1)%N)] ) ]
         for motif_type in self.params.motif_types:
             if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
             match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, i, j )
