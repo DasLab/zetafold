@@ -157,7 +157,7 @@ def get_motif_prob( self, motif_type ):
         for j in range( N ):
             for base_pair_type in self.params.base_pair_types:
                 if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
-                match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( self.sequence, self.ligated, i, j )
+                match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( self.sequence, self.all_ligated, i, j )
                 if match_base_pair_type_sets:
                     if len(match_base_pair_type_sets) == 1: # hairpins (1-way junctions)
                         # base pair closes a hairpin
@@ -184,7 +184,7 @@ def get_motif_prob( self, motif_type ):
                             Z_BPq_next = self.Z_BPq[base_pair_type_next]
                             val = motif_type.C_eff * Z_BPq_next.val(i_next,j_next) * self.Z_BPq[ base_pair_type.flipped ].val(j,i) / self.Z
                             # symmetry correction:
-                            match_base_pair_type_sets_reverse =  motif_type.get_match_base_pair_type_sets( self.sequence, self.ligated, j_next, i_next )
+                            match_base_pair_type_sets_reverse =  motif_type.get_match_base_pair_type_sets( self.sequence, self.all_ligated, j_next, i_next )
                             if match_base_pair_type_sets_reverse:
                                 for (base_pair_reverse,j_reverse,i_reverse) in match_base_pair_type_sets_reverse[0]:
                                     if (base_pair_reverse,j_reverse,i_reverse) == (base_pair_type.flipped,j,i):

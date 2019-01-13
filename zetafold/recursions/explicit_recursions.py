@@ -86,7 +86,7 @@ def update_Z_BPq( self, i, j, base_pair_type ):
 
     possible_motif_types = self.possible_motif_types[i%N][j%N]
     for motif_type in possible_motif_types[base_pair_type]:
-        match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, i, j )
+        match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, i, j )
         if match_base_pair_type_sets:
             if len(match_base_pair_type_sets) == 1: # hairpins (1-way junctions)
                 # base pair closes a hairpin
@@ -183,7 +183,7 @@ def update_Z_BPq( self, i, j, base_pair_type ):
                 Z_BPq.dQ[i%N][j%N]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.dQ[(i+1)%N][(j-1)%N]
         possible_motif_types = self.possible_motif_types[i%N][j%N]
         for motif_type in possible_motif_types[base_pair_type]:
-            match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, i, j )
+            match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, i, j )
             if match_base_pair_type_sets:
                 if len(match_base_pair_type_sets) == 1: # hairpins (1-way junctions)
                     pass
@@ -224,7 +224,7 @@ def update_Z_BPq( self, i, j, base_pair_type ):
                     Z_BPq.contribs[i%N][j%N]  +=  [ ((1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N], [(Z_BPq2,(i+1)%N,(j-1)%N)] ) ]
         possible_motif_types = self.possible_motif_types[i%N][j%N]
         for motif_type in possible_motif_types[base_pair_type]:
-            match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, i, j )
+            match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, i, j )
             if match_base_pair_type_sets:
                 if len(match_base_pair_type_sets) == 1: # hairpins (1-way junctions)
                     pass
@@ -668,7 +668,7 @@ def update_Z_final( self, i ):
             for motif_type in self.params.motif_types:
                 if len( motif_type.strands) != 2: continue
                 for k in range( i, i+len( motif_type.strands[-1] )-1 ):
-                    match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, j, k )
+                    match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, j, k )
                     if match_base_pair_type_sets == None: continue
                     assert( len(match_base_pair_type_sets) == 2 )
                     (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
@@ -696,7 +696,7 @@ def update_Z_final( self, i ):
             L = len( motif_type.strands[0] ) # for a tetraloop this is 1+4+1 = 6
             for k in range( i, i+L-1 ):
                 j = ( k - L + 1 ) % N
-                match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, j, k )
+                match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, j, k )
                 if match_base_pair_type_sets == None: continue
                 assert( len(match_base_pair_type_sets) == 1 )
                 for (base_pair_type,k_match,j_match) in match_base_pair_type_sets[0]:
@@ -766,7 +766,7 @@ def update_Z_final( self, i ):
                 for motif_type in self.params.motif_types:
                     if len( motif_type.strands) != 2: continue
                     for k in range( i, i+len( motif_type.strands[-1] )-1 ):
-                        match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, j, k )
+                        match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, j, k )
                         if match_base_pair_type_sets == None: continue
                         assert( len(match_base_pair_type_sets) == 2 )
                         (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
@@ -783,7 +783,7 @@ def update_Z_final( self, i ):
                 L = len( motif_type.strands[0] ) # for a tetraloop this is 1+4+1 = 6
                 for k in range( i, i+L-1 ):
                     j = ( k - L + 1 ) % N
-                    match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, j, k )
+                    match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, j, k )
                     if match_base_pair_type_sets == None: continue
                     assert( len(match_base_pair_type_sets) == 1 )
                     for (base_pair_type,k_match,j_match) in match_base_pair_type_sets[0]:
@@ -837,7 +837,7 @@ def update_Z_final( self, i ):
                 for motif_type in self.params.motif_types:
                     if len( motif_type.strands) != 2: continue
                     for k in range( i, i+len( motif_type.strands[-1] )-1 ):
-                        match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, j, k )
+                        match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, j, k )
                         if match_base_pair_type_sets == None: continue
                         assert( len(match_base_pair_type_sets) == 2 )
                         (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
@@ -854,7 +854,7 @@ def update_Z_final( self, i ):
                 L = len( motif_type.strands[0] ) # for a tetraloop this is 1+4+1 = 6
                 for k in range( i, i+L-1 ):
                     j = ( k - L + 1 ) % N
-                    match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, j, k )
+                    match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, j, k )
                     if match_base_pair_type_sets == None: continue
                     assert( len(match_base_pair_type_sets) == 1 )
                     for (base_pair_type,k_match,j_match) in match_base_pair_type_sets[0]:

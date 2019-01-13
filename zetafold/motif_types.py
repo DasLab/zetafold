@@ -62,7 +62,7 @@ class MotifType:
         self.C_eff = C_eff
         self.permuted = None # for now.
 
-    def get_match_base_pair_type_sets( self, sequence, ligated, i, j ):
+    def get_match_base_pair_type_sets( self, sequence, all_ligated, i, j ):
         '''
         TODO: generalize to N-way junction
         '''
@@ -73,8 +73,7 @@ class MotifType:
         # works for hairpins and internal loops both:
         for q in range( len( self.strands[0] ) ):
             if self.strands[0][q] != 'N' and sequence[(i+q)%N] != self.strands[0][q]: return None
-        for q in range( len( self.strands[0] )-1 ):
-            if not ligated[(i+q)%N]: return None
+        if not all_ligated[ i%N ][ (i+len(self.strands[0])-1)%N ]: return None
 
         if M == 1:
             # uh this is kind of explicit. must be a more general way to treat M = 1, 2, ...
@@ -94,8 +93,7 @@ class MotifType:
                 # for the second strand of the internal loop
             for q in range( len( self.strands[-1] ) ):
                 if self.strands[-1][q] != 'N' and sequence[(j-len(self.strands[-1])+1+q)%N] != self.strands[-1][q]: return None
-            for q in range( len( self.strands[-1] )-1 ):
-                if not ligated[ (j-len(self.strands[-1])+1+q)%N ]: return None
+            if not all_ligated[ (j-len(self.strands[-1])+1)%N ][ j%N ]: return None
 
         if M > 2:
             print('%s\n' % 'Cannot handle 3WJ or 4WJ motifs yet!')
