@@ -15,6 +15,7 @@ class WrappedArray:
 
 ##################################################################################################
 def initialize_matrix( N, val = None ):
+    assert( not isinstance(val,list ) ) # causes issue with references to same list.
     X = WrappedArray( N )
     for i in range( N ):
         X[ i ] = WrappedArray( N )
