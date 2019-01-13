@@ -60,8 +60,8 @@ def update_Z_BPq( self, i, j, base_pair_type ):
             Z_BPq2 = self.Z_BPq[base_pair_type2]
             Z_BPq[i][j]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2[i+1][j-1]
 
-    for motif_type in self.params.motif_types:
-        if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
+    possible_motif_types = self.possible_motif_types[i][j]
+    for motif_type in possible_motif_types[base_pair_type]:
         match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, i, j )
         if match_base_pair_type_sets:
             if len(match_base_pair_type_sets) == 1: # hairpins (1-way junctions)

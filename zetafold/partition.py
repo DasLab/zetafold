@@ -108,6 +108,7 @@ class Partition:
         initialize_dynamic_programming_matrices( self ) # ( Z_BP, C_eff, Z_linear, Z_cut, Z_coax, etc. )
         initialize_force_base_pair( self )
         initialize_possible_base_pair_types( self )
+        initialize_possible_motif_types( self )
 
         # do the dynamic programming
         for offset in range( 1, self.N ): #length of subfragment
@@ -273,6 +274,7 @@ def initialize_possible_base_pair_types( self ):
     N = self.N
     sequence = self.sequence
     self.possible_base_pair_types = initialize_matrix( N, None )
+
     for i in range( N ):
         for j in range( N ):
             self.possible_base_pair_types[i][j] = []
@@ -287,6 +289,25 @@ def initialize_possible_base_pair_types( self ):
             for base_pair_type in self.base_pair_types:
                 if not base_pair_type.is_match( sequence[i], sequence[j] ): continue
                 self.possible_base_pair_types[ i ][ j ].append( base_pair_type )
+
+
+##################################################################################################
+def initialize_possible_motif_types( self ):
+    N = self.N
+    sequence = self.sequence
+    self.possible_motif_types = initialize_matrix( N, None )
+
+    for i in range( N ):
+        for j in range( N ):
+            self.possible_motif_types[i][j] = {}
+
+            for base_pair_type in self.possible_base_pair_types[i][j]:
+                self.possible_motif_types[i][j][base_pair_type] = []
+
+                for motif_type in self.params.motif_types:
+                    if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
+                    self.possible_motif_types[i][j][base_pair_type].append( motif_type )
+
 
 ##################################################################################################
 def _get_bpp_matrix( self ):

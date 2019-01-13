@@ -4,8 +4,12 @@ This is a pretty awful 'compiler' script to convert recursions.py to explicit_re
 '''
 
 # a bunch of unfortunate edge cases!
-not_data_objects = ['self.Z_BPq','sequence','self.params.C_eff_stack', 'motif_type.strands','match_base_pair_type_sets','motif_type.base_pair_type_sets']
-not_2D_dynamic_programming_objects = ['all_ligated','ligated','self.Z_BPq','sequence','self.allow_base_pair','self.in_forced_base_pair','self.params.C_eff_stack','motif_type.strands','match_base_pair_type_sets','motif_type.base_pair_type_sets','self.possible_base_pair_types' ]
+not_data_objects = ['self.Z_BPq','sequence','self.params.C_eff_stack', 'motif_type.strands',
+                    'match_base_pair_type_sets','motif_type.base_pair_type_sets','possible_motif_types']
+not_2D_dynamic_programming_objects = ['all_ligated','ligated','self.Z_BPq','sequence','self.allow_base_pair',
+                                      'self.in_forced_base_pair','motif_type.strands',
+                                      'match_base_pair_type_sets','motif_type.base_pair_type_sets',
+                                      'self.possible_base_pair_types','self.possible_motif_types' ]
 dynamic_programming_lists = ['Z_final']
 dynamic_programming_data = ['Z_seg1','Z_seg2']
 
@@ -90,7 +94,7 @@ for line in lines:
             bracket_word += char
             arg += char
         if char == '[':
-            if not (word in not_2D_dynamic_programming_objects ) and not just_finished_first_bracket: line_new += '.Q'
+            if not (word in not_2D_dynamic_programming_objects+not_data_objects ) and not just_finished_first_bracket: line_new += '.Q'
             bracket_word += char
             arg = ''
             in_bracket = True
