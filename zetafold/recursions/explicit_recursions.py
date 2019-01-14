@@ -665,16 +665,19 @@ def update_Z_final( self, i ):
             #   where k = i, i+1, ... (i + strand_length-2),
             #      i.e., ligation is inside last strand of motif
             #
-            for motif_type in self.params.motif_types:
-                if len( motif_type.strands) != 2: continue
-                for k in range( i, i+len( motif_type.strands[-1] )-1 ):
-                    match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, j, k )
-                    if match_base_pair_type_sets == None: continue
-                    assert( len(match_base_pair_type_sets) == 2 )
-                    (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
-                    for (base_pair_type1,k_match,j_match) in match_base_pair_type_sets1:
-                        assert( (j - j_match)%N == 0 )
-                        assert( (k - k_match)%N == 0 )
+            for k in range( i, i + self.max_motif_strand_length - 1 ):
+                for base_pair_type in self.possible_base_pair_types[j%N][k%N]:
+                    possible_motif_types = self.possible_motif_types[j%N][k%N]
+                    for motif_type in possible_motif_types[base_pair_type]:
+                        if len( motif_type.strands) != 2: continue
+                        if ( (k - i + 1) >= len( motif_type.strands[-1] ) ): continue
+                        match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, j, k )
+                        if match_base_pair_type_sets == None: continue
+                        assert( len(match_base_pair_type_sets) == 2 )
+                        (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
+                        base_pair_type1 = base_pair_type.flipped
+                        assert( (base_pair_type1, k%N, j%N)  in match_base_pair_type_sets1 )
+                        base_pair_type1 == base_pair_type.flipped
                         for (base_pair_type0,j_next,k_next) in match_base_pair_type_sets0:
                             Z_BPq0 = self.Z_BPq[base_pair_type0]
                             Z_BPq1 = self.Z_BPq[base_pair_type1]
@@ -763,16 +766,19 @@ def update_Z_final( self, i ):
                                 Z_BPq2 = self.Z_BPq[base_pair_type2]
                                 Z_final.dQ[i%N] += self.params.C_eff_stack[base_pair_type2.flipped][base_pair_type] * Z_BPq2.dQ[(j+1)%N][(i-1)%N] * Z_BPq1.Q[i%N][j%N]
                                 Z_final.dQ[i%N] += self.params.C_eff_stack[base_pair_type2.flipped][base_pair_type] * Z_BPq2.Q[(j+1)%N][(i-1)%N] * Z_BPq1.dQ[i%N][j%N]
-                for motif_type in self.params.motif_types:
-                    if len( motif_type.strands) != 2: continue
-                    for k in range( i, i+len( motif_type.strands[-1] )-1 ):
-                        match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, j, k )
-                        if match_base_pair_type_sets == None: continue
-                        assert( len(match_base_pair_type_sets) == 2 )
-                        (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
-                        for (base_pair_type1,k_match,j_match) in match_base_pair_type_sets1:
-                            assert( (j - j_match)%N == 0 )
-                            assert( (k - k_match)%N == 0 )
+                for k in range( i, i + self.max_motif_strand_length - 1 ):
+                    for base_pair_type in self.possible_base_pair_types[j%N][k%N]:
+                        possible_motif_types = self.possible_motif_types[j%N][k%N]
+                        for motif_type in possible_motif_types[base_pair_type]:
+                            if len( motif_type.strands) != 2: continue
+                            if ( (k - i + 1) >= len( motif_type.strands[-1] ) ): continue
+                            match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, j, k )
+                            if match_base_pair_type_sets == None: continue
+                            assert( len(match_base_pair_type_sets) == 2 )
+                            (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
+                            base_pair_type1 = base_pair_type.flipped
+                            assert( (base_pair_type1, k%N, j%N)  in match_base_pair_type_sets1 )
+                            base_pair_type1 == base_pair_type.flipped
                             for (base_pair_type0,j_next,k_next) in match_base_pair_type_sets0:
                                 Z_BPq0 = self.Z_BPq[base_pair_type0]
                                 Z_BPq1 = self.Z_BPq[base_pair_type1]
@@ -834,16 +840,19 @@ def update_Z_final( self, i ):
                                 Z_BPq2 = self.Z_BPq[base_pair_type2]
                                 if self.params.C_eff_stack[base_pair_type2.flipped][base_pair_type] * Z_BPq2.Q[(j+1)%N][(i-1)%N] * Z_BPq1.Q[i%N][j%N] > 0:
                                     Z_final.contribs[i%N] +=  [ (self.params.C_eff_stack[base_pair_type2.flipped][base_pair_type] * Z_BPq2.Q[(j+1)%N][(i-1)%N] * Z_BPq1.Q[i%N][j%N], [(Z_BPq2,(j+1)%N,(i-1)%N), (Z_BPq1,i%N,j%N)] ) ]
-                for motif_type in self.params.motif_types:
-                    if len( motif_type.strands) != 2: continue
-                    for k in range( i, i+len( motif_type.strands[-1] )-1 ):
-                        match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, j, k )
-                        if match_base_pair_type_sets == None: continue
-                        assert( len(match_base_pair_type_sets) == 2 )
-                        (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
-                        for (base_pair_type1,k_match,j_match) in match_base_pair_type_sets1:
-                            assert( (j - j_match)%N == 0 )
-                            assert( (k - k_match)%N == 0 )
+                for k in range( i, i + self.max_motif_strand_length - 1 ):
+                    for base_pair_type in self.possible_base_pair_types[j%N][k%N]:
+                        possible_motif_types = self.possible_motif_types[j%N][k%N]
+                        for motif_type in possible_motif_types[base_pair_type]:
+                            if len( motif_type.strands) != 2: continue
+                            if ( (k - i + 1) >= len( motif_type.strands[-1] ) ): continue
+                            match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, j, k )
+                            if match_base_pair_type_sets == None: continue
+                            assert( len(match_base_pair_type_sets) == 2 )
+                            (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
+                            base_pair_type1 = base_pair_type.flipped
+                            assert( (base_pair_type1, k%N, j%N)  in match_base_pair_type_sets1 )
+                            base_pair_type1 == base_pair_type.flipped
                             for (base_pair_type0,j_next,k_next) in match_base_pair_type_sets0:
                                 Z_BPq0 = self.Z_BPq[base_pair_type0]
                                 Z_BPq1 = self.Z_BPq[base_pair_type1]

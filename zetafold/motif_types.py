@@ -86,7 +86,7 @@ class MotifType:
             matches = []
             for base_pair_type in self.base_pair_type_sets[ 0 ]:
                 i_next, j_next = (i+len(self.strands[0])-1)%N, (j-len(self.strands[-1])+1)%N
-                if base_pair_type.is_match( sequence[i_next],sequence[j_next] ): matches.append( (base_pair_type,i_next,j_next) )
+                if base_pair_type.is_match( sequence[i_next],sequence[j_next] ): matches.append( (base_pair_type,i_next%N,j_next%N) )
             if len( matches ) == 0: return None
             match_base_pair_type_sets.append( matches )
 
@@ -102,7 +102,7 @@ class MotifType:
         # redundant with start_base_pair_type -- using as cross check
         matches = []
         for base_pair_type in self.base_pair_type_sets[ -1 ]:
-            if base_pair_type.is_match( sequence[j%N], sequence[i%N] ): matches.append( (base_pair_type,j,i) )
+            if base_pair_type.is_match( sequence[j%N], sequence[i%N] ): matches.append( (base_pair_type,j%N,i%N) )
         if len( matches ) == 0: return None
         match_base_pair_type_sets.append( matches )
 

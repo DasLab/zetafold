@@ -248,7 +248,7 @@ def test_zetafold( verbose = False, use_simple_recursions = False ):
 
     params = get_params( 'deprecated/zetafold_v0.20' )
     params.set_parameter( 'C_eff_motif_NN_NNN', C_eff_motif )
-    p = partition( 'GCGACGUUG',deriv_check=True, params=params, structure = '.(.(...))' )
+    p = partition( 'GCGACGUUG',deriv_check=True, params=params, structure = '.(.(...))',verbose=verbose, use_simple_recursions = use_simple_recursions )
 
     # test secstruct
     assert( secstruct_from_bps( [(0,5),(1,4)],7 ) == '((..)).' )

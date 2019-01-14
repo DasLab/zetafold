@@ -297,6 +297,27 @@ def initialize_possible_motif_types( self ):
     sequence = self.sequence
     self.possible_motif_types = initialize_matrix( N, None )
 
+    # check for strand matches (an order N operation -- not need to keep doing it over and over again in motif_type.get_match_base_pair_type_sets()
+    strands = set()
+    self.max_motif_strand_length = 0
+    for motif_type in self.params.motif_types:
+        for strand in motif_type.strands:
+            strands.add( strand )
+            self.max_motif_strand_length = max( self.max_motif_strand_length, len(strand) )
+
+    is_strand_match = {}
+    for strand in strands:
+        is_strand_match[strand] = WrappedArray( N, False )
+        for i in range( N ):
+            if not self.all_ligated[ i ][ i+len(strand)-1 ]: continue
+            match = True
+            for offset in range( len( strand ) ):
+                if strand[offset] != 'N' and sequence[(i+offset)%N] != strand[offset]:
+                    match = False
+                    break
+            if match: is_strand_match[strand][i] = True
+
+    # OK assign possible_motif_types
     for i in range( N ):
         for j in range( N ):
             self.possible_motif_types[i][j] = {}
@@ -306,6 +327,11 @@ def initialize_possible_motif_types( self ):
 
                 for motif_type in self.params.motif_types:
                     if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
+                    strands = motif_type.strands
+                    if not is_strand_match[strands[0]][i]: continue
+                    if len( motif_type.strands ) > 1 and \
+                        not is_strand_match[strands[1]][j-len(strands[1])+1]: continue
+
                     self.possible_motif_types[i][j][base_pair_type].append( motif_type )
 
 
