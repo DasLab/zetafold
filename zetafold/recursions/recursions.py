@@ -416,7 +416,7 @@ def update_Z_final( self, i ):
                             Z_final[i]  += motif_type.C_eff * Z_BPq0[j_next][k_next] * Z_BPq1[k][j]
 
 
-        # ligation allows an internal loop motif to form across i-1 to i
+        # ligation allows a hairpin to close across i-1 to i
         #
         #        <--3'
         #       ------- j -
