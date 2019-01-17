@@ -86,34 +86,33 @@ def update_Z_BPq( self, i, j, base_pair_type ):
 
     possible_motif_types = self.possible_motif_types[i%N][j%N]
     for motif_type in possible_motif_types[base_pair_type]:
-        match_base_pair_type_sets = possible_motif_types[base_pair_type][ motif_type ]
-        if match_base_pair_type_sets:
-            if len(match_base_pair_type_sets) == 1: # hairpins (1-way junctions)
-                # base pair closes a hairpin
-                #            -----
-                #           |     |
-                #           i ... j
-                #          5' bpt  3'
-                #
-                Z_BPq.Q[i][j] += (1.0/Kdq ) * motif_type.C_eff
-                pass
-            elif len(match_base_pair_type_sets) == 2: # internal loops (2-way junctions)
-                # base pair forms a motif with previous pair
-                #
-                # Example of 1x1 loop:
-                #             bpt0
-                #       i_next... j_next
-                #           |     |
-                #  strand0 i+1   j-1 strand1
-                #           |     |
-                #           i ... j
-                #          5' bpt1 3'
-                #
-                for (base_pair_type_next, i_next, j_next) in match_base_pair_type_sets[0]:
-                    Z_BPq_next = self.Z_BPq[base_pair_type_next]
-                    Z_BPq.Q[i%N][j%N] += (1.0/Kdq ) * motif_type.C_eff * Z_BPq_next.Q[(i_next)%N][(j_next)%N]
-            # could certainly handle 3WJ in O(N^3) time as well
-            # but how about 4WJ? anyway to do without an O(N^4) cost?
+        match_base_pair_type_set = possible_motif_types[base_pair_type][ motif_type ]
+        if len(motif_type.strands) == 1: # hairpins (1-way junctions)
+            # base pair closes a hairpin
+            #            -----
+            #           |     |
+            #           i ... j
+            #          5' bpt  3'
+            #
+            Z_BPq.Q[i][j] += (1.0/Kdq ) * motif_type.C_eff
+            pass
+        elif len(motif_type.strands) == 2: # internal loops (2-way junctions)
+            # base pair forms a motif with previous pair
+            #
+            # Example of 1x1 loop:
+            #             bpt0
+            #       i_next... j_next
+            #           |     |
+            #  strand0 i+1   j-1 strand1
+            #           |     |
+            #           i ... j
+            #          5' bpt1 3'
+            #
+            for (base_pair_type_next, i_next, j_next) in match_base_pair_type_set:
+                Z_BPq_next = self.Z_BPq[base_pair_type_next]
+                Z_BPq.Q[i%N][j%N] += (1.0/Kdq ) * motif_type.C_eff * Z_BPq_next.Q[(i_next)%N][(j_next)%N]
+        # could certainly handle 3WJ in O(N^3) time as well
+        # but how about 4WJ? anyway to do without an O(N^4) cost?
 
     # base pair brings together two strands that were previously disconnected
     #
@@ -183,14 +182,13 @@ def update_Z_BPq( self, i, j, base_pair_type ):
                 Z_BPq.dQ[i%N][j%N]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.dQ[(i+1)%N][(j-1)%N]
         possible_motif_types = self.possible_motif_types[i%N][j%N]
         for motif_type in possible_motif_types[base_pair_type]:
-            match_base_pair_type_sets = possible_motif_types[base_pair_type][ motif_type ]
-            if match_base_pair_type_sets:
-                if len(match_base_pair_type_sets) == 1: # hairpins (1-way junctions)
-                    pass
-                elif len(match_base_pair_type_sets) == 2: # internal loops (2-way junctions)
-                    for (base_pair_type_next, i_next, j_next) in match_base_pair_type_sets[0]:
-                        Z_BPq_next = self.Z_BPq[base_pair_type_next]
-                        Z_BPq.dQ[i%N][j%N] += (1.0/Kdq ) * motif_type.C_eff * Z_BPq_next.dQ[(i_next)%N][(j_next)%N]
+            match_base_pair_type_set = possible_motif_types[base_pair_type][ motif_type ]
+            if len(motif_type.strands) == 1: # hairpins (1-way junctions)
+                pass
+            elif len(motif_type.strands) == 2: # internal loops (2-way junctions)
+                for (base_pair_type_next, i_next, j_next) in match_base_pair_type_set:
+                    Z_BPq_next = self.Z_BPq[base_pair_type_next]
+                    Z_BPq.dQ[i%N][j%N] += (1.0/Kdq ) * motif_type.C_eff * Z_BPq_next.dQ[(i_next)%N][(j_next)%N]
         Z_BPq.dQ[i%N][j%N] += (C_std/Kdq) * Z_cut.dQ[i%N][j%N]
         if K_coax > 0.0:
             if ligated[i%N] and ligated[(j-1)%N]:
@@ -224,15 +222,14 @@ def update_Z_BPq( self, i, j, base_pair_type ):
                     Z_BPq.contribs[i%N][j%N]  +=  [ ((1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N], [(Z_BPq2,(i+1)%N,(j-1)%N)] ) ]
         possible_motif_types = self.possible_motif_types[i%N][j%N]
         for motif_type in possible_motif_types[base_pair_type]:
-            match_base_pair_type_sets = possible_motif_types[base_pair_type][ motif_type ]
-            if match_base_pair_type_sets:
-                if len(match_base_pair_type_sets) == 1: # hairpins (1-way junctions)
-                    pass
-                elif len(match_base_pair_type_sets) == 2: # internal loops (2-way junctions)
-                    for (base_pair_type_next, i_next, j_next) in match_base_pair_type_sets[0]:
-                        Z_BPq_next = self.Z_BPq[base_pair_type_next]
-                        if (1.0/Kdq ) * motif_type.C_eff * Z_BPq_next.Q[(i_next)%N][(j_next)%N] > 0:
-                            Z_BPq.contribs[i%N][j%N] +=  [ ((1.0/Kdq ) * motif_type.C_eff * Z_BPq_next.Q[(i_next)%N][(j_next)%N], [(Z_BPq_next,(i_next)%N,(j_next)%N)] ) ]
+            match_base_pair_type_set = possible_motif_types[base_pair_type][ motif_type ]
+            if len(motif_type.strands) == 1: # hairpins (1-way junctions)
+                pass
+            elif len(motif_type.strands) == 2: # internal loops (2-way junctions)
+                for (base_pair_type_next, i_next, j_next) in match_base_pair_type_set:
+                    Z_BPq_next = self.Z_BPq[base_pair_type_next]
+                    if (1.0/Kdq ) * motif_type.C_eff * Z_BPq_next.Q[(i_next)%N][(j_next)%N] > 0:
+                        Z_BPq.contribs[i%N][j%N] +=  [ ((1.0/Kdq ) * motif_type.C_eff * Z_BPq_next.Q[(i_next)%N][(j_next)%N], [(Z_BPq_next,(i_next)%N,(j_next)%N)] ) ]
         if (C_std/Kdq) * Z_cut.Q[i%N][j%N] > 0:
             Z_BPq.contribs[i%N][j%N] +=  [ ((C_std/Kdq) * Z_cut.Q[i%N][j%N], [(Z_cut,i%N,j%N)] ) ]
         if K_coax > 0.0:
@@ -671,13 +668,9 @@ def update_Z_final( self, i ):
                     for motif_type in possible_motif_types[base_pair_type]:
                         if len( motif_type.strands) != 2: continue
                         if ( (k - i + 1) >= len( motif_type.strands[-1] ) ): continue
-                        match_base_pair_type_sets = possible_motif_types[base_pair_type][motif_type]
-                        assert( match_base_pair_type_sets != None )
-                        assert( len(match_base_pair_type_sets) == 2 )
-                        (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
+                        match_base_pair_type_set = possible_motif_types[base_pair_type][motif_type]
                         base_pair_type1 = base_pair_type.flipped
-                        assert( (base_pair_type1, k%N, j%N)  in match_base_pair_type_sets1 ) # this is actually now totally redundant
-                        for (base_pair_type0,j_next,k_next) in match_base_pair_type_sets0:
+                        for (base_pair_type0,j_next,k_next) in match_base_pair_type_set:
                             Z_BPq0 = self.Z_BPq[base_pair_type0]
                             Z_BPq1 = self.Z_BPq[base_pair_type1]
                             Z_final.Q[i%N]  += motif_type.C_eff * Z_BPq0.Q[(j_next)%N][(k_next)%N] * Z_BPq1.Q[k%N][j%N]
@@ -771,13 +764,9 @@ def update_Z_final( self, i ):
                         for motif_type in possible_motif_types[base_pair_type]:
                             if len( motif_type.strands) != 2: continue
                             if ( (k - i + 1) >= len( motif_type.strands[-1] ) ): continue
-                            match_base_pair_type_sets = possible_motif_types[base_pair_type][motif_type]
-                            assert( match_base_pair_type_sets != None )
-                            assert( len(match_base_pair_type_sets) == 2 )
-                            (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
+                            match_base_pair_type_set = possible_motif_types[base_pair_type][motif_type]
                             base_pair_type1 = base_pair_type.flipped
-                            assert( (base_pair_type1, k%N, j%N)  in match_base_pair_type_sets1 ) # this is actually now totally redundant
-                            for (base_pair_type0,j_next,k_next) in match_base_pair_type_sets0:
+                            for (base_pair_type0,j_next,k_next) in match_base_pair_type_set:
                                 Z_BPq0 = self.Z_BPq[base_pair_type0]
                                 Z_BPq1 = self.Z_BPq[base_pair_type1]
                                 Z_final.dQ[i%N]  += motif_type.C_eff * Z_BPq0.dQ[(j_next)%N][(k_next)%N] * Z_BPq1.Q[k%N][j%N]
@@ -844,13 +833,9 @@ def update_Z_final( self, i ):
                         for motif_type in possible_motif_types[base_pair_type]:
                             if len( motif_type.strands) != 2: continue
                             if ( (k - i + 1) >= len( motif_type.strands[-1] ) ): continue
-                            match_base_pair_type_sets = possible_motif_types[base_pair_type][motif_type]
-                            assert( match_base_pair_type_sets != None )
-                            assert( len(match_base_pair_type_sets) == 2 )
-                            (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
+                            match_base_pair_type_set = possible_motif_types[base_pair_type][motif_type]
                             base_pair_type1 = base_pair_type.flipped
-                            assert( (base_pair_type1, k%N, j%N)  in match_base_pair_type_sets1 ) # this is actually now totally redundant
-                            for (base_pair_type0,j_next,k_next) in match_base_pair_type_sets0:
+                            for (base_pair_type0,j_next,k_next) in match_base_pair_type_set:
                                 Z_BPq0 = self.Z_BPq[base_pair_type0]
                                 Z_BPq1 = self.Z_BPq[base_pair_type1]
                                 if motif_type.C_eff * Z_BPq0.Q[(j_next)%N][(k_next)%N] * Z_BPq1.Q[k%N][j%N] > 0:
