@@ -62,52 +62,6 @@ class MotifType:
         self.C_eff = C_eff
         self.permuted = None # for now.
 
-    def get_match_base_pair_type_sets( self, sequence, all_ligated, i, j ):
-        '''
-        TODO: generalize to N-way junction
-        '''
-        N = len( sequence )
-        M = len( self.strands )
-        match_base_pair_type_sets = []
-
-        # works for hairpins and internal loops both:
-        for q in range( len( self.strands[0] ) ):
-            if self.strands[0][q] != 'N' and sequence[(i+q)%N] != self.strands[0][q]: return None
-        if not all_ligated[ i%N ][ (i+len(self.strands[0])-1)%N ]: return None
-
-        if M == 1:
-            # uh this is kind of explicit. must be a more general way to treat M = 1, 2, ...
-            if not (( j - i) % N) == len( self.strands[0] )-1: return None
-
-        if M == 2:
-            # uh this is kind of explicit. must be a more general way to treat M = 1, 2, ...
-            if (( j - i) % N) < len( self.strands[0] ) + len( self.strands[1] ) - 1: return None
-
-            matches = []
-            for base_pair_type in self.base_pair_type_sets[ 0 ]:
-                i_next, j_next = (i+len(self.strands[0])-1)%N, (j-len(self.strands[-1])+1)%N
-                if base_pair_type.is_match( sequence[i_next],sequence[j_next] ): matches.append( (base_pair_type,i_next%N,j_next%N) )
-            if len( matches ) == 0: return None
-            match_base_pair_type_sets.append( matches )
-
-                # for the second strand of the internal loop
-            for q in range( len( self.strands[-1] ) ):
-                if self.strands[-1][q] != 'N' and sequence[(j-len(self.strands[-1])+1+q)%N] != self.strands[-1][q]: return None
-            if not all_ligated[ (j-len(self.strands[-1])+1)%N ][ j%N ]: return None
-
-        if M > 2:
-            print('%s\n' % 'Cannot handle 3WJ or 4WJ motifs yet!')
-            exit()
-
-        # redundant with start_base_pair_type -- using as cross check
-        matches = []
-        for base_pair_type in self.base_pair_type_sets[ -1 ]:
-            if base_pair_type.is_match( sequence[j%N], sequence[i%N] ): matches.append( (base_pair_type,j%N,i%N) )
-        if len( matches ) == 0: return None
-        match_base_pair_type_sets.append( matches )
-
-        return match_base_pair_type_sets
-
     def get_tag( self ): return make_motif_type_tag( self.strands, self.bp_tags )
 
 def make_motif_type_tag( strands, bp_tags ):
