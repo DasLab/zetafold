@@ -336,11 +336,13 @@ def initialize_possible_motif_types( self ):
                     if not is_strand_match[strands[0]][i]: continue
                     if len( motif_type.strands ) > 1: # internal loop
                         if not is_strand_match[strands[1]][j-len(strands[1])+1]: continue
-
                     # this is a legacy data structure  -- should be able to replace match_base_pair_type_sets with something a lot simpler.
                     match_base_pair_type_sets = []
                     if len( motif_type.strands ) == 1: # hairpin
                         if not (( j - i) % N) == len( motif_type.strands[0] )-1: continue
+                    if len( motif_type.strands ) > 1: # internal loop
+                        if (( j - i) % N) < len( motif_type.strands[0] ) + len( motif_type.strands[1] ) - 1: continue
+
                     if len( motif_type.strands ) > 1:
                         match_base_pair_type_set = []
                         i_next = i+len(strands[0])-1
