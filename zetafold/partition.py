@@ -291,7 +291,10 @@ def initialize_possible_base_pair_types( self ):
                 self.possible_base_pair_types[ i ][ j ].append( base_pair_type )
 
 
+def intersect(a, b):  return list(set(a) & set(b))
+
 ##################################################################################################
+
 def initialize_possible_motif_types( self ):
     N = self.N
     sequence = self.sequence
@@ -323,7 +326,7 @@ def initialize_possible_motif_types( self ):
             self.possible_motif_types[i][j] = {}
 
             for base_pair_type in self.possible_base_pair_types[i][j]:
-                self.possible_motif_types[i][j][base_pair_type] = []
+                self.possible_motif_types[i][j][base_pair_type] = {}
 
                 for motif_type in self.params.motif_types:
                     if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
@@ -332,7 +335,17 @@ def initialize_possible_motif_types( self ):
                     if len( motif_type.strands ) > 1 and \
                         not is_strand_match[strands[1]][j-len(strands[1])+1]: continue
 
-                    self.possible_motif_types[i][j][base_pair_type].append( motif_type )
+                    # this is a legacy data structure  -- should be able to replace match_base_pair_type_sets with something a lot simpler.
+                    match_base_pair_type_sets = []
+                    if len( motif_type.strands ) > 1:
+                        match_base_pair_type_set = []
+                        i_next = i+len(strands[0])-1
+                        j_next = j-len(strands[1])+1
+                        for base_pair_type2 in intersect( self.possible_base_pair_types[ i_next ][ j_next ], motif_type.base_pair_type_sets[0] ):
+                            match_base_pair_type_set.append( (base_pair_type2,i_next,j_next) )
+                        match_base_pair_type_sets.append( match_base_pair_type_set )
+                    match_base_pair_type_sets.append( [(base_pair_type.flipped,j,i)] )
+                    self.possible_motif_types[i][j][base_pair_type][motif_type] = match_base_pair_type_sets
 
 
 ##################################################################################################

@@ -62,7 +62,8 @@ def update_Z_BPq( self, i, j, base_pair_type ):
 
     possible_motif_types = self.possible_motif_types[i][j]
     for motif_type in possible_motif_types[base_pair_type]:
-        match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, i, j )
+        #match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, i, j )
+        match_base_pair_type_sets = possible_motif_types[base_pair_type][ motif_type ]
         if match_base_pair_type_sets:
             if len(match_base_pair_type_sets) == 1: # hairpins (1-way junctions)
                 # base pair closes a hairpin
@@ -403,7 +404,9 @@ def update_Z_final( self, i ):
                     for motif_type in possible_motif_types[base_pair_type]:
                         if len( motif_type.strands) != 2: continue
                         if ( (k - i + 1) >= len( motif_type.strands[-1] ) ): continue
-                        match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, j, k )
+                        #match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, j, k )
+                        #if match_base_pair_type_sets == None: continue
+                        match_base_pair_type_sets = possible_motif_types[base_pair_type][motif_type]
                         if match_base_pair_type_sets == None: continue
                         assert( len(match_base_pair_type_sets) == 2 )
                         (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
