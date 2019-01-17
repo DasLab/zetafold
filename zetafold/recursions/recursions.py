@@ -420,20 +420,18 @@ def update_Z_final( self, i ):
         #         * 5'-->
         #   where k = i, i+1, ... (i + strand_length-2),
         #      i.e., ligation is inside hairpin loop
+        #
         for motif_type in self.params.motif_types:
             if len( motif_type.strands) != 1: continue
             L = len( motif_type.strands[0] ) # for a tetraloop this is 1+4+1 = 6
             for k in range( i, i+L-1 ):
                 j = ( k - L + 1 ) % N
-                match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, all_ligated, j, k )
-                if match_base_pair_type_sets == None: continue
-                assert( len(match_base_pair_type_sets) == 1 )
-                for (base_pair_type,k_match,j_match) in match_base_pair_type_sets[0]:
-                    assert( (j - j_match)%N == 0 )
-                    assert( (k - k_match)%N == 0 )
-                    Z_BPq1 = self.Z_BPq[base_pair_type]
+                for base_pair_type in self.possible_base_pair_types[j][k]:
+                    # N.B. could be made a little faster if we cache which hairpins are allowed at each j,k and for those, keep base pairs.
+                    possible_motif_types = self.possible_motif_types[j][k]
+                    if not motif_type in possible_motif_types[ base_pair_type ]: continue
+                    Z_BPq1 = self.Z_BPq[base_pair_type.flipped]
                     Z_final[i]  += motif_type.C_eff * Z_BPq1[k][j]
-
 
         if K_coax > 0:
             C_eff_for_coax = C_eff if allow_strained_3WJ else C_eff_no_BP_singlet
