@@ -273,7 +273,7 @@ def initialize_force_base_pair( self ):
 def initialize_possible_base_pair_types( self ):
     N = self.N
     sequence = self.sequence
-    self.possible_base_pair_types = initialize_matrix( N, None )
+    self.possible_base_pair_types = initialize_matrix( N, None, wrapped = self.use_simple_recursions )
 
     for i in range( N ):
         for j in range( N ):
@@ -298,7 +298,7 @@ def intersect(a, b):  return list(set(a) & set(b))
 def initialize_possible_motif_types( self ):
     N = self.N
     sequence = self.sequence
-    self.possible_motif_types = initialize_matrix( N, None )
+    self.possible_motif_types = initialize_matrix( N, None, wrapped = self.use_simple_recursions )
 
     # check for strand matches (an order N operation -- not need to keep doing it over and over again in motif_type.get_match_base_pair_type_sets()
     strands = set()
@@ -350,7 +350,6 @@ def initialize_possible_motif_types( self ):
                         match_base_pair_type_sets.append( match_base_pair_type_set )
                     match_base_pair_type_sets.append( [(base_pair_type.flipped,j,i)] )
                     self.possible_motif_types[i][j][base_pair_type][motif_type] = match_base_pair_type_sets
-
 
 ##################################################################################################
 def _get_bpp_matrix( self ):
