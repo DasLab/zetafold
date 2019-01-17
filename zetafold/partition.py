@@ -332,17 +332,21 @@ def initialize_possible_motif_types( self ):
                     if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
                     strands = motif_type.strands
                     if not is_strand_match[strands[0]][i]: continue
-                    if len( motif_type.strands ) > 1 and \
-                        not is_strand_match[strands[1]][j-len(strands[1])+1]: continue
+                    if len( motif_type.strands ) > 1: # internal loop
+                        if not is_strand_match[strands[1]][j-len(strands[1])+1]: continue
 
                     # this is a legacy data structure  -- should be able to replace match_base_pair_type_sets with something a lot simpler.
                     match_base_pair_type_sets = []
+                    if len( motif_type.strands ) == 1: # hairpin
+                        if not (( j - i) % N) == len( motif_type.strands[0] )-1: continue
                     if len( motif_type.strands ) > 1:
                         match_base_pair_type_set = []
                         i_next = i+len(strands[0])-1
                         j_next = j-len(strands[1])+1
-                        for base_pair_type2 in intersect( self.possible_base_pair_types[ i_next ][ j_next ], motif_type.base_pair_type_sets[0] ):
+                        for base_pair_type2 in motif_type.base_pair_type_sets[0]:
+                            if not base_pair_type2 in self.possible_base_pair_types[ i_next ][ j_next ]: continue
                             match_base_pair_type_set.append( (base_pair_type2,i_next,j_next) )
+                        if len( match_base_pair_type_set ) == 0: continue
                         match_base_pair_type_sets.append( match_base_pair_type_set )
                     match_base_pair_type_sets.append( [(base_pair_type.flipped,j,i)] )
                     self.possible_motif_types[i][j][base_pair_type][motif_type] = match_base_pair_type_sets
