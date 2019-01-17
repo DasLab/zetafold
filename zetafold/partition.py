@@ -296,13 +296,13 @@ def initialize_possible_base_pair_types( self ):
 def intersect(a, b):  return list(set(a) & set(b))
 
 ##################################################################################################
-
-def initialize_possible_motif_types( self ):
+def initialize_strand_match( self ):
+    '''
+    check for strand matches (an order N operation -- not need to keep doing it over and over again in motif_type.get_match_base_pair_type_sets()
+    '''
     N = self.N
     sequence = self.sequence
-    self.possible_motif_types = initialize_matrix( N, None, wrapped = self.use_simple_recursions )
 
-    # check for strand matches (an order N operation -- not need to keep doing it over and over again in motif_type.get_match_base_pair_type_sets()
     strands = set()
     self.max_motif_strand_length = 0
     for motif_type in self.params.motif_types:
@@ -322,6 +322,14 @@ def initialize_possible_motif_types( self ):
                     break
             if match: is_strand_match[strand][i] = True
 
+    return is_strand_match
+
+##################################################################################################
+def initialize_possible_motif_types( self ):
+    N = self.N
+    sequence = self.sequence
+    is_strand_match = initialize_strand_match( self )
+    self.possible_motif_types = initialize_matrix( N, None, wrapped = self.use_simple_recursions )
     # OK assign possible_motif_types
     for i in range( N ):
         for j in range( N ):
