@@ -43,9 +43,10 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
     p.calc_gap_structure = get_structure_string( calc_gap_structure )
     p.suppress_all_output = suppress_all_output
     p.suppress_bpp_output = suppress_bpp_output
-    p.bpp_file = bpp_file
     p.options.calc_deriv_DP = calc_Kd_deriv_DP
     if deriv_check and deriv_params == None: deriv_params = []
+    p.bpp_file = bpp_file
+    if bpp_file: calc_bpp = True
     p.calc_all_elements = calc_bpp or (deriv_params != None)
     p.deriv_params = deriv_params
     p.deriv_check  = deriv_check
@@ -117,7 +118,8 @@ class Partition:
                 j = (i + offset) % self.N;  # N cyclizes
                 for Z in self.Z_all: Z.update( self, i, j )
 
-        for i in range( self.N): self.Z_final.update( self, i )
+        n_final = self.N if self.calc_all_elements else 1
+        for i in range( n_final ): self.Z_final.update( self, i )
         self.Z  = self.Z_final.val(0)
 
         self.log_derivs = self.get_log_derivs( self.deriv_params )
