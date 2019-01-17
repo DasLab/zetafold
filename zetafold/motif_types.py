@@ -60,7 +60,6 @@ class MotifType:
             self.base_pair_type_sets.append( get_base_pair_types_for_tag( params, bp_tag ) )
 
         self.C_eff = C_eff
-        self.permuted = None # for now.
 
     def get_tag( self ): return make_motif_type_tag( self.strands, self.bp_tags )
 
