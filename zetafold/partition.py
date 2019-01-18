@@ -321,8 +321,8 @@ def initialize_strand_match( self ):
                     match = False
                     break
             if self.in_forced_base_pair:
-                for offset in range( len(strand) - 2 ): # ensure no internal positions are in forced base pair.
-                    if self.in_forced_base_pair[ i + offset ]:
+                for offset in range( 1, len(strand) - 1 ): # ensure no internal positions are in forced base pair.
+                    if self.in_forced_base_pair[ (i + offset)%N ]:
                         match = False
                         break
             if match: is_strand_match[strand][i] = True
