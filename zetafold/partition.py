@@ -43,9 +43,10 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
     p.calc_gap_structure = get_structure_string( calc_gap_structure )
     p.suppress_all_output = suppress_all_output
     p.suppress_bpp_output = suppress_bpp_output
-    p.bpp_file = bpp_file
     p.options.calc_deriv_DP = calc_Kd_deriv_DP
     if deriv_check and deriv_params == None: deriv_params = []
+    p.bpp_file = bpp_file
+    if bpp_file: calc_bpp = True
     p.calc_all_elements = calc_bpp or (deriv_params != None)
     p.deriv_params = deriv_params
     p.deriv_check  = deriv_check
@@ -108,6 +109,7 @@ class Partition:
         initialize_dynamic_programming_matrices( self ) # ( Z_BP, C_eff, Z_linear, Z_cut, Z_coax, etc. )
         initialize_force_base_pair( self )
         initialize_possible_base_pair_types( self )
+        initialize_possible_motif_types( self )
 
         # do the dynamic programming
         for offset in range( 1, self.N ): #length of subfragment
@@ -116,7 +118,8 @@ class Partition:
                 j = (i + offset) % self.N;  # N cyclizes
                 for Z in self.Z_all: Z.update( self, i, j )
 
-        for i in range( self.N): self.Z_final.update( self, i )
+        n_final = self.N if self.calc_all_elements else 1
+        for i in range( n_final ): self.Z_final.update( self, i )
         self.Z  = self.Z_final.val(0)
 
         self.log_derivs = self.get_log_derivs( self.deriv_params )
@@ -272,7 +275,8 @@ def initialize_force_base_pair( self ):
 def initialize_possible_base_pair_types( self ):
     N = self.N
     sequence = self.sequence
-    self.possible_base_pair_types = initialize_matrix( N, None )
+    self.possible_base_pair_types = initialize_matrix( N, None, wrapped = self.use_simple_recursions )
+
     for i in range( N ):
         for j in range( N ):
             self.possible_base_pair_types[i][j] = []
@@ -287,6 +291,80 @@ def initialize_possible_base_pair_types( self ):
             for base_pair_type in self.base_pair_types:
                 if not base_pair_type.is_match( sequence[i], sequence[j] ): continue
                 self.possible_base_pair_types[ i ][ j ].append( base_pair_type )
+
+
+def intersect(a, b):  return list(set(a) & set(b))
+
+##################################################################################################
+def initialize_strand_match( self ):
+    '''
+    check for strand matches (an order N operation -- not need to keep doing it over and over again in motif_type.get_match_base_pair_type_sets()
+    '''
+    N = self.N
+    sequence = self.sequence
+
+    strands = set()
+    self.max_motif_strand_length = 0
+    for motif_type in self.params.motif_types:
+        for strand in motif_type.strands:
+            strands.add( strand )
+            self.max_motif_strand_length = max( self.max_motif_strand_length, len(strand) )
+
+    is_strand_match = {}
+    for strand in strands:
+        is_strand_match[strand] = WrappedArray( N, False )
+        for i in range( N ):
+            if not self.all_ligated[ i ][ i+len(strand)-1 ]: continue
+            match = True
+            for offset in range( len( strand ) ):
+                if strand[offset] != 'N' and sequence[(i+offset)%N] != strand[offset]:
+                    match = False
+                    break
+            if self.in_forced_base_pair:
+                for offset in range( len(strand) - 2 ): # ensure no internal positions are in forced base pair.
+                    if self.in_forced_base_pair[ i + offset ]:
+                        match = False
+                        break
+            if match: is_strand_match[strand][i] = True
+
+    return is_strand_match
+
+##################################################################################################
+def initialize_possible_motif_types( self ):
+    N = self.N
+    sequence = self.sequence
+    is_strand_match = initialize_strand_match( self )
+    self.possible_motif_types = initialize_matrix( N, None, wrapped = self.use_simple_recursions )
+    # OK assign possible_motif_types
+    for i in range( N ):
+        for j in range( N ):
+            self.possible_motif_types[i][j] = {}
+
+            for base_pair_type in self.possible_base_pair_types[i][j]:
+                self.possible_motif_types[i][j][base_pair_type] = {}
+
+                for motif_type in self.params.motif_types:
+                    if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
+                    strands = motif_type.strands
+                    if not is_strand_match[strands[0]][i]: continue
+                    if len( motif_type.strands ) > 1: # internal loop
+                        if not is_strand_match[strands[1]][j-len(strands[1])+1]: continue
+                    if len( motif_type.strands ) == 1: # hairpin
+                        if not (( j - i) % N) == len( motif_type.strands[0] )-1: continue
+                    if len( motif_type.strands ) > 1: # internal loop
+                        if (( j - i) % N) < len( motif_type.strands[0] ) + len( motif_type.strands[1] ) - 1: continue
+
+                    if len( motif_type.strands) == 1: #hairpin
+                        self.possible_motif_types[i][j][base_pair_type][motif_type] = True # ugly hack
+                    if len( motif_type.strands ) > 1: # internal loop
+                        match_base_pair_type_set = []
+                        i_next = i+len(strands[0])-1
+                        j_next = j-len(strands[1])+1
+                        for base_pair_type2 in motif_type.base_pair_type_sets[0]:
+                            if not base_pair_type2 in self.possible_base_pair_types[ i_next ][ j_next ]: continue
+                            match_base_pair_type_set.append( (base_pair_type2,i_next,j_next) )
+                        if len( match_base_pair_type_set ) == 0: continue
+                        self.possible_motif_types[i][j][base_pair_type][motif_type] = match_base_pair_type_set
 
 ##################################################################################################
 def _get_bpp_matrix( self ):

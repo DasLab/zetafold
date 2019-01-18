@@ -60,36 +60,35 @@ def update_Z_BPq( self, i, j, base_pair_type ):
             Z_BPq2 = self.Z_BPq[base_pair_type2]
             Z_BPq[i][j]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2[i+1][j-1]
 
-    for motif_type in self.params.motif_types:
-        if not base_pair_type.flipped in motif_type.base_pair_type_sets[-1]: continue
-        match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, i, j )
-        if match_base_pair_type_sets:
-            if len(match_base_pair_type_sets) == 1: # hairpins (1-way junctions)
-                # base pair closes a hairpin
-                #            -----
-                #           |     |
-                #           i ... j
-                #          5' bpt  3'
-                #
-                Z_BPq[i][j].Q += (1.0/Kdq ) * motif_type.C_eff
-                pass
-            elif len(match_base_pair_type_sets) == 2: # internal loops (2-way junctions)
-                # base pair forms a motif with previous pair
-                #
-                # Example of 1x1 loop:
-                #             bpt0
-                #       i_next... j_next
-                #           |     |
-                #  strand0 i+1   j-1 strand1
-                #           |     |
-                #           i ... j
-                #          5' bpt1 3'
-                #
-                for (base_pair_type_next, i_next, j_next) in match_base_pair_type_sets[0]:
-                    Z_BPq_next = self.Z_BPq[base_pair_type_next]
-                    Z_BPq[i][j] += (1.0/Kdq ) * motif_type.C_eff * Z_BPq_next[i_next][j_next]
-            # could certainly handle 3WJ in O(N^3) time as well
-            # but how about 4WJ? anyway to do without an O(N^4) cost?
+    possible_motif_types = self.possible_motif_types[i][j]
+    for motif_type in possible_motif_types[base_pair_type]:
+        match_base_pair_type_set = possible_motif_types[base_pair_type][ motif_type ]
+        if len(motif_type.strands) == 1: # hairpins (1-way junctions)
+            # base pair closes a hairpin
+            #            -----
+            #           |     |
+            #           i ... j
+            #          5' bpt  3'
+            #
+            Z_BPq[i][j].Q += (1.0/Kdq ) * motif_type.C_eff
+            pass
+        elif len(motif_type.strands) == 2: # internal loops (2-way junctions)
+            # base pair forms a motif with previous pair
+            #
+            # Example of 1x1 loop:
+            #             bpt0
+            #       i_next... j_next
+            #           |     |
+            #  strand0 i+1   j-1 strand1
+            #           |     |
+            #           i ... j
+            #          5' bpt1 3'
+            #
+            for (base_pair_type_next, i_next, j_next) in match_base_pair_type_set:
+                Z_BPq_next = self.Z_BPq[base_pair_type_next]
+                Z_BPq[i][j] += (1.0/Kdq ) * motif_type.C_eff * Z_BPq_next[i_next][j_next]
+        # could certainly handle 3WJ in O(N^3) time as well
+        # but how about 4WJ? anyway to do without an O(N^4) cost?
 
     # base pair brings together two strands that were previously disconnected
     #
@@ -389,31 +388,29 @@ def update_Z_final( self, i ):
             #
             #           <--
             #        - j_next ----------- j -
-            # bpt0 |      :                 :   ^ bpt1
-            #      v      :                 :   |
+            # bpt0 |      :               :   ^ bpt1
+            #      v      :               :   |
             #        - k_next - i-1 - i - k -
             #                       *  -->
             #
             #   where k = i, i+1, ... (i + strand_length-2),
             #      i.e., ligation is inside last strand of motif
             #
-            for motif_type in self.params.motif_types:
-                if len( motif_type.strands) != 2: continue
-                for k in range( i, i+len( motif_type.strands[-1] )-1 ):
-                    match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, j, k )
-                    if match_base_pair_type_sets == None: continue
-                    assert( len(match_base_pair_type_sets) == 2 )
-                    (match_base_pair_type_sets0, match_base_pair_type_sets1) = match_base_pair_type_sets
-                    for (base_pair_type1,k_match,j_match) in match_base_pair_type_sets1:
-                        assert( (j - j_match)%N == 0 )
-                        assert( (k - k_match)%N == 0 )
-                        for (base_pair_type0,j_next,k_next) in match_base_pair_type_sets0:
+            for k in range( i, i + self.max_motif_strand_length - 1 ):
+                for base_pair_type in self.possible_base_pair_types[j][k]:
+                    possible_motif_types = self.possible_motif_types[j][k]
+                    for motif_type in possible_motif_types[base_pair_type]:
+                        if len( motif_type.strands) != 2: continue
+                        if ( (k - i + 1) >= len( motif_type.strands[-1] ) ): continue
+                        match_base_pair_type_set = possible_motif_types[base_pair_type][motif_type]
+                        base_pair_type1 = base_pair_type.flipped
+                        for (base_pair_type0,j_next,k_next) in match_base_pair_type_set:
                             Z_BPq0 = self.Z_BPq[base_pair_type0]
                             Z_BPq1 = self.Z_BPq[base_pair_type1]
                             Z_final[i]  += motif_type.C_eff * Z_BPq0[j_next][k_next] * Z_BPq1[k][j]
 
 
-        # ligation allows an internal loop motif to form across i-1 to i
+        # ligation allows a hairpin to close across i-1 to i
         #
         #        <--3'
         #       ------- j -
@@ -423,20 +420,18 @@ def update_Z_final( self, i ):
         #         * 5'-->
         #   where k = i, i+1, ... (i + strand_length-2),
         #      i.e., ligation is inside hairpin loop
+        #
         for motif_type in self.params.motif_types:
             if len( motif_type.strands) != 1: continue
             L = len( motif_type.strands[0] ) # for a tetraloop this is 1+4+1 = 6
             for k in range( i, i+L-1 ):
                 j = ( k - L + 1 ) % N
-                match_base_pair_type_sets = motif_type.get_match_base_pair_type_sets( sequence, ligated, j, k )
-                if match_base_pair_type_sets == None: continue
-                assert( len(match_base_pair_type_sets) == 1 )
-                for (base_pair_type,k_match,j_match) in match_base_pair_type_sets[0]:
-                    assert( (j - j_match)%N == 0 )
-                    assert( (k - k_match)%N == 0 )
-                    Z_BPq1 = self.Z_BPq[base_pair_type]
+                for base_pair_type in self.possible_base_pair_types[j][k]:
+                    # N.B. could be made a little faster if we cache which hairpins are allowed at each j,k and for those, keep base pairs.
+                    possible_motif_types = self.possible_motif_types[j][k]
+                    if not motif_type in possible_motif_types[ base_pair_type ]: continue
+                    Z_BPq1 = self.Z_BPq[base_pair_type.flipped]
                     Z_final[i]  += motif_type.C_eff * Z_BPq1[k][j]
-
 
         if K_coax > 0:
             C_eff_for_coax = C_eff if allow_strained_3WJ else C_eff_no_BP_singlet

@@ -14,9 +14,10 @@ class WrappedArray:
         return self.N
 
 ##################################################################################################
-def initialize_matrix( N, val = None ):
-    X = WrappedArray( N )
+def initialize_matrix( N, val = None, wrapped = True ):
+    assert( not isinstance(val,list ) ) # causes issue with references to same list.
+    X = WrappedArray( N ) if wrapped else [None]*N
     for i in range( N ):
-        X[ i ] = WrappedArray( N )
+        X[ i ] = WrappedArray( N ) if wrapped else [None]*N
         for j in range( N ): X[ i ][ j ] = val
     return X

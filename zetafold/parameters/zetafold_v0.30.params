@@ -1,5 +1,5 @@
 name zetafold
-version 0.20
+version 0.30
 min_loop_length 3
 allow_strained_3WJ False
 Kd_CG   762.071798
