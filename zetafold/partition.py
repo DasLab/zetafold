@@ -320,6 +320,11 @@ def initialize_strand_match( self ):
                 if strand[offset] != 'N' and sequence[(i+offset)%N] != strand[offset]:
                     match = False
                     break
+            if self.in_forced_base_pair:
+                for offset in range( len(strand) - 2 ): # ensure no internal positions are in forced base pair.
+                    if self.in_forced_base_pair[ i + offset ]:
+                        match = False
+                        break
             if match: is_strand_match[strand][i] = True
 
     return is_strand_match

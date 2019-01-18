@@ -1,0 +1,12 @@
+name zetafold
+version 0.30
+min_loop_length 3
+allow_strained_3WJ False
+Kd_CG   100
+Kd_AU  7372.206287
+Kd_GU 17378.420597
+C_init    10.0
+l     1.0
+l_BP     1.0
+C_eff_motif_NNNNNN    18.253115
+C_eff_motif_NNNNNNN   10000
