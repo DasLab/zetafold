@@ -206,12 +206,11 @@ def print_table( data, tag ):
     print
 
 # each RNA will be a row.
-print_table( ensemble_defects, 'Ensemble defect' )
-print_table( bpp_defects, 'BPP defect' )
-
+print_table( ensemble_defects, 'Ensemble defect for '+args.data )
+print_table( bpp_defects, 'BPP defect for '+args.data )
 
 # Summary table, just overall summary vals
-print 'Overall summary'
-print '%60s %20s %20s' % ('Package','Ensemble defect','BPP defect')
+print 'Overall summary for '+args.data
+print '%70s %20s %20s' % ('Package','Ensemble defect','BPP defect')
 for package in args.packages:
-    print '%60s %20.4f %20.4f' % (package, ensemble_defects[ package ]['overall'], bpp_defects[ package ]['overall'])
+    print '%70s %20.4f %20.4f' % (package, ensemble_defects[ package ]['overall'], bpp_defects[ package ]['overall'])
