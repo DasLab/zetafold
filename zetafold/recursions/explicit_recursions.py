@@ -78,8 +78,8 @@ def update_Z_BPq( self, i, j, base_pair_type ):
         #    |     |
         #    i ... j
         #
-        # Note that base pair stacks (C_eff_stack) could also be handled by this MotifType object, but
-        #      it turns out that the get_match_base_pair_type_sets() function below is just too damn slow.
+        # Note that base pair stacks (C_eff_stack) could also be handled by the MotifType object in the next code block --
+        #   only a modest (~10%) slowdown
         for base_pair_type2 in self.possible_base_pair_types[(i+1)%N][(j-1)%N]:
             Z_BPq2 = self.Z_BPq[base_pair_type2]
             Z_BPq.Q[i%N][j%N]  += (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N]
