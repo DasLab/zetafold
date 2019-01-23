@@ -3,7 +3,6 @@ from __future__ import print_function
 
 import argparse
 
-#from zetafold.output_helpers import *
 from zetafold.partition import *
 from zetafold.util.output_util import *
 from zetafold.parameters import get_params_from_file
