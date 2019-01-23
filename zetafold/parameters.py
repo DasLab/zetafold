@@ -236,7 +236,8 @@ def setup_motif_type_by_tag( params, motif_type_tag, val ):
     N = len( strands ) # N-way junction
 
     # The (older) C_eff_stack parametrization is computationally more efficient
-    #  then this motif framework, at the expense of being hard-coded.
+    #  then this motif framework, by about 10%, at the expense of being hard-coded.
+    # Perhaps for simplicity we should get rid of this C_eff_stack...
     C_eff_stack_tag = check_equivalent_C_eff_stack_for_motif_type( strands, bp_tags )
     if C_eff_stack_tag:
         if C_eff_stack_tag in params.parameter_tags: print( 'Hey!!! Using C_eff_motif_%s value to replace %s. Might see funny behavior in training and/or derivatives!' % (motif_type_tag, C_eff_stack_tag) )
