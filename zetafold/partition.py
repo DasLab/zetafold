@@ -173,7 +173,7 @@ class PartitionOptions:
     def __init__( self ):
         self.calc_deriv_DP = False
         self.calc_contrib  = False
-        self.use_logsumexp = False
+        self.use_logsumexp = True
 
 ##################################################################################################
 def initialize_dynamic_programming_matrices( self ):
