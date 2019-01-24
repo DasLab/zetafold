@@ -179,7 +179,7 @@ for n,line in enumerate(lines):
                     if i == j: line_deriv += '.dQ'
                     else: line_deriv += '.Q'
                 line_deriv += line_new[ Qpos[-1]+2:]
-                print line_deriv,
+                #print line_deriv,
                 lines_deriv.append(line_deriv)
 
             line_logsumexp = ' '*num_indent
@@ -189,8 +189,8 @@ for n,line in enumerate(lines):
             line_logsumexp += ')\n'
             #print line_logsumexp,
             lines_logsumexp.append( line_logsumexp)
-            Z = line_new[:Qpos[0]].split()[-1]
-
+            Z = line_new[:assign_pos].split()[-1]
+            print 'Z!!!',Z
             line_contrib = ' '*num_indent
             line_contrib += ' '*4
             line_contrib += 'if %s > 0:\n' % line_new[assign_pos+3:-1]
