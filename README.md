@@ -22,17 +22,17 @@ This code brings together features pioneered in (but scattered across) prior pac
  * Enumerative backtracking to get all structures and their Boltzmann weights
  * Stochastic backtracking to get Boltzmann-sampled structures
  * Minimum free energy structures
- * Rapid calculation of gradients to enable efficient learning from large data sets
- * Generalized base pairs (e.g., both Watson-Crick and Sugar/Hoogsteen G-A pairs) (_coming soon_)
- * 'Classic' Turner2004 & ContraFold parameters (_coming soon_)
+ * Rapid calculation of gradients (mostly `N^2`) to enable efficient learning from large data sets
  * Modeling of ligand/protein binding to RNA hairpins and internal loops (_coming soon_)
  * Modeling of protein binding to RNA single-stranded segments (_coming soon_)
+ * Generalized base pairs (e.g., both Watson-Crick and Sugar/Hoogsteen G-A pairs) (_coming soon_)
+ * 'Classic' Turner2004 & ContraFold parameters (_coming soon_)
  
 This code also presents entirely new features, based on recent theoretical insights from R. Das & laboratory:
  * Cross-checks based on computation of the partition function `N` different ways for each RNA.
+ * Linear motifs identified by Rosetta or by crystallography as having favorable energy bonuses (_coming soon_)
  * Loop penalties that rise like the logarithm of the number of loop nucleotides, still in `N^3` time (_coming soon_)
  * Parameters for chemically modified bases, and some modified backbones, based on Rosetta calculations (_coming soon_)
- * Linear motifs identified by Rosetta or by crystallography as having favorable energy bonuses (_coming soon_)
  * Modeling of protein binding to RNA, including proper steric exclusion effects. (_coming soon_)
  * Modeling of RNA tertiary contacts, through a novel iterative sampling method, Rosetta-calculated properties of the contacts, and efficient C_eff calculations. (_coming soon_)
  * Tracking and propagation of estimated model uncertainties. (_coming soon_)
