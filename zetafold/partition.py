@@ -298,6 +298,12 @@ def initialize_possible_base_pair_types( self ):
 def intersect(a, b):  return list(set(a) & set(b))
 
 ##################################################################################################
+sequence_match = { 'N':{'A','C','G','U'}, 'A':{'A'},'C':{'C'},'G':{'G'},'U':{'U'}, 'R':{'A','G'}, 'Y':{'C','U'} }
+def check_match( target, s ):
+    if not target in sequence_match: return False
+    if s not in sequence_match[ target ]: return False
+    return True
+
 def initialize_strand_match( self ):
     '''
     check for strand matches (an order N operation -- not need to keep doing it over and over again in motif_type.get_match_base_pair_type_sets()
@@ -319,7 +325,7 @@ def initialize_strand_match( self ):
             if not self.all_ligated[ i ][ i+len(strand)-1 ]: continue
             match = True
             for offset in range( len( strand ) ):
-                if strand[offset] != 'N' and sequence[(i+offset)%N] != strand[offset]:
+                if not check_match( strand[offset], sequence[(i+offset)%N] ):
                     match = False
                     break
             if self.in_forced_base_pair:
