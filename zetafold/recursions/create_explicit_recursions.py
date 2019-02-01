@@ -171,8 +171,11 @@ for n,line in enumerate(lines):
     if first_char != '#' and line_new.count( 'def' ) == 0 and not is_assignment_line and \
        not in_comment_block and not line.count( "'''" ) and first_char != '' and num_indent >= 4:
         lines_deriv.append( ' '*4 + line_new )
-        lines_sum_at_end.append( ' '*4 + line_new )
         lines_contrib.append( ' '*4 + line_new )
+
+    if line_new.count( 'def' ) == 0 and not is_assignment_line and \
+       first_char != '' and num_indent >= 4:
+        lines_sum_at_end.append( ' '*4 + line_new )
 
     if line == line_new: continue
     #print line,
