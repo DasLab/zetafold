@@ -34,7 +34,6 @@ def find_substring(substring, string):
 
 lines_new = []
 
-lines_standard = []
 lines_deriv = []
 lines_contrib = []
 lines_sum_at_end = []
@@ -76,8 +75,6 @@ for n,line in enumerate(lines):
         # In near future, should eliminate these lines, which are only needed for the DEPRECATED 'in-line' deriviative calculations
         line_new = line.replace( '[i][j].Q', '.Q[i][j]' )
         line_new = line_new.replace( '[i][j].dQ', '.dQ[i][j]' )
-        lines_standard.append( line_new )
-        print lines_standard[-1]
 
         if line.count( '.dQ' ):
             lines_sum_at_end.append( line_new.replace( 'Z_BPq.Q[i][j]', 'sum(contribs)' ) ) # awful hack to retain derivatives -- should remove these calcs soon.
@@ -159,9 +156,7 @@ for n,line in enumerate(lines):
             word += char
             just_finished_first_bracket = False
 
-    if (line_new.count( 'def' ) == 0 and num_indent >= 4) or len(line_new)==1:
-        lines_standard.append( line_new )
-    else:
+    if (line_new.count( 'def' ) or num_indent < 4) and len(line_new)!=1:
         lines_new.append( line_new )
 
     # is this an assignment? then need to create derivative and contribution lines
