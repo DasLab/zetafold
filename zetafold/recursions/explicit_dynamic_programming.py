@@ -14,9 +14,6 @@ class DynamicProgrammingMatrix:
         for i in range( N ): self.Q[i] = [val]*N
         for i in range( N ): self.Q[i][i] = diag_val
 
-        self.dQ = [None]*N
-        for i in range( N ): self.dQ[i] = [0.0]*N
-
         self.contribs = [None]*N
         for i in range( N ):
             self.contribs[i] = []
@@ -32,11 +29,9 @@ class DynamicProgrammingMatrix:
 
     def val( self, i, j ): return self.Q[i%self.N][j%self.N]
     def set_val( self, i, j, val ): self.Q[i%self.N][j%self.N] = val
-    def deriv( self, i, j ): return self.dQ[i%self.N][j%self.N]
 
     def update( self, partition, i, j ):
         self.Q[ i ][ j ] = 0
-        self.dQ[ i ][ j ] = 0
         self.contribs[ i ][ j ] = []
         self.update_func( partition, i, j )
 
@@ -61,7 +56,6 @@ class DynamicProgrammingList:
     def __init__( self, N, val = 0.0, update_func = None, options = None, name = None ):
         self.N = N
         self.Q = [ val ]*N
-        self.dQ = [ 0.0 ]*N
         self.contribs = [None] * N
         for i in range( N ): self.contribs[i] = []
         self.contribs_updated = [False]*N
@@ -71,11 +65,9 @@ class DynamicProgrammingList:
     def __len__( self ): return self.N
 
     def val( self, i ): return self.Q[i]
-    def deriv( self, i ): return self.dQ[i]
 
     def update( self, partition, i ):
         self.Q[ i ] = 0.0
-        self.dQ[ i ] = 0.0
         self.contribs[ i ] = []
         self.update_func( partition, i )
 

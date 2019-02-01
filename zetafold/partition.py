@@ -21,7 +21,7 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
                no_coax = False,
                verbose = False,  suppress_all_output = False, suppress_bpp_output = False,
                deriv_params = None,
-               calc_Kd_deriv_DP = False, use_simple_recursions = False, deriv_check = False, bpp_file = None ):
+               use_simple_recursions = False, deriv_check = False, bpp_file = None ):
     '''
     Wrapper function into Partition() class
     Returns Partition object p which holds results like:
@@ -30,7 +30,6 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
       p.bpp = matrix of base pair probabilities (if requested by user with calc_bpp = True)
       p.struct_MFE = minimum free energy secondary structure in dot-parens notation
       p.bps_MFE  = minimum free energy secondary structure as sorted list of base pairs
-      p.dZ_dKd_DP = derivative of Z w.r.t. Kd computed in-line with dynamic programming (if requested by user with calc_Kd_deriv_DP = True)
 
     '''
     if isinstance(params,str): params = get_params( params, suppress_all_output )
@@ -44,7 +43,6 @@ def partition( sequences, circle = False, params = '', mfe = False, calc_bpp = F
     p.calc_gap_structure = get_structure_string( calc_gap_structure )
     p.suppress_all_output = suppress_all_output
     p.suppress_bpp_output = suppress_bpp_output
-    p.options.calc_deriv_DP = calc_Kd_deriv_DP
     if deriv_check and deriv_params == None: deriv_params = []
     p.bpp_file = bpp_file
     if bpp_file: calc_bpp = True
@@ -141,7 +139,6 @@ class Partition:
 ##################################################################################################
 def fill_in_outputs( self ):
     if self.Z > 0.0: self.dG = -KT_IN_KCAL * log( self.Z )
-    self.dZ_dKd_DP = self.Z_final.deriv(0)
     self.derivs = []
     if self.deriv_params:
         for n,log_deriv in enumerate(self.log_derivs):
@@ -171,7 +168,6 @@ def initialize_sequence_information( self ):
 ##################################################################################################
 class PartitionOptions:
     def __init__( self ):
-        self.calc_deriv_DP = False
         self.calc_contrib  = False
 
 ##################################################################################################
@@ -463,24 +459,6 @@ def _run_cross_checks( self ):
     # stringent test that partition function is correct -- all the Z(i,i) agree.
     if self.calc_all_elements:
         for i in range( self.N ): assert_equal( self.Z_final.val(0), self.Z_final.val(i) )
-
-        if self.options.calc_deriv_DP and self.Z_final.deriv(0) > 0:
-            for i in range( self.N ): assert_equal( self.Z_final.deriv(0), self.Z_final.deriv(i) )
-
-    # calculate bpp_tot = -dlog Z_final /dlog Kd in up to three ways! wow cool test
-    if self.bpp:
-        bpp_tot = 0.0
-        for i in range( self.N ):
-            for j in range( self.N ):
-                bpp_tot += self.bpp[i][j]/2.0 # to avoid double counting (i,j) and (j,i)
-
-        # uh this is a hack -- only works for minimal model where all the Kd are the same:
-        Kd = self.params.base_pair_types[0].Kd
-        if self.options.calc_deriv_DP:
-            bpp_tot_based_on_deriv = -self.Z_final.deriv(0) * Kd / self.Z_final.val(0)
-            print('bpp_tot',bpp_tot,'bpp_tot_based_on_deriv',bpp_tot_based_on_deriv)
-            if bpp_tot > 0: assert_equal( bpp_tot, bpp_tot_based_on_deriv )
-
 
     if self.deriv_check:
         print('\nCHECKING LOG DERIVS:')
