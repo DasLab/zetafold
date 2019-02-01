@@ -31,7 +31,6 @@ class DynamicProgrammingMatrix:
 
     def val( self, i, j ): return self.data[i][j].Q
     def set_val( self, i, j, val ): self.data[i][j].Q = val
-    def deriv( self, i, j ): return self.data[i][j].dQ
 
     def update( self, partition, i, j ):
         self.data[ i ][ j ].zero()
@@ -71,7 +70,6 @@ class DynamicProgrammingList:
     def __len__( self ): return len( self.data )
 
     def val( self, i ): return self.data[i].Q
-    def deriv( self, i ): return self.data[i].dQ
 
     def get_contribs( self, partition, i ):
         if not self.contribs_updated[i]:
@@ -89,26 +87,23 @@ class DynamicProgrammingData:
     '''
     Dynamic programming object, with derivs and contribution accumulation.
      Q   = value
-     dQ  = derivative (later will generalize to gradient w.r.t. all parameters)
      contrib = contributions
+
+    NB: dQ  = derivative (removed in branch rhiju/remove_inline_derivatives)
     '''
     def __init__( self, val = 0.0, options = None ):
         self.Q = val
-        self.dQ = 0.0
         self.contribs = []
         self.info = []
         self.options = options
 
     def zero( self ):
         self.Q = 0.0
-        self.dQ = 0.0
         self.contribs = []
 
     def __iadd__(self, other):
         if other.Q == 0.0: return self
         self.Q  += other.Q
-        if self.options and self.options.calc_deriv_DP:
-            self.dQ += other.dQ
         if self.options and self.options.calc_contrib:
             if len( other.info ) > 0: self.contribs.append( [other.Q, other.info] )
         return self
@@ -119,8 +114,6 @@ class DynamicProgrammingData:
         if not prod.options: prod.options = other.options
         if isinstance( other, DynamicProgrammingData ):
             prod.Q  = self.Q * other.Q
-            if self.options and self.options.calc_deriv_DP:
-                prod.dQ = self.Q * other.dQ + self.dQ * other.Q
             if self.options and self.options.calc_contrib:
                 info = self.info + other.info
                 if len( info ) > 0:
@@ -128,8 +121,6 @@ class DynamicProgrammingData:
                     prod.info = info
         else:
             prod.Q  = self.Q * other
-            if self.options and self.options.calc_deriv_DP:
-                prod.dQ = self.dQ * other
             if self.options and self.options.calc_contrib:
                 for contrib in self.contribs:
                     prod.contribs.append( [contrib[0]*other, contrib[1] ] )

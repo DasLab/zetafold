@@ -29,7 +29,7 @@ def test_final_partition_1( verbose = False, use_simple_recursions = False ):
     (C_init, l, l_BP, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
     Kd = test_params.base_pair_types[0].Kd
     sequence = 'CNNNGNN' # CIRCLE!
-    p = partition( sequence, circle = True, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, circle = True, params = test_params, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref   = C_init  * (l**7) * (1 + (C_init * l_BP**2) / Kd ) / C_std
     bpp_ref = (C_init * l_BP**2/ Kd) / ( 1 + C_init * l_BP**2/ Kd)
     deriv_parameters = ('Kd','Kd_matchlowercase','Kd_GC' ,'Kd_CG','l','l_BP','C_init','C_eff_stacked_pair')
@@ -43,7 +43,7 @@ def test_final_partition_2( verbose = False, use_simple_recursions = False ):
     Kd = test_params.base_pair_types[0].Kd
     sequence = 'CNNNGNN' # CIRCLE!
     structure= '(...)..'
-    p = partition( sequence, circle = True, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, structure = structure )
+    p = partition( sequence, circle = True, params = test_params, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, structure = structure )
     Z_ref = C_init  * (l**7) * (C_init * l_BP**2) / Kd / C_std
     bpp_ref = 1.0
     deriv_parameters = ('Kd','Kd_matchlowercase','Kd_GC' ,'Kd_CG','l','l_BP','C_init','C_eff_stacked_pair')
@@ -56,7 +56,7 @@ def test_final_partition_3( verbose = False, use_simple_recursions = False ):
     (C_init, l, l_BP, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
     Kd = test_params.base_pair_types[0].Kd
     sequence = 'CNG'
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, mfe = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, params = test_params, mfe = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     assert( p.bps_MFE == [(0,2)] )
     Z_ref = 1 + C_init * l**2 * l_BP/ Kd
     bpp_ref = (C_init * l**2 * l_BP/Kd)/( 1 + C_init * l**2 * l_BP/Kd )
@@ -68,7 +68,7 @@ def test_final_partition_bimolecular_1( verbose = False, use_simple_recursions =
     (C_init, l, l_BP, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
     Kd = test_params.base_pair_types[0].Kd
     sequences = ['C','G']
-    p = partition( sequences, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions ) # note that Z sums over only base pair (not dissociated strands!)
+    p = partition( sequences, params = test_params, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions ) # note that Z sums over only base pair (not dissociated strands!)
     output_test( p, C_std/ Kd, \
                  [0,1], 1.0 )
 
@@ -79,7 +79,7 @@ def test_final_partition_bimolecular_1( verbose = False, use_simple_recursions =
     Kd = test_params.base_pair_types[0].Kd
     C_eff_stacked_pair = test_params.C_eff_stack[ test_params.base_pair_types[0] ][ test_params.base_pair_types[0] ]
     sequences = ['GC','GC']
-    p = partition( sequences, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequences, params = test_params, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = (C_std/Kd)*(2 + l**2 * l_BP**2 *C_init/Kd + C_eff_stacked_pair/Kd )
     bpp_ref = (1 + l**2 * l_BP**2 * C_init/Kd + C_eff_stacked_pair/Kd )/(2 + l**2 * l_BP**2 *C_init/Kd + C_eff_stacked_pair/Kd )
     log_deriv_C_init = (l**2 * l_BP**2 * C_init/Kd ) / (2 + (l**2 * l_BP**2 *C_init/Kd) + C_eff_stacked_pair/Kd )
@@ -96,7 +96,7 @@ def test_without_all_extra_base_pairs( verbose = False, use_simple_recursions = 
     print( 'Testing structure calc, without and with all_extra_base_pairs' )
     sequences = ['GC','GC']
     structure = '(..)'
-    p = partition( sequences, structure = structure, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequences, structure = structure, params = test_params, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = (C_std/Kd)
     output_test( p, Z_ref, [0,3], 1.0 )
     output_test( p, Z_ref, [1,2], 0.0 )
@@ -108,7 +108,7 @@ def test_with_all_extra_base_pairs( verbose = False, use_simple_recursions = Fal
     C_eff_stacked_pair = test_params.C_eff_stack[ test_params.base_pair_types[0] ][ test_params.base_pair_types[0] ]
     sequences = ['GC','GC']
     structure = '(..)'
-    p = partition( sequences, structure = structure, allow_extra_base_pairs = True, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequences, structure = structure, allow_extra_base_pairs = True, params = test_params, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = (C_std/Kd)*(1 + l**2 * l_BP**2 *C_init/Kd + C_eff_stacked_pair/Kd )
     output_test( p, Z_ref, [0,3], 1.0 )
     output_test( p, Z_ref, [1,2], (l**2 * l_BP**2 *C_init/Kd + C_eff_stacked_pair/Kd)/( 1 + l**2 * l_BP**2 *C_init/Kd + C_eff_stacked_pair/Kd ) )
@@ -124,7 +124,7 @@ def test_nonuniform_C_eff_stacked_pair( verbose = False, use_simple_recursions =
     for base_pair_type_GC in test_params_C_eff_stack.base_pair_types[1:3]:
         test_params_C_eff_stack.C_eff_stack[ base_pair_type_GC ][  test_params_C_eff_stack.base_pair_types[0] ]= cross_C_eff_stacked_pair
         test_params_C_eff_stack.C_eff_stack[  test_params_C_eff_stack.base_pair_types[0] ][ base_pair_type_GC ] = cross_C_eff_stacked_pair
-    p = partition( sequences, params = test_params_C_eff_stack, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequences, params = test_params_C_eff_stack, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = (C_std/Kd)*(2 + l**2 * l_BP**2 *C_init/Kd + cross_C_eff_stacked_pair/Kd )
     bpp_ref = (1 + l**2 * l_BP**2 * C_init/Kd + cross_C_eff_stacked_pair/Kd )/(2 + l**2 * l_BP**2 *C_init/Kd + cross_C_eff_stacked_pair/Kd )
     log_deriv_l = 2 * (l**2 * l_BP**2 * C_init/Kd ) / (2 + (l**2 * l_BP**2 *C_init/Kd) + cross_C_eff_stacked_pair/Kd )
@@ -139,7 +139,7 @@ def test_CNGGC( verbose = False, use_simple_recursions = False ):
     (C_init, l, l_BP, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
     Kd = test_params.base_pair_types[0].Kd
     sequence = 'CNGGC'
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose,  use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, params = test_params, calc_bpp = True, suppress_bpp_output = True, verbose = verbose,  use_simple_recursions = use_simple_recursions )
     Z_ref = 1 + C_init * l**2 *l_BP/Kd * ( 2 + l )
     bpp_ref = C_init*l**2*l_BP/Kd /(  1+C_init*l**2*l_BP/Kd * ( 2 + l ))
     output_test( p, Z_ref, [0,2], bpp_ref )
@@ -150,7 +150,7 @@ def test_CNGGC_structure( verbose = False, use_simple_recursions = False ):
     Kd = test_params.base_pair_types[0].Kd
     sequence = 'CNGGC'
     structure= '(..).'
-    p = partition( sequence, params = test_params, structure = structure, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True,
+    p = partition( sequence, params = test_params, structure = structure, calc_bpp = True, suppress_bpp_output = True,
                    verbose = verbose,  use_simple_recursions = use_simple_recursions )
     output_test( p,  C_init * l**2 *l_BP/Kd * l, \
                  [0,2], 0.0 )
@@ -161,7 +161,7 @@ def test_CGNCG( verbose = False, use_simple_recursions = False ):
     Kd = test_params.base_pair_types[0].Kd
     C_eff_stacked_pair = test_params.C_eff_stack[ test_params.base_pair_types[0] ][ test_params.base_pair_types[0] ]
     sequence = 'CGNCG'
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, mfe = True )
+    p = partition( sequence, params = test_params, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, mfe = True )
     Z_ref = 1 + C_init*l**2*l_BP/Kd + C_init*l**4*l_BP/Kd  + C_init**2 * (l_BP**3) * l**4 /Kd /Kd + C_init * l_BP * l**2 * C_eff_stacked_pair/Kd /Kd
     bpp_ref = ( C_init*l**4*l_BP/Kd  + C_init**2 * (l_BP**3) * l**4 /Kd /Kd  + C_init * l_BP * l**2 * C_eff_stacked_pair/Kd /Kd) / ( 1 + C_init*l**2*l_BP/Kd + C_init*l**4*l_BP/Kd  + C_init**2 * (l_BP**3) * l**4 /Kd /Kd + C_init * l_BP * l**2 * C_eff_stacked_pair/Kd /Kd )
     output_test( p, Z_ref, [0,4], bpp_ref )
@@ -173,25 +173,10 @@ def test_MFE_tie( verbose = False, use_simple_recursions = False ):
     # an example with ties for MFE structure
     print( 'Example with ties for MFE structure...' )
     sequence = 'CNGNC'
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, mfe = True )
+    p = partition( sequence, params = test_params, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, mfe = True )
     Z_ref = 1 + 2 * C_init*l**2*l_BP/Kd
     bpp_ref = C_init*l**2*l_BP/Kd/ Z_ref
     output_test( p, Z_ref, [0,2], bpp_ref )
-
-def test_numeric_analytic_deriv( verbose = False, use_simple_recursions = False ):
-    test_params = get_params_from_file( 'minimal' )
-    # let's do a numerical vs. analytic deriv test
-    print( 'Numerical vs. analytic deriv (inline DP) test, Kd...' )
-    sequence = 'CNGNC'
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, mfe = True )
-    params_perturb = get_params_from_file( 'minimal' )
-    delta = 1.0e-10
-    for base_pair_type in params_perturb.base_pair_types: base_pair_type.Kd += delta
-    p_perturb = partition( sequence, params = params_perturb ) # note that Z sums over only base pair (not dissociated strands!)
-    dZ_numerical = (p_perturb.Z - p.Z)/delta
-    print("dZ_dKd (numerical) =",dZ_numerical, ";  dZ_dKd (analytic) =",p.dZ_dKd_DP)
-    assert_equal( dZ_numerical, p.dZ_dKd_DP )
-    print()
 
 def test_enumeration( verbose = False, use_simple_recursions = False ):
     test_params = get_params_from_file( 'minimal' )
@@ -199,7 +184,7 @@ def test_enumeration( verbose = False, use_simple_recursions = False ):
     Kd = test_params.base_pair_types[0].Kd
     print( 'Enumeration tests...' )
     sequence = 'CNGCNG'
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, do_enumeration = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, params = test_params, calc_bpp = True, suppress_bpp_output = True, do_enumeration = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = (1 + C_init * l**2 *l_BP/Kd)**2  + C_init * l**5 * l_BP/Kd + (C_init * l**2 *l_BP/Kd)**2 * K_coax
     bpp_ref = (C_init * l**2 *l_BP/Kd*(1 + C_init * l**2 *l_BP/Kd) + (C_init * l**2 *l_BP/Kd)**2 * K_coax) / Z_ref
     deriv_parameters = ('C_eff_stacked_pair','Kd')
@@ -213,7 +198,7 @@ def test_structure_constrained_score_deriv( verbose = False, use_simple_recursio
     (C_init, l, l_BP, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
     Kd = test_params.base_pair_types[0].Kd
     sequence = 'CNGCNG'
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, do_enumeration = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, params = test_params, calc_bpp = True, suppress_bpp_output = True, do_enumeration = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
 
     print( 'Stringent test of structure-constrained scores & derivs' )
     Z_tot_ref = p.Z
@@ -228,7 +213,7 @@ def test_structure_constrained_score_deriv( verbose = False, use_simple_recursio
                        [-1,1,2,1,0,0,0],
                        [-2,2,4,2,0,K_coax/(1+K_coax),0] ]
     for n,structure in enumerate( structures ):
-        p = partition( sequence, structure = structure, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, do_enumeration = False, verbose = verbose, use_simple_recursions = use_simple_recursions, deriv_params = deriv_params )
+        p = partition( sequence, structure = structure, params = test_params, calc_bpp = True, suppress_bpp_output = True, do_enumeration = False, verbose = verbose, use_simple_recursions = use_simple_recursions, deriv_params = deriv_params )
         output_test( p, Z_refs[n], [0,2], bpp_refs_0_2[n], deriv_params, log_derivs_ref[n] )
         # also throw in a test of score_structure here
         ( dG, log_derivs ) = score_structure( sequence, structure, params = test_params, deriv_params = deriv_params )
@@ -245,7 +230,7 @@ def test_extended_alphabet_coaxial_strained_3WJ( verbose = False, use_simple_rec
     sequence = ['xy','yz','zx']
     params_allow_strained_3WJ = get_params_from_file( 'minimal' )
     params_allow_strained_3WJ.allow_strained_3WJ = True
-    p = partition( sequence, params = params_allow_strained_3WJ, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, params = params_allow_strained_3WJ, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = 3*(C_std/Kd)**2 * (1 + K_coax)  + \
             (C_std/Kd)**2 * (C_init/Kd) * l**3 * l_BP**3  + \
             3*(C_std/Kd)**2 * (C_init/Kd) * K_coax * l_coax*l**2 * l_BP
@@ -266,7 +251,7 @@ def test_extended_alphabet_coaxial( verbose = False, use_simple_recursions = Fal
     Kd = test_params.base_pair_types[0].Kd
     # testing extended alphabet & coaxial stacks
     sequence = ['xy','yz','zx']
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, params = test_params, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = 3*(C_std/Kd)**2 * (1 + K_coax)  + \
             (C_std/Kd)**2 * (C_init/Kd) * l**3 * l_BP**3
     bpp_ref = ( 2 * (C_std/Kd)**2 * (1 + K_coax) + \
@@ -279,7 +264,7 @@ def test_Z_final_no_regression( verbose = False, use_simple_recursions = False )
     Kd = test_params.base_pair_types[0].Kd
     # test that caught a bug in Z_final
     sequence = 'NyNyxNx'
-    p = partition( sequence, params = test_params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequence, params = test_params, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = (1 + C_init * l**2 *l_BP/Kd)**2  +(C_init * l**2 *l_BP/Kd)**2 * K_coax
     bpp_ref = ( C_init * l**2 *l_BP/Kd * (1 + C_init * l**2 *l_BP/Kd)  + (C_init * l**2 *l_BP/Kd)**2 * K_coax ) / Z_ref
     output_test( p, Z_ref, [1,3], bpp_ref  )
@@ -295,7 +280,7 @@ def test_sfxn_with_motif( verbose = False, use_simple_recursions = False ):
     params.set_parameter( 'C_eff_motif_CG_CAG', C_eff_motif )
 
     sequences = ['CG','CAG']
-    p = partition( sequences, params = params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
+    p = partition( sequences, params = params, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions )
     Z_ref = (C_std/Kd)*(2 + l**3 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
     bpp_ref = (1 + l**3 * l_BP**2 * C_init/Kd + C_eff_motif/Kd )/(2 + l**3 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
     log_deriv_C_init = (l**3 * l_BP**2 * C_init/Kd) / (2 + l**3 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
@@ -315,7 +300,7 @@ def test_sfxn_with_symmetric_motif( verbose = False, use_simple_recursions = Fal
     sequences = ['CAG','CAG']
     C_eff_motif = 10.0
     params.set_parameter( 'C_eff_motif_NNN_NNN', C_eff_motif )
-    p = partition( sequences, params = params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, do_enumeration = True )
+    p = partition( sequences, params = params, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, do_enumeration = True )
     Z_ref = (C_std/Kd)*(2 + l**4 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
     bpp_ref = (1 + l**4 * l_BP**2 * C_init/Kd + C_eff_motif/Kd )/(2 + l**4 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
     log_deriv_C_init = (l**4 * l_BP**2 * C_init/Kd) /(2 + l**4 * l_BP**2 *C_init/Kd + C_eff_motif/Kd )
@@ -336,7 +321,7 @@ def test_sfxn_with_tetraloop_hairpin( verbose = False, use_simple_recursions = F
     params.set_parameter( 'C_eff_motif_NNN_NNN', C_eff_motif )
     params.set_parameter( 'C_eff_motif_CAAAAG', C_eff_motif )
     sequence = 'CAAAAG'
-    p = partition( sequence, params = params, calc_Kd_deriv_DP = True, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, do_enumeration = True )
+    p = partition( sequence, params = params, calc_bpp = True, suppress_bpp_output = True, verbose = verbose, use_simple_recursions = use_simple_recursions, do_enumeration = True )
     Z_ref = 1 + (C_init/Kd)*l**5 * l_BP  +  C_eff_motif/Kd
     bpp_ref = ((C_init/Kd)*l**5 * l_BP  +  C_eff_motif/Kd) / Z_ref
     log_deriv_C_init = (C_init/Kd)*l**5 * l_BP / Z_ref
