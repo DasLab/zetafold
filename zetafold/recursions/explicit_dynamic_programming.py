@@ -37,9 +37,9 @@ class DynamicProgrammingMatrix:
 
     def get_contribs( self, partition, i, j ):
         if not self.contribs_updated[i][j]:
-            partition.options.calc_contrib = True
+            partition.options.calc_backtrack_info = True
             self.update( partition, i, j )
-            partition.options.calc_contrib = False
+            partition.options.calc_backtrack_info = False
             self.contribs_updated[i][j] = True
         return self.contribs[i][j]
 
@@ -73,8 +73,8 @@ class DynamicProgrammingList:
 
     def get_contribs( self, partition, i ):
         if not self.contribs_updated[i]:
-            partition.options.calc_contrib = True
+            partition.options.calc_backtrack_info = True
             self.update( partition, i )
-            partition.options.calc_contrib = False
+            partition.options.calc_backtrack_info = False
             self.contribs_updated[i] = True
         return self.contribs[i]

@@ -168,7 +168,7 @@ def initialize_sequence_information( self ):
 ##################################################################################################
 class PartitionOptions:
     def __init__( self ):
-        self.calc_contrib  = False
+        self.calc_backtrack_info  = False
 
 ##################################################################################################
 def initialize_dynamic_programming_matrices( self ):

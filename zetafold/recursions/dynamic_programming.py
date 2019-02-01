@@ -38,9 +38,9 @@ class DynamicProgrammingMatrix:
 
     def get_contribs( self, partition, i, j ):
         if not self.contribs_updated[i][j]:
-            partition.options.calc_contrib = True
+            partition.options.calc_backtrack_info = True
             self.update( partition, i, j )
-            partition.options.calc_contrib = False
+            partition.options.calc_backtrack_info = False
             self.contribs_updated[i][j] = True
         return self.data[i][j].contribs
 
@@ -73,9 +73,9 @@ class DynamicProgrammingList:
 
     def get_contribs( self, partition, i ):
         if not self.contribs_updated[i]:
-            partition.options.calc_contrib = True
+            partition.options.calc_backtrack_info = True
             self.update( partition, i )
-            partition.options.calc_contrib = False
+            partition.options.calc_backtrack_info = False
             self.contribs_updated[i] = True
         return self.data[i].contribs
 
@@ -104,7 +104,7 @@ class DynamicProgrammingData:
     def __iadd__(self, other):
         if other.Q == 0.0: return self
         self.Q  += other.Q
-        if self.options and self.options.calc_contrib:
+        if self.options and self.options.calc_backtrack_info:
             if len( other.info ) > 0: self.contribs.append( [other.Q, other.info] )
         return self
 
@@ -114,14 +114,14 @@ class DynamicProgrammingData:
         if not prod.options: prod.options = other.options
         if isinstance( other, DynamicProgrammingData ):
             prod.Q  = self.Q * other.Q
-            if self.options and self.options.calc_contrib:
+            if self.options and self.options.calc_backtrack_info:
                 info = self.info + other.info
                 if len( info ) > 0:
                     prod.contribs = [ [ prod.Q, info ] ]
                     prod.info = info
         else:
             prod.Q  = self.Q * other
-            if self.options and self.options.calc_contrib:
+            if self.options and self.options.calc_backtrack_info:
                 for contrib in self.contribs:
                     prod.contribs.append( [contrib[0]*other, contrib[1] ] )
                 prod.info = self.info
