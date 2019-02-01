@@ -4,24 +4,24 @@ import sys
 
 
 ##################################################################################################
-def backtrack( self, contribs_input, mode = 'mfe' ):
+def backtrack( self, backtrack_info_input, mode = 'mfe' ):
     '''
     modes are:
       mfe = backtrack, following maximum boltzmann weight. note that this is not *quite* MFE
       stochastic  = choose track based on boltzmann weights
       enumerative = follow all tracks!
     '''
-    #print_contribs( contribs_input )
-    if len( contribs_input ) == 0: return []
-    contrib_sum = sum( contrib[0] for contrib in contribs_input )
+    #print_backtrack_info( backtrack_info_input )
+    if len( backtrack_info_input ) == 0: return []
+    contrib_sum = sum( contrib[0] for contrib in backtrack_info_input )
     if   mode == 'enumerative':
-        contribs = [ contrib for contrib in contribs_input ] # like a deepcopy
-    elif mode == 'mfe':         contribs = [ max_contrib(contribs_input) ]
-    elif mode == 'stochastic' : contribs = [ get_random_contrib( contribs_input ) ]
+        backtrack_info = [ contrib for contrib in backtrack_info_input ] # like a deepcopy
+    elif mode == 'mfe':         backtrack_info = [ max_contrib(backtrack_info_input) ]
+    elif mode == 'stochastic' : backtrack_info = [ get_random_contrib( backtrack_info_input ) ]
     p_bps = [] # list of tuples of (p_structure, bps_structure) for each structure
     N = self.N
 
-    for contrib in contribs: # each option ('contribution' to this partition function of this sub-region)
+    for contrib in backtrack_info: # each option ('contribution' to this partition function of this sub-region)
         if ( contrib[0] == 0.0 ): continue
         p_contrib = contrib[0]/contrib_sum
         p_bps_contrib = [ [p_contrib,[]] ]
@@ -36,8 +36,8 @@ def backtrack( self, contribs_input, mode = 'mfe' ):
                     base_pair.sort()
                     # TODO: could also add type of base pair here -- we have the info!
                     p_bps_contrib = [ [p_bp[0], p_bp[1]+[tuple( base_pair )] ] for p_bp in p_bps_contrib ]
-            backtrack_contribs = Z_backtrack.get_contribs(self,i%N,j%N)
-            p_bps_component = backtrack( self, backtrack_contribs, mode )
+            next_backtrack_info = Z_backtrack.get_backtrack_info(self,i%N,j%N)
+            p_bps_component = backtrack( self, next_backtrack_info, mode ) # recursion!
             if len( p_bps_component ) == 0: continue
             # put together all branches
             p_bps_contrib_new = []
@@ -65,22 +65,22 @@ def boltzmann_sample( self, Z_final_contrib ):
 
 ##################################################################################################
 def enumerative_backtrack( self ):
-    return backtrack( self, self.Z_final.get_contribs(self,0), 'enumerative' )
+    return backtrack( self, self.Z_final.get_backtrack_info(self,0), 'enumerative' )
 
 
 ##################################################################################################
-def get_random_contrib( contribs ):
+def get_random_contrib( backtrack_info ):
     # Random sample weighted by probability. Must be a simple function for this.
-    contrib_cumsum = [ contribs[0][0] ]
-    for contrib in contribs[1:]: contrib_cumsum.append( contrib_cumsum[-1] + contrib[0] )
+    contrib_cumsum = [ backtrack_info[0][0] ]
+    for contrib in backtrack_info[1:]: contrib_cumsum.append( contrib_cumsum[-1] + contrib[0] )
     r = random.random() * contrib_cumsum[ -1 ]
     for (idx,psum) in enumerate( contrib_cumsum ):
-        if r < psum: return contribs[idx]
+        if r < psum: return backtrack_info[idx]
 
-def max_contrib(contribs):
+def max_contrib(backtrack_info):
     max_contrib_val = None
     best_contrib = None
-    for c in contribs:
+    for c in backtrack_info:
         if max_contrib_val is None or \
            c[0] > max_contrib_val:
             best_contrib = c
@@ -95,11 +95,11 @@ def print_contrib( contrib ):
         if n < len( contrib[1] )-1: sys.stdout.write(',')
     sys.stdout.write(']')
 
-def print_contribs( contribs ):
+def print_backtrack_info( backtrack_info ):
     print('[ ')
-    for contrib in contribs[:-1]:
+    for contrib in backtrack_info[:-1]:
         print_contrib( contrib )
         print('; ')
-    print_contrib( contribs[-1] )
+    print_contrib( backtrack_info[-1] )
     print('%s\n' % ' ]')
     return

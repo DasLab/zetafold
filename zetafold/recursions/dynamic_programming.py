@@ -20,8 +20,8 @@ class DynamicProgrammingMatrix:
         self.options = options
         self.update_func = update_func
 
-        self.contribs_updated = [None]*N
-        for i in range( N ): self.contribs_updated[i] = [False]*N
+        self.backtrack_info_updated = [None]*N
+        for i in range( N ): self.backtrack_info_updated[i] = [False]*N
         self.name = name
 
     def __getitem__( self, idx ):
@@ -36,13 +36,13 @@ class DynamicProgrammingMatrix:
         self.data[ i ][ j ].zero()
         self.update_func( partition, i, j )
 
-    def get_contribs( self, partition, i, j ):
-        if not self.contribs_updated[i][j]:
-            partition.options.calc_contrib = True
+    def get_backtrack_info( self, partition, i, j ):
+        if not self.backtrack_info_updated[i][j]:
+            partition.options.calc_backtrack_info = True
             self.update( partition, i, j )
-            partition.options.calc_contrib = False
-            self.contribs_updated[i][j] = True
-        return self.data[i][j].contribs
+            partition.options.calc_backtrack_info = False
+            self.backtrack_info_updated[i][j] = True
+        return self.data[i][j].backtrack_info
 
 class DynamicProgrammingList:
     '''
@@ -58,7 +58,7 @@ class DynamicProgrammingList:
             self.data[i] = DynamicProgrammingData( val, options = options )
         self.options = options
         self.update_func = update_func
-        self.contribs_updated = [False]*N
+        self.backtrack_info_updated = [False]*N
         self.name = name
 
     def __getitem__( self, idx ):
@@ -71,13 +71,13 @@ class DynamicProgrammingList:
 
     def val( self, i ): return self.data[i].Q
 
-    def get_contribs( self, partition, i ):
-        if not self.contribs_updated[i]:
-            partition.options.calc_contrib = True
+    def get_backtrack_info( self, partition, i ):
+        if not self.backtrack_info_updated[i]:
+            partition.options.calc_backtrack_info = True
             self.update( partition, i )
-            partition.options.calc_contrib = False
-            self.contribs_updated[i] = True
-        return self.data[i].contribs
+            partition.options.calc_backtrack_info = False
+            self.backtrack_info_updated[i] = True
+        return self.data[i].backtrack_info
 
     def update( self, partition, i ):
         self.data[ i ].zero()
@@ -93,19 +93,19 @@ class DynamicProgrammingData:
     '''
     def __init__( self, val = 0.0, options = None ):
         self.Q = val
-        self.contribs = []
+        self.backtrack_info = []
         self.info = []
         self.options = options
 
     def zero( self ):
         self.Q = 0.0
-        self.contribs = []
+        self.backtrack_info = []
 
     def __iadd__(self, other):
         if other.Q == 0.0: return self
         self.Q  += other.Q
-        if self.options and self.options.calc_contrib:
-            if len( other.info ) > 0: self.contribs.append( [other.Q, other.info] )
+        if self.options and self.options.calc_backtrack_info:
+            if len( other.info ) > 0: self.backtrack_info.append( [other.Q, other.info] )
         return self
 
     def __mul__(self, other):
@@ -114,16 +114,16 @@ class DynamicProgrammingData:
         if not prod.options: prod.options = other.options
         if isinstance( other, DynamicProgrammingData ):
             prod.Q  = self.Q * other.Q
-            if self.options and self.options.calc_contrib:
+            if self.options and self.options.calc_backtrack_info:
                 info = self.info + other.info
                 if len( info ) > 0:
-                    prod.contribs = [ [ prod.Q, info ] ]
+                    prod.backtrack_info = [ [ prod.Q, info ] ]
                     prod.info = info
         else:
             prod.Q  = self.Q * other
-            if self.options and self.options.calc_contrib:
-                for contrib in self.contribs:
-                    prod.contribs.append( [contrib[0]*other, contrib[1] ] )
+            if self.options and self.options.calc_backtrack_info:
+                for contrib in self.backtrack_info:
+                    prod.backtrack_info.append( [contrib[0]*other, contrib[1] ] )
                 prod.info = self.info
         return prod
 
