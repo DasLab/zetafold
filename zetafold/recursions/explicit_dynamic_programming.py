@@ -14,13 +14,13 @@ class DynamicProgrammingMatrix:
         for i in range( N ): self.Q[i] = [val]*N
         for i in range( N ): self.Q[i][i] = diag_val
 
-        self.contribs = [None]*N
+        self.backtrack_info = [None]*N
         for i in range( N ):
-            self.contribs[i] = []
-            for j in range( N ): self.contribs[i].append( [] )
+            self.backtrack_info[i] = []
+            for j in range( N ): self.backtrack_info[i].append( [] )
 
-        self.contribs_updated = [None]*N
-        for i in range( N ): self.contribs_updated[i] = [False]*N
+        self.backtrack_info_updated = [None]*N
+        for i in range( N ): self.backtrack_info_updated[i] = [False]*N
 
         if DPlist != None: DPlist.append( self )
         self.update_func = update_func
@@ -32,16 +32,16 @@ class DynamicProgrammingMatrix:
 
     def update( self, partition, i, j ):
         self.Q[ i ][ j ] = 0
-        self.contribs[ i ][ j ] = []
+        self.backtrack_info[ i ][ j ] = []
         self.update_func( partition, i, j )
 
-    def get_contribs( self, partition, i, j ):
-        if not self.contribs_updated[i][j]:
+    def get_backtrack_info( self, partition, i, j ):
+        if not self.backtrack_info_updated[i][j]:
             partition.options.calc_backtrack_info = True
             self.update( partition, i, j )
             partition.options.calc_backtrack_info = False
-            self.contribs_updated[i][j] = True
-        return self.contribs[i][j]
+            self.backtrack_info_updated[i][j] = True
+        return self.backtrack_info[i][j]
 
     def __len__( self ):
         return len( self.Q )
@@ -56,9 +56,9 @@ class DynamicProgrammingList:
     def __init__( self, N, val = 0.0, update_func = None, options = None, name = None ):
         self.N = N
         self.Q = [ val ]*N
-        self.contribs = [None] * N
-        for i in range( N ): self.contribs[i] = []
-        self.contribs_updated = [False]*N
+        self.backtrack_info = [None] * N
+        for i in range( N ): self.backtrack_info[i] = []
+        self.backtrack_info_updated = [False]*N
         self.update_func = update_func
         self.name = name
 
@@ -68,13 +68,13 @@ class DynamicProgrammingList:
 
     def update( self, partition, i ):
         self.Q[ i ] = 0.0
-        self.contribs[ i ] = []
+        self.backtrack_info[ i ] = []
         self.update_func( partition, i )
 
-    def get_contribs( self, partition, i ):
-        if not self.contribs_updated[i]:
+    def get_backtrack_info( self, partition, i ):
+        if not self.backtrack_info_updated[i]:
             partition.options.calc_backtrack_info = True
             self.update( partition, i )
             partition.options.calc_backtrack_info = False
-            self.contribs_updated[i] = True
-        return self.contribs[i]
+            self.backtrack_info_updated[i] = True
+        return self.backtrack_info[i]

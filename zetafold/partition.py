@@ -409,7 +409,7 @@ def _calc_mfe( self ):
 
     all_bps_MFE = set()
     for i in range( n_test ):
-        (bps_MFE[i], p_MFE[i] ) = mfe( self, self.Z_final.get_contribs(self,i) )
+        (bps_MFE[i], p_MFE[i] ) = mfe( self, self.Z_final.get_backtrack_info(self,i) )
         if len(all_bps_MFE) > 0 and not ( tuple(bps_MFE[i]) in all_bps_MFE ):
             if not self.suppress_all_output:
                 print( 'Warning, MFE structure computed only approximately from partition, and another structure had been found backtracking from position %d:' % i )
@@ -429,7 +429,7 @@ def _stochastic_backtrack( self, N_backtrack ):
     #
     print('Doing',N_backtrack,'stochastic backtracks to get Boltzmann-weighted ensemble...')
     for i in range( N_backtrack ):
-        bps, p = boltzmann_sample( self, self.Z_final.get_contribs(self,0) )
+        bps, p = boltzmann_sample( self, self.Z_final.get_backtrack_info(self,0) )
         self.struct_stochastic.append( secstruct_from_bps(bps,self.N) )
     return
 

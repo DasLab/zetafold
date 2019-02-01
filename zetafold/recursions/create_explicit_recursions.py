@@ -185,7 +185,7 @@ for n,line in enumerate(lines):
             line_backtrack_info += ' '*4
             line_backtrack_info += 'if %s > 0:\n' % line_new[assign_pos+3:-1]
             line_backtrack_info += ' '*8
-            line_backtrack_info += line_new[:Qpos[0]] +  '.contribs'  # extra indent
+            line_backtrack_info += line_new[:Qpos[0]] +  '.backtrack_info'  # extra indent
             line_backtrack_info += line_new[Qpos[0]+2 : assign_pos+3]
             line_backtrack_info +=' [ ('
             line_backtrack_info += line_new[assign_pos+3:-1] + ', ['
@@ -200,7 +200,7 @@ for n,line in enumerate(lines):
                 line_backtrack_info+=')'
                 if n < len( all_args )-1: line_backtrack_info += ', '
             line_backtrack_info += '] ) ]\n'
-            lines_backtrack_info.append( line_backtrack_info)
+            lines_backtrack_info.append( line_backtrack_info )
 
 
 with open('explicit_recursions.py','w') as f:

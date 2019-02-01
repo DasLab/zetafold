@@ -33,11 +33,11 @@ def update_Z_cut( self, i, j ):
         for c in range( i, i+offset ):
             if not ligated[c%N]:
                 if Z_linear.Q[(c+1)%N][(j-1)%N] > 0:
-                    if c == i and (c+1)%N != j and ligated[(j-1)%N]:                Z_cut.contribs[i%N][j%N] +=  [ (Z_linear.Q[(c+1)%N][(j-1)%N], [(Z_linear,(c+1)%N,(j-1)%N)] ) ]
+                    if c == i and (c+1)%N != j and ligated[(j-1)%N]:                Z_cut.backtrack_info[i%N][j%N] +=  [ (Z_linear.Q[(c+1)%N][(j-1)%N], [(Z_linear,(c+1)%N,(j-1)%N)] ) ]
                 if Z_linear.Q[(i+1)%N][c%N] > 0:
-                    if c != i and (c+1)%N == j and ligated[i%N]:                  Z_cut.contribs[i%N][j%N] +=  [ (Z_linear.Q[(i+1)%N][c%N], [(Z_linear,(i+1)%N,c%N)] ) ]
+                    if c != i and (c+1)%N == j and ligated[i%N]:                  Z_cut.backtrack_info[i%N][j%N] +=  [ (Z_linear.Q[(i+1)%N][c%N], [(Z_linear,(i+1)%N,c%N)] ) ]
                 if Z_linear.Q[(i+1)%N][c%N] * Z_linear.Q[(c+1)%N][(j-1)%N] > 0:
-                    if c != i and (c+1)%N != j and ligated[i%N] and ligated[(j-1)%N]: Z_cut.contribs[i%N][j%N] +=  [ (Z_linear.Q[(i+1)%N][c%N] * Z_linear.Q[(c+1)%N][(j-1)%N], [(Z_linear,(i+1)%N,c%N), (Z_linear,(c+1)%N,(j-1)%N)] ) ]
+                    if c != i and (c+1)%N != j and ligated[i%N] and ligated[(j-1)%N]: Z_cut.backtrack_info[i%N][j%N] +=  [ (Z_linear.Q[(i+1)%N][c%N] * Z_linear.Q[(c+1)%N][(j-1)%N], [(Z_linear,(i+1)%N,c%N), (Z_linear,(c+1)%N,(j-1)%N)] ) ]
 
 ##################################################################################################
 def update_Z_BPq( self, i, j, base_pair_type ):
@@ -171,11 +171,11 @@ def update_Z_BPq( self, i, j, base_pair_type ):
         (Z_BPq, Kdq)  = ( self.Z_BPq[ base_pair_type ], base_pair_type.Kd )
         if ligated[i%N] and ligated[(j-1)%N]:
             if (1.0/Kdq ) * ( C_eff_for_BP.Q[(i+1)%N][(j-1)%N] * l * l * l_BP) > 0:
-                Z_BPq.contribs[i%N][j%N]  +=  [ ((1.0/Kdq ) * ( C_eff_for_BP.Q[(i+1)%N][(j-1)%N] * l * l * l_BP), [(C_eff_for_BP,(i+1)%N,(j-1)%N)] ) ]
+                Z_BPq.backtrack_info[i%N][j%N]  +=  [ ((1.0/Kdq ) * ( C_eff_for_BP.Q[(i+1)%N][(j-1)%N] * l * l * l_BP), [(C_eff_for_BP,(i+1)%N,(j-1)%N)] ) ]
             for base_pair_type2 in self.possible_base_pair_types[(i+1)%N][(j-1)%N]:
                 Z_BPq2 = self.Z_BPq[base_pair_type2]
                 if (1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N] > 0:
-                    Z_BPq.contribs[i%N][j%N]  +=  [ ((1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N], [(Z_BPq2,(i+1)%N,(j-1)%N)] ) ]
+                    Z_BPq.backtrack_info[i%N][j%N]  +=  [ ((1.0/Kdq ) * self.params.C_eff_stack[base_pair_type][base_pair_type2] * Z_BPq2.Q[(i+1)%N][(j-1)%N], [(Z_BPq2,(i+1)%N,(j-1)%N)] ) ]
         possible_motif_types = self.possible_motif_types[i%N][j%N]
         for motif_type in possible_motif_types[base_pair_type]:
             match_base_pair_type_set = possible_motif_types[base_pair_type][ motif_type ]
@@ -185,25 +185,25 @@ def update_Z_BPq( self, i, j, base_pair_type ):
                 for (base_pair_type_next, i_next, j_next) in match_base_pair_type_set:
                     Z_BPq_next = self.Z_BPq[base_pair_type_next]
                     if (1.0/Kdq ) * motif_type.C_eff * Z_BPq_next.Q[(i_next)%N][(j_next)%N] > 0:
-                        Z_BPq.contribs[i%N][j%N] +=  [ ((1.0/Kdq ) * motif_type.C_eff * Z_BPq_next.Q[(i_next)%N][(j_next)%N], [(Z_BPq_next,(i_next)%N,(j_next)%N)] ) ]
+                        Z_BPq.backtrack_info[i%N][j%N] +=  [ ((1.0/Kdq ) * motif_type.C_eff * Z_BPq_next.Q[(i_next)%N][(j_next)%N], [(Z_BPq_next,(i_next)%N,(j_next)%N)] ) ]
         if (C_std/Kdq) * Z_cut.Q[i%N][j%N] > 0:
-            Z_BPq.contribs[i%N][j%N] +=  [ ((C_std/Kdq) * Z_cut.Q[i%N][j%N], [(Z_cut,i%N,j%N)] ) ]
+            Z_BPq.backtrack_info[i%N][j%N] +=  [ ((C_std/Kdq) * Z_cut.Q[i%N][j%N], [(Z_cut,i%N,j%N)] ) ]
         if K_coax > 0.0:
             if ligated[i%N] and ligated[(j-1)%N]:
                 for k in range( i+2, i+offset-1 ):
                     if Z_BP.Q[(i+1)%N][k%N] * C_eff_for_coax.Q[(k+1)%N][(j-1)%N] * l**2 * l_coax * K_coax / Kdq > 0:
-                        if ligated[k%N]: Z_BPq.contribs[i%N][j%N] +=  [ (Z_BP.Q[(i+1)%N][k%N] * C_eff_for_coax.Q[(k+1)%N][(j-1)%N] * l**2 * l_coax * K_coax / Kdq, [(Z_BP,(i+1)%N,k%N), (C_eff_for_coax,(k+1)%N,(j-1)%N)] ) ]
+                        if ligated[k%N]: Z_BPq.backtrack_info[i%N][j%N] +=  [ (Z_BP.Q[(i+1)%N][k%N] * C_eff_for_coax.Q[(k+1)%N][(j-1)%N] * l**2 * l_coax * K_coax / Kdq, [(Z_BP,(i+1)%N,k%N), (C_eff_for_coax,(k+1)%N,(j-1)%N)] ) ]
                 for k in range( i+2, i+offset-1 ):
                     if C_eff_for_coax.Q[(i+1)%N][(k-1)%N] * Z_BP.Q[k%N][(j-1)%N] * l**2 * l_coax * K_coax / Kdq > 0:
-                        if ligated[(k-1)%N]: Z_BPq.contribs[i%N][j%N] +=  [ (C_eff_for_coax.Q[(i+1)%N][(k-1)%N] * Z_BP.Q[k%N][(j-1)%N] * l**2 * l_coax * K_coax / Kdq, [(C_eff_for_coax,(i+1)%N,(k-1)%N), (Z_BP,k%N,(j-1)%N)] ) ]
+                        if ligated[(k-1)%N]: Z_BPq.backtrack_info[i%N][j%N] +=  [ (C_eff_for_coax.Q[(i+1)%N][(k-1)%N] * Z_BP.Q[k%N][(j-1)%N] * l**2 * l_coax * K_coax / Kdq, [(C_eff_for_coax,(i+1)%N,(k-1)%N), (Z_BP,k%N,(j-1)%N)] ) ]
             if ligated[i%N]:
                 for k in range( i+2, i+offset ):
                     if Z_BP.Q[(i+1)%N][k%N] * Z_cut.Q[k%N][j%N] * C_std * K_coax / Kdq > 0:
-                        Z_BPq.contribs[i%N][j%N] +=  [ (Z_BP.Q[(i+1)%N][k%N] * Z_cut.Q[k%N][j%N] * C_std * K_coax / Kdq, [(Z_BP,(i+1)%N,k%N), (Z_cut,k%N,j%N)] ) ]
+                        Z_BPq.backtrack_info[i%N][j%N] +=  [ (Z_BP.Q[(i+1)%N][k%N] * Z_cut.Q[k%N][j%N] * C_std * K_coax / Kdq, [(Z_BP,(i+1)%N,k%N), (Z_cut,k%N,j%N)] ) ]
             if ligated[(j-1)%N]:
                 for k in range( i, i+offset-1 ):
                     if Z_cut.Q[i%N][k%N] * Z_BP.Q[k%N][(j-1)%N] * C_std * K_coax / Kdq > 0:
-                        Z_BPq.contribs[i%N][j%N] +=  [ (Z_cut.Q[i%N][k%N] * Z_BP.Q[k%N][(j-1)%N] * C_std * K_coax / Kdq, [(Z_cut,i%N,k%N), (Z_BP,k%N,(j-1)%N)] ) ]
+                        Z_BPq.backtrack_info[i%N][j%N] +=  [ (Z_cut.Q[i%N][k%N] * Z_BP.Q[k%N][(j-1)%N] * C_std * K_coax / Kdq, [(Z_cut,i%N,k%N), (Z_BP,k%N,(j-1)%N)] ) ]
 
 ##################################################################################################
 def update_Z_BP( self, i, j ):
@@ -231,7 +231,7 @@ def update_Z_BP( self, i, j ):
             Z_BPq = self.Z_BPq[base_pair_type]
             Z_BPq.update( self, i, j )
             if Z_BPq.Q[i%N][j%N] > 0:
-                Z_BP.contribs[i%N][j%N]  +=  [ (Z_BPq.Q[i%N][j%N], [(Z_BPq,i%N,j%N)] ) ]
+                Z_BP.backtrack_info[i%N][j%N]  +=  [ (Z_BPq.Q[i%N][j%N], [(Z_BPq,i%N,j%N)] ) ]
 
 ##################################################################################################
 def update_Z_coax( self, i, j ):
@@ -273,7 +273,7 @@ def update_Z_coax( self, i, j ):
                     if Z_BP.val(i,k) == 0.0: continue
                     if Z_BP.val(k+1,j) == 0.0: continue
                     if Z_BP.Q[i%N][k%N] * Z_BP.Q[(k+1)%N][j%N] * K_coax > 0:
-                        Z_coax.contribs[i%N][j%N]  +=  [ (Z_BP.Q[i%N][k%N] * Z_BP.Q[(k+1)%N][j%N] * K_coax, [(Z_BP,i%N,k%N), (Z_BP,(k+1)%N,j%N)] ) ]
+                        Z_coax.backtrack_info[i%N][j%N]  +=  [ (Z_BP.Q[i%N][k%N] * Z_BP.Q[(k+1)%N][j%N] * K_coax, [(Z_BP,i%N,k%N), (Z_BP,(k+1)%N,j%N)] ) ]
 
 ##################################################################################################
 def update_C_eff_basic( self, i, j ):
@@ -332,17 +332,17 @@ def update_C_eff_basic( self, i, j ):
          sequence, ligated, all_ligated, Z_BP, C_eff_basic, C_eff_no_BP_singlet, C_eff_no_coax_singlet, C_eff, Z_linear, Z_cut, Z_coax ) = unpack_variables( self )
         allow_loop_extension = not ( self.in_forced_base_pair and self.in_forced_base_pair[j%N] )
         if C_eff.Q[i%N][(j-1)%N] * l > 0:
-            if ligated[(j-1)%N] and allow_loop_extension: C_eff_basic.contribs[i%N][j%N] +=  [ (C_eff.Q[i%N][(j-1)%N] * l, [(C_eff,i%N,(j-1)%N)] ) ]
+            if ligated[(j-1)%N] and allow_loop_extension: C_eff_basic.backtrack_info[i%N][j%N] +=  [ (C_eff.Q[i%N][(j-1)%N] * l, [(C_eff,i%N,(j-1)%N)] ) ]
         exclude_strained_3WJ = (not allow_strained_3WJ) and (offset == N-1) and ligated[j%N]
         C_eff_for_BP = C_eff_no_coax_singlet if exclude_strained_3WJ else C_eff
         for k in range( i+1, i+offset):
             if C_eff_for_BP.Q[i%N][(k-1)%N] * l * Z_BP.Q[k%N][j%N] * l_BP > 0:
-                if ligated[(k-1)%N]: C_eff_basic.contribs[i%N][j%N] +=  [ (C_eff_for_BP.Q[i%N][(k-1)%N] * l * Z_BP.Q[k%N][j%N] * l_BP, [(C_eff_for_BP,i%N,(k-1)%N), (Z_BP,k%N,j%N)] ) ]
+                if ligated[(k-1)%N]: C_eff_basic.backtrack_info[i%N][j%N] +=  [ (C_eff_for_BP.Q[i%N][(k-1)%N] * l * Z_BP.Q[k%N][j%N] * l_BP, [(C_eff_for_BP,i%N,(k-1)%N), (Z_BP,k%N,j%N)] ) ]
         if K_coax > 0:
             C_eff_for_coax = C_eff_no_BP_singlet if exclude_strained_3WJ else C_eff
             for k in range( i+1, i+offset):
                 if C_eff_for_coax.Q[i%N][(k-1)%N] * Z_coax.Q[k%N][j%N] * l * l_coax > 0:
-                    if ligated[(k-1)%N]: C_eff_basic.contribs[i%N][j%N] +=  [ (C_eff_for_coax.Q[i%N][(k-1)%N] * Z_coax.Q[k%N][j%N] * l * l_coax, [(C_eff_for_coax,i%N,(k-1)%N), (Z_coax,k%N,j%N)] ) ]
+                    if ligated[(k-1)%N]: C_eff_basic.backtrack_info[i%N][j%N] +=  [ (C_eff_for_coax.Q[i%N][(k-1)%N] * Z_coax.Q[k%N][j%N] * l * l_coax, [(C_eff_for_coax,i%N,(k-1)%N), (Z_coax,k%N,j%N)] ) ]
 
 ##################################################################################################
 def update_C_eff_no_coax_singlet( self, i, j ):
@@ -361,9 +361,9 @@ def update_C_eff_no_coax_singlet( self, i, j ):
         (C_init, l, l_BP,  K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ, N, \
          sequence, ligated, all_ligated, Z_BP, C_eff_basic, C_eff_no_BP_singlet, C_eff_no_coax_singlet, C_eff, Z_linear, Z_cut, Z_coax ) = unpack_variables( self )
         if C_eff_basic.Q[i%N][j%N] > 0:
-            C_eff_no_coax_singlet.contribs[i%N][j%N] +=  [ (C_eff_basic.Q[i%N][j%N], [(C_eff_basic,i%N,j%N)] ) ]
+            C_eff_no_coax_singlet.backtrack_info[i%N][j%N] +=  [ (C_eff_basic.Q[i%N][j%N], [(C_eff_basic,i%N,j%N)] ) ]
         if C_init * Z_BP.Q[i%N][j%N] * l_BP > 0:
-            C_eff_no_coax_singlet.contribs[i%N][j%N] +=  [ (C_init * Z_BP.Q[i%N][j%N] * l_BP, [(Z_BP,i%N,j%N)] ) ]
+            C_eff_no_coax_singlet.backtrack_info[i%N][j%N] +=  [ (C_init * Z_BP.Q[i%N][j%N] * l_BP, [(Z_BP,i%N,j%N)] ) ]
 
 ##################################################################################################
 def update_C_eff_no_BP_singlet( self, i, j ):
@@ -383,9 +383,9 @@ def update_C_eff_no_BP_singlet( self, i, j ):
          sequence, ligated, all_ligated, Z_BP, C_eff_basic, C_eff_no_BP_singlet, C_eff_no_coax_singlet, C_eff, Z_linear, Z_cut, Z_coax ) = unpack_variables( self )
         if K_coax > 0.0:
             if C_eff_basic.Q[i%N][j%N] > 0:
-                C_eff_no_BP_singlet.contribs[i%N][j%N] +=  [ (C_eff_basic.Q[i%N][j%N], [(C_eff_basic,i%N,j%N)] ) ]
+                C_eff_no_BP_singlet.backtrack_info[i%N][j%N] +=  [ (C_eff_basic.Q[i%N][j%N], [(C_eff_basic,i%N,j%N)] ) ]
             if C_init * Z_coax.Q[i%N][j%N] * l_coax > 0:
-                C_eff_no_BP_singlet.contribs[i%N][j%N] +=  [ (C_init * Z_coax.Q[i%N][j%N] * l_coax, [(Z_coax,i%N,j%N)] ) ]
+                C_eff_no_BP_singlet.backtrack_info[i%N][j%N] +=  [ (C_init * Z_coax.Q[i%N][j%N] * l_coax, [(Z_coax,i%N,j%N)] ) ]
 
 ##################################################################################################
 def update_C_eff( self, i, j ):
@@ -420,12 +420,12 @@ def update_C_eff( self, i, j ):
         (C_init, l, l_BP,  K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ, N, \
          sequence, ligated, all_ligated, Z_BP, C_eff_basic, C_eff_no_BP_singlet, C_eff_no_coax_singlet, C_eff, Z_linear, Z_cut, Z_coax ) = unpack_variables( self )
         if C_eff_basic.Q[i%N][j%N] > 0:
-            C_eff.contribs[i%N][j%N] +=  [ (C_eff_basic.Q[i%N][j%N], [(C_eff_basic,i%N,j%N)] ) ]
+            C_eff.backtrack_info[i%N][j%N] +=  [ (C_eff_basic.Q[i%N][j%N], [(C_eff_basic,i%N,j%N)] ) ]
         if C_init * Z_BP.Q[i%N][j%N] * l_BP > 0:
-            C_eff.contribs[i%N][j%N] +=  [ (C_init * Z_BP.Q[i%N][j%N] * l_BP, [(Z_BP,i%N,j%N)] ) ]
+            C_eff.backtrack_info[i%N][j%N] +=  [ (C_init * Z_BP.Q[i%N][j%N] * l_BP, [(Z_BP,i%N,j%N)] ) ]
         if K_coax > 0.0:
             if C_init * Z_coax.Q[i%N][j%N] * l_coax > 0:
-                C_eff.contribs[i%N][j%N] +=  [ (C_init * Z_coax.Q[i%N][j%N] * l_coax, [(Z_coax,i%N,j%N)] ) ]
+                C_eff.backtrack_info[i%N][j%N] +=  [ (C_init * Z_coax.Q[i%N][j%N] * l_coax, [(Z_coax,i%N,j%N)] ) ]
 
 ##################################################################################################
 def update_Z_linear( self, i, j ):
@@ -491,18 +491,18 @@ def update_Z_linear( self, i, j ):
          sequence, ligated, all_ligated, Z_BP, C_eff_basic, C_eff_no_BP_singlet, C_eff_no_coax_singlet, C_eff, Z_linear, Z_cut, Z_coax ) = unpack_variables( self )
         allow_loop_extension = ( not self.in_forced_base_pair ) or ( not self.in_forced_base_pair[j%N] )
         if Z_linear.Q[i%N][(j-1)%N] > 0:
-            if ligated[(j-1)%N] and allow_loop_extension: Z_linear.contribs[i%N][j%N] +=  [ (Z_linear.Q[i%N][(j-1)%N], [(Z_linear,i%N,(j-1)%N)] ) ]
+            if ligated[(j-1)%N] and allow_loop_extension: Z_linear.backtrack_info[i%N][j%N] +=  [ (Z_linear.Q[i%N][(j-1)%N], [(Z_linear,i%N,(j-1)%N)] ) ]
         if Z_BP.Q[i%N][j%N] > 0:
-            Z_linear.contribs[i%N][j%N] +=  [ (Z_BP.Q[i%N][j%N], [(Z_BP,i%N,j%N)] ) ]
+            Z_linear.backtrack_info[i%N][j%N] +=  [ (Z_BP.Q[i%N][j%N], [(Z_BP,i%N,j%N)] ) ]
         for k in range( i+1, i+offset):
             if Z_linear.Q[i%N][(k-1)%N] * Z_BP.Q[k%N][j%N] > 0:
-                if ligated[(k-1)%N]: Z_linear.contribs[i%N][j%N] +=  [ (Z_linear.Q[i%N][(k-1)%N] * Z_BP.Q[k%N][j%N], [(Z_linear,i%N,(k-1)%N), (Z_BP,k%N,j%N)] ) ]
+                if ligated[(k-1)%N]: Z_linear.backtrack_info[i%N][j%N] +=  [ (Z_linear.Q[i%N][(k-1)%N] * Z_BP.Q[k%N][j%N], [(Z_linear,i%N,(k-1)%N), (Z_BP,k%N,j%N)] ) ]
         if K_coax > 0.0:
             if Z_coax.Q[i%N][j%N] > 0:
-                Z_linear.contribs[i%N][j%N] +=  [ (Z_coax.Q[i%N][j%N], [(Z_coax,i%N,j%N)] ) ]
+                Z_linear.backtrack_info[i%N][j%N] +=  [ (Z_coax.Q[i%N][j%N], [(Z_coax,i%N,j%N)] ) ]
             for k in range( i+1, i+offset):
                 if Z_linear.Q[i%N][(k-1)%N] * Z_coax.Q[k%N][j%N] > 0:
-                    if ligated[(k-1)%N]: Z_linear.contribs[i%N][j%N] +=  [ (Z_linear.Q[i%N][(k-1)%N] * Z_coax.Q[k%N][j%N], [(Z_linear,i%N,(k-1)%N), (Z_coax,k%N,j%N)] ) ]
+                    if ligated[(k-1)%N]: Z_linear.backtrack_info[i%N][j%N] +=  [ (Z_linear.Q[i%N][(k-1)%N] * Z_coax.Q[k%N][j%N], [(Z_linear,i%N,(k-1)%N), (Z_coax,k%N,j%N)] ) ]
 
 ##################################################################################################
 def update_Z_final( self, i ):
@@ -653,13 +653,13 @@ def update_Z_final( self, i ):
         Z_final = self.Z_final
         if not ligated[((i - 1))%N]:
             if Z_linear.Q[i%N][(i-1)%N] > 0:
-                Z_final.contribs[i%N] +=  [ (Z_linear.Q[i%N][(i-1)%N], [(Z_linear,i%N,(i-1)%N)] ) ]
+                Z_final.backtrack_info[i%N] +=  [ (Z_linear.Q[i%N][(i-1)%N], [(Z_linear,i%N,(i-1)%N)] ) ]
         else:
             if C_eff_no_coax_singlet.Q[i%N][(i-1)%N] * l / C_std > 0:
-                Z_final.contribs[i%N] +=  [ (C_eff_no_coax_singlet.Q[i%N][(i-1)%N] * l / C_std, [(C_eff_no_coax_singlet,i%N,(i-1)%N)] ) ]
+                Z_final.backtrack_info[i%N] +=  [ (C_eff_no_coax_singlet.Q[i%N][(i-1)%N] * l / C_std, [(C_eff_no_coax_singlet,i%N,(i-1)%N)] ) ]
             for c in range( i, i + N - 1):
                 if Z_linear.Q[i%N][c%N] * Z_linear.Q[(c+1)%N][(i-1)%N] > 0:
-                    if not ligated[c%N]: Z_final.contribs[i%N] +=  [ (Z_linear.Q[i%N][c%N] * Z_linear.Q[(c+1)%N][(i-1)%N], [(Z_linear,i%N,c%N), (Z_linear,(c+1)%N,(i-1)%N)] ) ]
+                    if not ligated[c%N]: Z_final.backtrack_info[i%N] +=  [ (Z_linear.Q[i%N][c%N] * Z_linear.Q[(c+1)%N][(i-1)%N], [(Z_linear,i%N,c%N), (Z_linear,(c+1)%N,(i-1)%N)] ) ]
             for j in range( i+1, (i + N - 1) ):
                 if ligated[j%N]:
                     if Z_BP.val(i,j) > 0.0 and Z_BP.val(j+1,i-1) > 0.0:
@@ -670,7 +670,7 @@ def update_Z_final( self, i ):
                                 Z_BPq1 = self.Z_BPq[base_pair_type]
                                 Z_BPq2 = self.Z_BPq[base_pair_type2]
                                 if self.params.C_eff_stack[base_pair_type2.flipped][base_pair_type] * Z_BPq2.Q[(j+1)%N][(i-1)%N] * Z_BPq1.Q[i%N][j%N] > 0:
-                                    Z_final.contribs[i%N] +=  [ (self.params.C_eff_stack[base_pair_type2.flipped][base_pair_type] * Z_BPq2.Q[(j+1)%N][(i-1)%N] * Z_BPq1.Q[i%N][j%N], [(Z_BPq2,(j+1)%N,(i-1)%N), (Z_BPq1,i%N,j%N)] ) ]
+                                    Z_final.backtrack_info[i%N] +=  [ (self.params.C_eff_stack[base_pair_type2.flipped][base_pair_type] * Z_BPq2.Q[(j+1)%N][(i-1)%N] * Z_BPq1.Q[i%N][j%N], [(Z_BPq2,(j+1)%N,(i-1)%N), (Z_BPq1,i%N,j%N)] ) ]
                 for k in range( i, i + self.max_motif_strand_length - 1 ):
                     for base_pair_type in self.possible_base_pair_types[j%N][k%N]:
                         possible_motif_types = self.possible_motif_types[j%N][k%N]
@@ -683,7 +683,7 @@ def update_Z_final( self, i ):
                                 Z_BPq0 = self.Z_BPq[base_pair_type0]
                                 Z_BPq1 = self.Z_BPq[base_pair_type1]
                                 if motif_type.C_eff * Z_BPq0.Q[(j_next)%N][(k_next)%N] * Z_BPq1.Q[k%N][j%N] > 0:
-                                    Z_final.contribs[i%N]  +=  [ (motif_type.C_eff * Z_BPq0.Q[(j_next)%N][(k_next)%N] * Z_BPq1.Q[k%N][j%N], [(Z_BPq0,(j_next)%N,(k_next)%N), (Z_BPq1,k%N,j%N)] ) ]
+                                    Z_final.backtrack_info[i%N]  +=  [ (motif_type.C_eff * Z_BPq0.Q[(j_next)%N][(k_next)%N] * Z_BPq1.Q[k%N][j%N], [(Z_BPq0,(j_next)%N,(k_next)%N), (Z_BPq1,k%N,j%N)] ) ]
             for motif_type in self.params.motif_types:
                 if len( motif_type.strands) != 1: continue
                 L = len( motif_type.strands[0] ) # for a tetraloop this is 1+4+1 = 6
@@ -694,7 +694,7 @@ def update_Z_final( self, i ):
                         if not motif_type in possible_motif_types[ base_pair_type ]: continue
                         Z_BPq1 = self.Z_BPq[base_pair_type.flipped]
                         if motif_type.C_eff * Z_BPq1.Q[k%N][j%N] > 0:
-                            Z_final.contribs[i%N]  +=  [ (motif_type.C_eff * Z_BPq1.Q[k%N][j%N], [(Z_BPq1,k%N,j%N)] ) ]
+                            Z_final.backtrack_info[i%N]  +=  [ (motif_type.C_eff * Z_BPq1.Q[k%N][j%N], [(Z_BPq1,k%N,j%N)] ) ]
             if K_coax > 0:
                 C_eff_for_coax = C_eff if allow_strained_3WJ else C_eff_no_BP_singlet
                 for j in range( i + 1, i + N - 2):
@@ -704,13 +704,13 @@ def update_Z_final( self, i ):
                         if Z_BP.val(i,j) == 0: continue
                         if Z_BP.val(k,i-1) == 0: continue
                         if Z_BP.Q[i%N][j%N] * C_eff_for_coax.Q[(j+1)%N][(k-1)%N] * Z_BP.Q[k%N][(i-1)%N] * l * l * l_coax * K_coax > 0:
-                            Z_final.contribs[i%N] +=  [ (Z_BP.Q[i%N][j%N] * C_eff_for_coax.Q[(j+1)%N][(k-1)%N] * Z_BP.Q[k%N][(i-1)%N] * l * l * l_coax * K_coax, [(Z_BP,i%N,j%N), (C_eff_for_coax,(j+1)%N,(k-1)%N), (Z_BP,k%N,(i-1)%N)] ) ]
+                            Z_final.backtrack_info[i%N] +=  [ (Z_BP.Q[i%N][j%N] * C_eff_for_coax.Q[(j+1)%N][(k-1)%N] * Z_BP.Q[k%N][(i-1)%N] * l * l * l_coax * K_coax, [(Z_BP,i%N,j%N), (C_eff_for_coax,(j+1)%N,(k-1)%N), (Z_BP,k%N,(i-1)%N)] ) ]
                     for k in range( j + 1, i + N - 1):
                         if Z_BP.val(i,j) == 0: continue
                         if Z_BP.val(k,i-1) == 0: continue
                         if (k-j)%N == 1 and ligated[j%N]: continue
                         if Z_BP.Q[i%N][j%N] * Z_cut.Q[j%N][k%N] * Z_BP.Q[k%N][(i-1)%N] * K_coax > 0:
-                            Z_final.contribs[i%N] +=  [ (Z_BP.Q[i%N][j%N] * Z_cut.Q[j%N][k%N] * Z_BP.Q[k%N][(i-1)%N] * K_coax, [(Z_BP,i%N,j%N), (Z_cut,j%N,k%N), (Z_BP,k%N,(i-1)%N)] ) ]
+                            Z_final.backtrack_info[i%N] +=  [ (Z_BP.Q[i%N][j%N] * Z_cut.Q[j%N][k%N] * Z_BP.Q[k%N][(i-1)%N] * K_coax, [(Z_BP,i%N,j%N), (Z_cut,j%N,k%N), (Z_BP,k%N,(i-1)%N)] ) ]
 
 ##################################################################################################
 def unpack_variables( self ):
