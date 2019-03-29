@@ -72,7 +72,7 @@ def test_final_partition_bimolecular_1( verbose = False, use_simple_recursions =
     output_test( p, C_std/ Kd, \
                  [0,1], 1.0 )
 
-def test_final_partition_bimolecular_1( verbose = False, use_simple_recursions = False ):
+def test_final_partition_bimolecular_2( verbose = False, use_simple_recursions = False ):
     # test of sequences where we know the final partition function.
     test_params = get_params_from_file( 'minimal' )
     (C_init, l, l_BP, K_coax, l_coax, C_std, min_loop_length, allow_strained_3WJ ) = test_params.get_variables()
@@ -392,6 +392,13 @@ def test_deriv_check_deprecated_018( verbose = False, use_simple_recursions = Fa
     params = get_params( 'v0.18' )
     params.set_parameter( 'Kd_AA', 1000 )
     params.set_parameter( 'C_eff_stack_CG_AA', 100000 )
+    dG = partition( sequence, deriv_check=True, params = params  ) # deriv_check runs asserts
+
+def test_deriv_check_new_031( verbose = False, use_simple_recursions = False ):
+    params = get_params( 'zetafold_v0.31' )
+    sequence = 'GCUCAGUGAGAGC'
+    structure= '(((((...)))))'
+    print("Testing partition on short sequence, full zetafold_v031: ", sequence, structure)
     dG = partition( sequence, deriv_check=True, params = params  ) # deriv_check runs asserts
 
 def all_tests_zetafold(verbose, use_simple_recursions):
