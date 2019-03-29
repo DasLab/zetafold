@@ -1,0 +1,135 @@
+name zetafold
+version 0.31
+min_loop_length 3
+allow_strained_3WJ False
+Kd_CG   762.071798
+Kd_AU  7372.206287
+Kd_GU 17378.420597
+C_init    10.001552
+l     0.791198
+l_BP     1.706068
+C_eff_motif_NN_NNN   353.977155
+C_eff_motif_NN_NNNN    58.427771
+C_eff_motif_NN_NNNNN     2.555806
+C_eff_motif_NNN_NNN  1126.455162
+C_eff_motif_NNN_NNNN   144.398010
+C_eff_motif_NNN_NNNNN    66.473753
+C_eff_motif_NNNN_NNNN   672.525066
+C_eff_motif_NNNN_NNNNN     0.116215
+C_eff_motif_NNNNN_NNNNN     0.099984
+C_eff_motif_NNNNN     0.098858
+C_eff_motif_NNNNNN    18.253115
+C_eff_motif_NNNNNNN     7.872164
+C_eff_motif_NNNNNNNN     4.391261
+C_eff_motif_NNNNNNNNN    20.715110
+C_eff_motif_NNNNNNNNNN     2.572485
+C_eff_motif_NNNNNNNNNNN     6.978898
+C_eff_motif_NNNNNNNNNNNN    43.956759
+C_eff_motif_NGNAAN    74.249746
+C_eff_motif_NGNGAN    61.854167
+C_eff_motif_NUNCGN  2689.870489
+
+# Turner 2004 parameters 
+#C_eff_stack_AU_UA    43857.2552014  # -1.1, assumes multiply 7372.206287
+#C_eff_stack_AU_GC  221837.059382    # -2.1, assumes multiply 7372.206287
+#C_eff_stack_AU_CG   260953.985941   # -2.2, assumes multiply 7372.206287
+#C_eff_stack_AU_UG   71318.7236204   # -1.4, assumes multiply 7372.206287
+#C_eff_stack_AU_GU    19499.4856291  # -0.6, assumes multiply 7372.206287
+#C_eff_stack_AU_AU    31707.8592404  # -0.9, assumes multiply 7372.206287
+#
+#C_eff_stack_CG_UA   22931.5024736  # -2.1, assumes multiply 762.071798
+#C_eff_stack_CG_GC   37294.2696505  # -2.4, assumes multiply 762.071798
+#C_eff_stack_CG_CG  160419.9238380  # -3.3, assumes multiply 762.071798
+#C_eff_stack_CG_UG   22931.5024736  # -2.1, assumes multiply 762.071798
+#C_eff_stack_CG_GU    7372.28257385 # -1.4, assumes multiply 762.071798
+#C_eff_stack_CG_AU   22931.5024736  # -2.1, assumes multiply 762.071798
+#
+#C_eff_stack_GC_UA   26975.0554338  # -2.2, assumes multiply 762.071798
+#C_eff_stack_GC_GC  160419.9238380  # -3.3, assumes multiply 762.071798
+#C_eff_stack_GC_CG  188650.8735950  # -3.4, assumes multiply 762.071798
+#C_eff_stack_GC_UG   43857.2319749  # -2.5, assumes multiply 762.071798
+#C_eff_stack_GC_GU   8670.09084585  # -1.5, assumes multiply 762.071798
+#C_eff_stack_GC_AU   37294.2696505  # -2.4, assumes multiply 762.071798
+#
+#C_eff_stack_GU_UA    168118.840855  # -1.4, assumes multiply 17378.420597
+#C_eff_stack_GU_GC   522934.0541840  # -2.1, assumes multiply 17378.420597
+#C_eff_stack_GU_CG  1000128.1053600  # -2.5, assumes multiply 17378.420597
+#C_eff_stack_GU_UG    2120.16731283  # +1.3, assumes multiply 17378.420597
+#C_eff_stack_GU_GU    39084.0679227  # -0.5, assumes multiply 17378.420597 ; measured +0.5
+#C_eff_stack_GU_AU   142972.266252   # -1.3, assumes multiply 17378.420597
+#
+#C_eff_stack_UA_UA    31707.8592404  # -0.9, assumes multiply 7372.206287
+#C_eff_stack_UA_GC   221837.0593820  # -2.1, assumes multiply 7372.206287
+#C_eff_stack_UA_CG   360781.0312730  # -2.4, assumes multiply 7372.206287
+#C_eff_stack_UA_UG    60651.1411231  # -1.3, assumes multiply 7372.206287
+#C_eff_stack_UA_GU    37288.6193996  # -1.0, assumes multiply 7372.206287
+#C_eff_stack_UA_AU    60651.1411231  # -1.3, assumes multiply 7372.206287
+#
+#C_eff_stack_UG_UA    45965.9224791  # -0.6, assumes multiply 17378.420597
+#C_eff_stack_UG_GC   168118.8408550  # -1.4, assumes multiply 17378.420597
+#C_eff_stack_UG_CG   197714.2911320  # -1.5, assumes multiply 17378.420597
+#C_eff_stack_UG_UG    39084.0679227  # -0.5, assumes multiply 17378.420597
+#C_eff_stack_UG_GU    10687.7286672  # +0.3, assumes multiply 17378.420597
+#C_eff_stack_UG_AU    87900.0513796  # -1.0, assumes multiply 17378.420597
+
+
+#C_eff_motif_CAACG   # 6.8
+#C_eff_motif_GUUAC   # 6.9
+#
+#C_eff_motif_CUACGG # 2.8
+#C_eff_motif_CUCCGG # 2.7
+#C_eff_motif_CUUCGG # 3.7
+#C_eff_motif_CUUUGG # 3.7 
+#C_eff_motif_CCAAGG # 3.3
+#C_eff_motif_CCCAGG # 3.4
+#C_eff_motif_CCGAGG # 3.5
+#C_eff_motif_CCUAGG # 3.7
+#C_eff_motif_CCACGG # 3.7
+#C_eff_motif_CCGCGG # 3.6
+#C_eff_motif_CCUCGG # 2.5
+#C_eff_motif_CUAAGG # 3.6
+#C_eff_motif_CUCAGG # 3.7
+#C_eff_motif_CUUAGG # 3.5
+#C_eff_motif_CUGCGG # 2.8
+#C_eff_motif_CAACGG # 5.5
+#
+#C_eff_motif_ACAGUGCU # 2.9
+#C_eff_motif_ACAGUGAU # 3.6
+#C_eff_motif_ACAGUGUU # 1.8
+#C_eff_motif_ACAGUACU # 2.8
+C_eff_stack_AU_UA    43924.456658788986
+C_eff_stack_AU_GC    71540.18770718151
+C_eff_stack_AU_CG    84142.32777698337
+C_eff_stack_AU_UG    22977.297378860443
+C_eff_stack_AU_GU    6274.561315155421
+C_eff_stack_AU_AU    31752.46921656331
+C_eff_stack_CG_UA    71540.18770718151
+C_eff_stack_CG_GC    37423.34663936005
+C_eff_stack_CG_CG    161184.26640372947
+C_eff_stack_CG_UG    23001.13573189372
+C_eff_stack_CG_GU    7387.511169616369
+C_eff_stack_CG_AU    71540.18770718151
+C_eff_stack_GC_UA    84142.32777698337
+C_eff_stack_GC_GC    161184.26640372947
+C_eff_stack_GC_CG    189577.6319702579
+C_eff_stack_GC_UG    44015.64491736168
+C_eff_stack_GC_GU    8688.855959314003
+C_eff_stack_GC_AU    116397.43682301695
+C_eff_stack_GU_UA    22977.297378860443
+C_eff_stack_GU_GC    23001.13573189372
+C_eff_stack_GU_CG    44015.64491736168
+C_eff_stack_GU_UG    92.46089151486113
+C_eff_stack_GU_GU    1715.2132616356942
+C_eff_stack_GU_AU    19535.948326082056
+C_eff_stack_UA_UA    31752.46921656331
+C_eff_stack_UA_GC    71540.18770718151
+C_eff_stack_UA_CG    116397.43682301695
+C_eff_stack_UA_UG    19535.948326082056
+C_eff_stack_UA_GU    12007.183735590115
+C_eff_stack_UA_AU    60762.452192643985
+C_eff_stack_UG_UA    6274.561315155421
+C_eff_stack_UG_GC    7387.511169616369
+C_eff_stack_UG_CG    8688.855959314003
+C_eff_stack_UG_UG    1715.2132616356942
+C_eff_stack_UG_GU    468.38453632072145
+C_eff_stack_UG_AU    12007.183735590115
