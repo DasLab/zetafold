@@ -39,7 +39,7 @@ This code also presents entirely new features, based on recent theoretical insig
  * Easy install through `sudo pip` (_coming soon_)
  
 ## License
-This code is being released with the MIT license. So you can distribute it with your code. 
+License for the code is in [LICENSE.md](LICENSE.md).
 
 ## Getting started
 Clone this repository, and just type:
